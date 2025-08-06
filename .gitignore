@@ -94,7 +94,8 @@ temp/
 build/
 lib/
 es/
-types/
+dist/types/
+*.d.ts.map
 
 # IDE files
 # .vscode/ - commented out to include project-specific VS Code settings
