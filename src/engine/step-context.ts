@@ -1,5 +1,5 @@
-import { ActionStep, PageState } from '../types';
 import { z } from 'zod';
+import { ActionStep, PageState } from '../types';
 
 /**
  * Represents the execution result of a step
@@ -80,7 +80,7 @@ export class StepContextManager {
    */
   addStepResult(result: StepExecutionResult): void {
     this.stepHistory.push(result);
-    
+
     // Track form elements if this was a form interaction
     if (result.step.target?.selector && this.isFormInteraction(result.step)) {
       this.updateFormElementContext(result);
@@ -176,18 +176,18 @@ export class StepContextManager {
       })),
       sessionDuration: Date.now() - this.sessionStartTime.getTime(),
       totalSteps: this.stepHistory.length,
-      successRate: this.stepHistory.length > 0 ? 
+      successRate: this.stepHistory.length > 0 ?
         this.stepHistory.filter(s => s.success).length / this.stepHistory.length : 0
     }, null, 2);
   }
 
   private isFormInteraction(step: ActionStep): boolean {
-    return (['type', 'click', 'fill'].includes(step.type)) && 
-           (step.target?.selector?.includes('input') || 
-            step.target?.selector?.includes('textarea') ||
-            step.target?.selector?.includes('select') ||
-            step.target?.selector?.includes('button') ||
-            false);
+    return (['type', 'click', 'fill'].includes(step.type)) &&
+      (step.target?.selector?.includes('input') ||
+        step.target?.selector?.includes('textarea') ||
+        step.target?.selector?.includes('select') ||
+        step.target?.selector?.includes('button') ||
+        false);
   }
 
   private updateFormElementContext(result: StepExecutionResult): void {
@@ -196,7 +196,7 @@ export class StepContextManager {
 
     const existing = this.formElements.get(selector);
     const extractedName = this.extractNameFromSelector(selector);
-    
+
     const updated: FormElementContext = {
       selector,
       type: this.inferElementType(result.step),
@@ -232,10 +232,10 @@ export class StepContextManager {
   private extractNameFromSelector(selector: string): string | undefined {
     const nameMatch = selector.match(/name=['"]([^'"]+)['"]/);
     if (nameMatch) return nameMatch[1];
-    
+
     const idMatch = selector.match(/id=['"]([^'"]+)['"]/);
     if (idMatch) return idMatch[1];
-    
+
     return undefined;
   }
 }

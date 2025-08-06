@@ -11,8 +11,8 @@ import {
   TaskResult
 } from '../types';
 import { ActionPlanner } from './action-planner';
-import { StepContextManager, StepExecutionResult } from './step-context';
 import { ContextualStepAnalyzer } from './contextual-analyzer';
+import { StepContextManager, StepExecutionResult } from './step-context';
 
 /**
  * Core ActionEngine implementation that orchestrates task execution
@@ -32,7 +32,7 @@ export class ActionEngine implements IActionEngine {
     this.aiEngine = aiEngine;
     this.actionPlanner = new ActionPlanner(aiEngine);
     this.stepContextManager = new StepContextManager();
-    
+
     // Initialize contextual analyzer
     try {
       this.contextualAnalyzer = new ContextualStepAnalyzer();
@@ -128,7 +128,7 @@ export class ActionEngine implements IActionEngine {
         }
 
         const stepResult = await this.executeStep(currentPlan.steps[i]!);
-        
+
         // Capture page state after step execution
         const pageStateAfter = await this.captureState();
 
@@ -537,18 +537,18 @@ Respond with ONLY a JSON object with the refined step.`;
    * Check if a step needs context-aware refinement
    */
   private needsRefinement(step: ActionStep): boolean {
-    return step.type === ActionType.CLICK || 
-           step.type === ActionType.TYPE || 
-           step.type === ActionType.FILL || 
-           step.type === ActionType.EXTRACT;
+    return step.type === ActionType.CLICK ||
+      step.type === ActionType.TYPE ||
+      step.type === ActionType.FILL ||
+      step.type === ActionType.EXTRACT;
   }
 
   /**
    * Refine a step using both previous step context and current page content
    */
   private async refineStepWithContext(
-    step: ActionStep, 
-    stepContext: any, 
+    step: ActionStep,
+    stepContext: any,
     pageState: PageState
   ): Promise<ActionStep> {
     try {
@@ -561,7 +561,7 @@ Respond with ONLY a JSON object with the refined step.`;
 
       // Fallback to regular page content refinement with context-aware prompt
       const contextualPrompt = this.createContextualPrompt(step, stepContext, pageState);
-      
+
       const refinedPlan = await this.actionPlanner.createActionPlan(contextualPrompt, {
         url: pageState.url,
         pageTitle: pageState.title,

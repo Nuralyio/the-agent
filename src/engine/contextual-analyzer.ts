@@ -4,7 +4,7 @@ import { StepContext } from './step-context';
  * Simple contextual analyzer that uses previous step knowledge to improve current step execution
  */
 export class ContextualStepAnalyzer {
-  
+
   constructor() {
     // Simple implementation without complex dependencies
   }
@@ -20,7 +20,7 @@ export class ContextualStepAnalyzer {
   ): Promise<any> {
     try {
       // Get only the immediately previous step
-      const previousStep = stepContext.previousSteps.length > 0 ? 
+      const previousStep = stepContext.previousSteps.length > 0 ?
         stepContext.previousSteps[stepContext.previousSteps.length - 1] : null;
 
       // If no previous step or it failed, use original
@@ -44,8 +44,8 @@ export class ContextualStepAnalyzer {
 
       // Try to adapt the selector pattern for the current step
       const improvedSelector = this.adaptSelectorPattern(
-        previousSelector, 
-        step.target.selector, 
+        previousSelector,
+        step.target.selector,
         step.description
       );
 
@@ -86,7 +86,7 @@ export class ContextualStepAnalyzer {
     // Apply context if both are form-related actions
     const currentIsForm = this.isFormAction(currentStep);
     const previousIsForm = this.isFormAction(previousStep.step);
-    
+
     return currentIsForm && previousIsForm;
   }
 
@@ -95,10 +95,10 @@ export class ContextualStepAnalyzer {
    */
   private isFormAction(step: any): boolean {
     const selector = step.target?.selector || '';
-    return selector.includes('input') || 
-           selector.includes('textarea') || 
-           selector.includes('select') ||
-           selector.includes('form');
+    return selector.includes('input') ||
+      selector.includes('textarea') ||
+      selector.includes('select') ||
+      selector.includes('form');
   }
 
   /**
@@ -111,10 +111,10 @@ export class ContextualStepAnalyzer {
   ): string | null {
     // Extract the pattern from successful selector
     // e.g., input[name='custname'] -> look for input[name='custemail'] for email steps
-    
+
     if (successfulSelector.includes('input[name=')) {
       const description = stepDescription.toLowerCase();
-      
+
       // Map description keywords to likely field names
       if (description.includes('email')) {
         return successfulSelector.replace(/name='[^']*'/, "name='custemail'");
