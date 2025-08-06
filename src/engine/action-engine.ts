@@ -133,10 +133,54 @@ export class ActionEngine implements IActionEngine {
         // Get current step context including previous steps
         const stepContext = this.stepContextManager.getCurrentContext(i, currentPlan.steps.length);
 
+        // Track refinement information  
+        let refinementInfo: {
+          wasRefined: boolean;
+          originalStep?: ActionStep;
+          refinementReason?: string;
+          contextUsed?: {
+            previousStepPatterns?: string[];
+            pageContentAnalysis?: string;
+          };
+        } = { wasRefined: false };
+
         // For steps that need page interaction, refine with context and page content
         if (this.needsRefinement(step)) {
           console.log(`🔄 Refining step ${i + 1} with context and page content...`);
+          const originalStep = { ...step }; // Keep copy of original step
           const refinedStep = await this.refineStepWithContext(step, stepContext, pageStateBefore);
+          
+          // Check if step was actually refined by comparing selectors specifically
+          const originalSelector = originalStep.target?.selector;
+          const refinedSelector = refinedStep.target?.selector;
+          const wasActuallyRefined = originalSelector !== refinedSelector;
+          
+          if (wasActuallyRefined) {
+            // Determine the refinement reason based on the change
+            let refinementReason = 'Context-aware selector improvement';
+            if (this.contextualAnalyzer && originalSelector && refinedSelector) {
+              if (refinedSelector.includes('name=') && originalSelector.includes('name=')) {
+                refinementReason = `Selector pattern adapted from previous successful step`;
+              } else if (refinedSelector.includes('textarea') && originalSelector.includes('input')) {
+                refinementReason = `Element type refined from input to textarea based on context`;
+              } else {
+                refinementReason = `Contextual analysis improved selector specificity`;
+              }
+            }
+            
+            refinementInfo = {
+              wasRefined: true,
+              originalStep: originalStep,
+              refinementReason: refinementReason,
+              contextUsed: {
+                previousStepPatterns: stepContext.previousSteps.map(s => s.selectorUsed || 'N/A').filter(s => s !== 'N/A'),
+                pageContentAnalysis: `Refined "${originalSelector}" to "${refinedSelector}"`
+              }
+            };
+            
+            console.log(`🎯 Selector refined: "${originalSelector}" → "${refinedSelector}"`);
+          }
+          
           currentPlan.steps[i] = refinedStep;
           console.log(`✨ Context-refined step ${i + 1}: ${refinedStep.description}`);
           if (refinedStep.target?.selector) {
@@ -183,7 +227,7 @@ export class ActionEngine implements IActionEngine {
           console.warn(`⚠️ Failed to take screenshot for step ${i + 1}:`, error);
         }
 
-        // Log step execution with screenshot
+        // Log step execution with screenshot and refinement info
         if (logger) {
           await logger.logStepExecution(
             i,
@@ -192,7 +236,8 @@ export class ActionEngine implements IActionEngine {
             pageStateAfter.url,
             pageStateAfter.title,
             screenshotBuffer,
-            pageStateAfter.viewport
+            pageStateAfter.viewport,
+            refinementInfo
           );
         }
 

@@ -22,7 +22,7 @@ export class ExecutionVisualizer {
   }
 
   /**
-   * Generate Mermaid diagram for the execution flow
+   * Generate Mermaid diagram for the execution flow with detailed refinement information
    */
   static generateMermaidDiagram(sessionLog: ExecutionSessionLog): string {
     let mermaid = 'graph TD\n';
@@ -32,14 +32,54 @@ export class ExecutionVisualizer {
       const stepId = `Step${index + 1}`;
       const nextStepId = index + 1 < sessionLog.entries.length ? `Step${index + 2}` : 'End';
       
+      // Check if this step was refined
+      const wasRefined = entry.refinement?.wasRefined || false;
+      
       // Create step node with status color
       const status = entry.result.success ? '✅' : '❌';
       const stepType = entry.step.type.toUpperCase();
-      const nodeStyle = entry.result.success ? 'fill:#d4edda,stroke:#155724' : 'fill:#f8d7da,stroke:#721c24';
+      const refinementIndicator = wasRefined ? '🔄' : '';
       
-      mermaid += `    ${stepId}["${status} ${stepType}<br/>${entry.step.description}<br/>⏱️ ${entry.result.executionTimeMs}ms"]\n`;
+      // Build main step description - escape quotes and special characters
+      const stepDescription = this.escapeForMermaid(entry.step.description);
+      
+      const nodeStyle = entry.result.success ? 
+        (wasRefined ? 'fill:#fff3cd,stroke:#856404' : 'fill:#d4edda,stroke:#155724') : 
+        'fill:#f8d7da,stroke:#721c24';
+      
+      // Main step node - simplified for better readability
+      mermaid += `    ${stepId}['${status} ${refinementIndicator} ${stepType}<br/>${stepDescription}<br/>⏱️ ${entry.result.executionTimeMs}ms']\n`;
       mermaid += `    style ${stepId} ${nodeStyle}\n`;
       
+      // Create refinement subtree if step was refined
+      if (wasRefined && entry.refinement?.originalStep) {
+        const refinementId = `${stepId}_refinement`;
+        const originalId = `${stepId}_original`;
+        const refinedId = `${stepId}_refined`;
+        const reasonId = `${stepId}_reason`;
+        
+        const originalSelector = this.escapeForMermaid(entry.refinement.originalStep.selector || 'N/A');
+        const refinedSelector = this.escapeForMermaid(entry.step.target?.selector || 'N/A');
+        const reason = this.escapeForMermaid(entry.refinement.refinementReason || 'Context improvement');
+        
+        // Create refinement subtree
+        mermaid += `    ${stepId} -.-> ${refinementId}[🔄 Refinement Details]\n`;
+        mermaid += `    style ${refinementId} fill:#f0f8ff,stroke:#4682b4,stroke-dasharray: 5 5\n`;
+        
+        // Original selector node
+        mermaid += `    ${refinementId} --> ${originalId}['🔍 Original:<br/>${originalSelector}']\n`;
+        mermaid += `    style ${originalId} fill:#ffe6e6,stroke:#dc3545\n`;
+        
+        // Refined selector node  
+        mermaid += `    ${refinementId} --> ${refinedId}['🎯 Refined:<br/>${refinedSelector}']\n`;
+        mermaid += `    style ${refinedId} fill:#e6ffe6,stroke:#28a745\n`;
+        
+        // Reason node
+        mermaid += `    ${refinementId} --> ${reasonId}['💡 Reason:<br/>${reason}']\n`;
+        mermaid += `    style ${reasonId} fill:#fff3cd,stroke:#856404\n`;
+      }
+      
+      // Connect to next step or end
       if (index + 1 < sessionLog.entries.length) {
         mermaid += `    ${stepId} --> ${nextStepId}\n`;
       } else {
@@ -51,6 +91,52 @@ export class ExecutionVisualizer {
     mermaid += `    style End fill:#e7f3ff,stroke:#004085\n`;
     
     return mermaid;
+  }
+
+  /**
+   * Escape special characters for Mermaid diagram syntax
+   */
+  private static escapeForMermaid(text: string): string {
+    return text
+      .replace(/"/g, "'")       // Replace double quotes with single quotes
+      .replace(/\n/g, ' ')      // Replace newlines with spaces
+      .replace(/\t/g, ' ')      // Replace tabs with spaces
+      .replace(/\[/g, '_LB_')   // Replace square brackets with placeholders
+      .replace(/\]/g, '_RB_')
+      .replace(/\{/g, '_LC_')   // Replace curly brackets with placeholders
+      .replace(/\}/g, '_RC_')
+      .replace(/\(/g, '_LP_')   // Replace parentheses with placeholders
+      .replace(/\)/g, '_RP_')
+      .replace(/=/g, '_EQ_')    // Replace equals sign with placeholder
+      .replace(/&/g, '_AMP_')   // Replace ampersand with placeholder
+      .replace(/_LB_/g, '&#91;') // Convert back to HTML entities
+      .replace(/_RB_/g, '&#93;')
+      .replace(/_LC_/g, '&#123;')
+      .replace(/_RC_/g, '&#125;')
+      .replace(/_LP_/g, '&#40;')
+      .replace(/_RP_/g, '&#41;')
+      .replace(/_EQ_/g, '&#61;')
+      .replace(/_AMP_/g, '&#38;');
+  }
+
+  /**
+   * Truncate selector for display in diagram
+   */
+  private static truncateSelector(selector: string): string {
+    if (selector.length > 25) {
+      return selector.substring(0, 25) + '...';
+    }
+    return selector;
+  }
+
+  /**
+   * Truncate refinement reason for display
+   */
+  private static truncateReason(reason: string): string {
+    if (reason.length > 30) {
+      return reason.substring(0, 30) + '...';
+    }
+    return reason;
   }
 
   /**
@@ -182,6 +268,10 @@ export class ExecutionVisualizer {
             color: #dc3545;
             font-weight: bold;
         }
+        .refined {
+            background-color: #fff3cd;
+            border-left: 3px solid #856404;
+        }
         .screenshot-link {
             color: #667eea;
             text-decoration: none;
@@ -232,6 +322,10 @@ export class ExecutionVisualizer {
                     <div class="stat-label">Success Rate</div>
                 </div>
                 <div class="stat-card">
+                    <div class="stat-value">${sessionLog.entries.filter(e => e.refinement?.wasRefined).length}</div>
+                    <div class="stat-label">Refined Steps</div>
+                </div>
+                <div class="stat-card">
                     <div class="stat-value">${sessionLog.summary.averageStepTime.toFixed(0)}ms</div>
                     <div class="stat-label">Avg Step Time</div>
                 </div>
@@ -256,18 +350,44 @@ ${mermaidDiagram}
                         <th>Type</th>
                         <th>Description</th>
                         <th>Selector</th>
+                        <th>Refined</th>
                         <th>Result</th>
                         <th>Time</th>
                         <th>Screenshot</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${sessionLog.entries.map((entry, index) => `
-                    <tr>
+                    ${sessionLog.entries.map((entry, index) => {
+                      const wasRefined = entry.refinement?.wasRefined || false;
+                      let refinementInfo = 'No';
+                      
+                      if (wasRefined) {
+                        const originalSelector = entry.refinement?.originalStep?.selector || 'N/A';
+                        const refinedSelector = entry.step.target?.selector || 'N/A';
+                        const reason = entry.refinement?.refinementReason || 'Context improvement';
+                        
+                        if (originalSelector !== refinedSelector) {
+                          refinementInfo = `🔄 Yes<br/>
+                            <details style="margin-top: 5px;">
+                              <summary style="cursor: pointer; color: #856404;">View Details</summary>
+                              <div style="margin-top: 5px; font-size: 11px;">
+                                <strong>Original:</strong><br/><code style="background: #f8f9fa; padding: 2px;">${originalSelector}</code><br/>
+                                <strong>Refined:</strong><br/><code style="background: #e8f5e8; padding: 2px;">${refinedSelector}</code><br/>
+                                <strong>Reason:</strong> ${reason}
+                              </div>
+                            </details>`;
+                        } else {
+                          refinementInfo = `🔄 Yes<br/><small style="color: #856404;">${reason}</small>`;
+                        }
+                      }
+                      
+                      return `
+                    <tr class="${wasRefined ? 'refined' : ''}">
                         <td>${entry.stepIndex}</td>
                         <td><code>${entry.step.type}</code></td>
                         <td>${entry.step.description}</td>
                         <td><code>${entry.step.target?.selector || 'N/A'}</code></td>
+                        <td>${refinementInfo}</td>
                         <td class="${entry.result.success ? 'success' : 'failed'}">
                             ${entry.result.success ? '✅ Success' : '❌ Failed'}
                         </td>
@@ -279,7 +399,8 @@ ${mermaidDiagram}
                             }
                         </td>
                     </tr>
-                    `).join('')}
+                    `;
+                    }).join('')}
                 </tbody>
             </table>
         </div>
