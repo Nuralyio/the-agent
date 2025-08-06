@@ -1,0 +1,60 @@
+{
+  "name": "browser-automation-framework",
+  "version": "1.0.0",
+  "description": "AI-powered browser automation framework with multi-adapter support (Playwright, Puppeteer, Selenium)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "nodemon --exec ts-node src/index.ts",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src/**/*.ts --config .eslintrc.json",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "format": "prettier --write src/**/*.ts",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
+    "example:simple": "ts-node examples/simple-example.ts",
+    "example:advanced": "ts-node examples/advanced-example.ts",
+    "install:browsers": "npx playwright install"
+  },
+  "keywords": [
+    "browser-automation",
+    "playwright",
+    "puppeteer",
+    "selenium",
+    "ai",
+    "web-scraping",
+    "typescript",
+    "cross-browser",
+    "testing"
+  ],
+  "author": "Browser Automation Framework Team",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.39.0",
+    "@typescript-eslint/parser": "^8.39.0",
+    "eslint": "^9.32.0",
+    "jest": "^30.0.5",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.6.2",
+    "ts-jest": "^29.4.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "axios": "^1.11.0",
+    "dotenv": "^17.2.1",
+    "openai": "^5.12.0",
+    "playwright": "^1.54.2",
+    "puppeteer": "^24.16.0"
+  }
+}
