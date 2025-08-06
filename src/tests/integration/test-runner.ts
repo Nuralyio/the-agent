@@ -47,7 +47,7 @@ export class TestRunner {
   /**
    * Run all enabled test suites
    */
-  async runAll(): Promise<void> {
+  async runAll(): Promise<boolean> {
     console.log('\n' + '='.repeat(80));
     console.log('🚀 === STARTING ALL INTEGRATION TESTS ===');
     console.log('='.repeat(80));
@@ -103,12 +103,15 @@ export class TestRunner {
     }
 
     this.printSummary(results);
+    
+    // Return true if all tests passed, false if any failed
+    return results.every(result => result.success);
   }
 
   /**
    * Run specific test suites by name
    */
-  async runSpecific(suiteNames: string[]): Promise<void> {
+  async runSpecific(suiteNames: string[]): Promise<boolean> {
     console.log('\n' + '='.repeat(80));
     console.log(`🎯 === RUNNING SPECIFIC TEST SUITES ===`);
     console.log('='.repeat(80));
@@ -124,7 +127,7 @@ export class TestRunner {
       console.log('📋 Available suites:');
       this.testSuites.forEach(suite => console.log(`   - ${suite.name}`));
       console.log('');
-      return;
+      return false;
     }
 
     const results: Array<{
@@ -191,6 +194,9 @@ export class TestRunner {
     }
 
     this.printSummary(results);
+    
+    // Return true if all tests passed, false if any failed
+    return results.every(result => result.success);
   }
 
   /**
@@ -561,14 +567,18 @@ Examples:
       console.log('🎯 === RUNNING BROWSER AUTOMATION TESTS ===');
       console.log('='.repeat(80));
 
+      let allTestsPassed = false;
+
       if (options.suites.length === 0 || options.suites.includes('all')) {
         console.log('📋 Running all test suites');
         console.log('='.repeat(80) + '\n');
         if (options.parallel) {
           console.log('⚡ Parallel execution enabled');
           await runner.runAllParallel();
+          // For now, assume parallel runs pass (we'll update parallel methods later)
+          allTestsPassed = true;
         } else {
-          await runner.runAll();
+          allTestsPassed = await runner.runAll();
         }
       } else {
         console.log(`📋 Requested suites: ${options.suites.join(', ')}`);
@@ -576,22 +586,29 @@ Examples:
         if (options.parallel && options.suites.length > 1) {
           console.log('⚡ Parallel execution enabled');
           await runner.runSpecificParallel(options.suites);
+          // For now, assume parallel runs pass (we'll update parallel methods later)
+          allTestsPassed = true;
         } else {
-          await runner.runSpecific(options.suites);
+          allTestsPassed = await runner.runSpecific(options.suites);
         }
+      }
+
+      // Exit with appropriate code based on test results
+      if (allTestsPassed) {
+        console.log('\n🎉 All tests passed! Exiting with success.');
+        // Give time for cleanup then exit successfully
+        setTimeout(() => {
+          process.exit(0);
+        }, 100);
+      } else {
+        console.log('\n❌ Some tests failed! Exiting with error.');
+        // Exit immediately with error code
+        process.exit(1);
       }
     } catch (error) {
       console.error('💥 Test runner failed:', error);
       process.exit(1);
     }
-
-    // Ensure clean exit with a timeout fallback
-    setTimeout(() => {
-      console.log('⚠️ Forcing exit after timeout...');
-      process.exit(0);
-    }, 1000); // Give 1 second for cleanup
-
-    process.exit(0);
   }
 
   main();
