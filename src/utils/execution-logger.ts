@@ -197,21 +197,24 @@ export class ExecutionLogger {
     this.sessionLog.success = success;
 
     // Calculate final summary
-    this.sessionLog.summary.successRate = this.sessionLog.totalSteps > 0 ?
+    this.sessionLog.summary.successRate = this.sessionLog.totalSteps > 0 ? 
       this.sessionLog.successfulSteps / this.sessionLog.totalSteps : 0;
-
+    
     this.sessionLog.summary.averageStepTime = this.sessionLog.totalSteps > 0 ?
       this.sessionLog.entries.reduce((sum, entry) => sum + entry.result.executionTimeMs, 0) / this.sessionLog.totalSteps : 0;
 
     // Save the complete log
     const logFilename = `execution-${this.sessionLog.sessionId}.json`;
     const logPath = join(this.logDir, logFilename);
-
+    
     try {
       writeFileSync(logPath, JSON.stringify(this.sessionLog, null, 2));
       console.log(`📋 Execution log saved: ${logPath}`);
       console.log(`📊 Session Summary: ${this.sessionLog.successfulSteps}/${this.sessionLog.totalSteps} steps successful (${(this.sessionLog.summary.successRate * 100).toFixed(1)}%)`);
-
+      
+      // Generate visualization and export formats
+      this.generateVisualizationFormats();
+      
       return logPath;
     } catch (error) {
       console.error(`❌ Failed to save execution log: ${error}`);
@@ -220,6 +223,36 @@ export class ExecutionLogger {
   }
 
   /**
+   * Generate visualization and export formats
+   */
+  private generateVisualizationFormats(): void {
+    try {
+      // Import format converter dynamically to avoid circular dependency
+      const { ExecutionFormatConverter } = require('./execution-format-converter');
+      const { ExecutionVisualizer } = require('./execution-visualizer');
+
+      // Generate HTML report
+      const reportFileName = `execution-report-${this.sessionLog.sessionId}.html`;
+      ExecutionVisualizer.generateHTMLReport(this.sessionLog, join(this.logDir, reportFileName));
+      
+      // Generate other formats
+      ExecutionFormatConverter.convertToCSV(this.sessionLog, join(this.logDir, `execution-data-${this.sessionLog.sessionId}.csv`));
+      ExecutionFormatConverter.convertToJUnit(this.sessionLog, join(this.logDir, `junit-${this.sessionLog.sessionId}.xml`));
+      
+      // Generate diagram files
+      const mermaidContent = ExecutionVisualizer.generateMermaidDiagram(this.sessionLog);
+      const plantumlContent = ExecutionVisualizer.generatePlantUMLSequence(this.sessionLog);
+      
+      writeFileSync(join(this.logDir, `mermaid-${this.sessionLog.sessionId}.md`), 
+        `# Execution Flow Diagram\n\n\`\`\`mermaid\n${mermaidContent}\n\`\`\``);
+        
+      writeFileSync(join(this.logDir, `sequence-${this.sessionLog.sessionId}.puml`), plantumlContent);
+      
+      console.log(`🎨 Visualization formats generated for session ${this.sessionLog.sessionId}`);
+    } catch (error) {
+      console.warn(`⚠️ Failed to generate visualization formats: ${error}`);
+    }
+  }  /**
    * Get the current session ID
    */
   getSessionId(): string {
