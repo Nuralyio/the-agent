@@ -10,14 +10,21 @@
     "start": "node dist/index.js",
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "eslint src/**/*.ts --config .eslintrc.json",
-    "lint:fix": "eslint src/**/*.ts --fix",
-    "format": "prettier --write src/**/*.ts",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint . --ext .ts,.js",
+    "lint:fix": "eslint . --ext .ts,.js --fix",
+    "lint:check": "eslint . --ext .ts,.js --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
-    "prebuild": "npm run clean",
-    "example:simple": "ts-node examples/simple-example.ts",
-    "example:advanced": "ts-node examples/advanced-example.ts",
-    "install:browsers": "npx playwright install"
+    "prebuild": "npm run clean && npm run lint:check && npm run typecheck",
+    "precommit": "npm run lint:fix && npm run format && npm run typecheck",
+    "example:simple": "ts-node src/examples/simple-example.ts",
+    "example:advanced": "ts-node src/examples/advanced-example.ts",
+    "example:ai": "ts-node src/examples/ai-example.ts",
+    "install:browsers": "npx playwright install",
+    "postinstall": "npm run install:browsers"
   },
   "keywords": [
     "browser-automation",
@@ -38,23 +45,46 @@
     "LICENSE"
   ],
   "devDependencies": {
+    "@eslint/js": "^9.32.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.2.0",
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
     "eslint": "^9.32.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "husky": "^9.1.7",
     "jest": "^30.0.5",
+    "lint-staged": "^15.3.0",
     "nodemon": "^3.1.10",
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.39.0"
   },
   "dependencies": {
+    "@langchain/ollama": "^0.2.3",
     "axios": "^1.11.0",
-    "dotenv": "^17.2.1",
-    "openai": "^5.12.0",
+    "dotenv": "^16.4.5",
+    "langchain": "^0.3.30",
+    "openai": "^4.62.1",
     "playwright": "^1.54.2",
     "puppeteer": "^24.16.0"
+  },
+  "lint-staged": {
+    "*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "npm run lint:check && npm run typecheck && npm run test"
+    }
   }
 }

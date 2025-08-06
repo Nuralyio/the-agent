@@ -41,6 +41,7 @@ jspm_packages/
 
 # Optional eslint cache
 .eslintcache
+.eslintrc.cache
 
 # Microbundle cache
 .rpt2_cache/
@@ -96,7 +97,7 @@ es/
 types/
 
 # IDE files
-.vscode/
+# .vscode/ - commented out to include project-specific VS Code settings
 .idea/
 *.swp
 *.swo

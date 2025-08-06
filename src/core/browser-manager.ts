@@ -1,13 +1,13 @@
-import {
-    BrowserManager,
-    BrowserAdapter,
-    BrowserInstance,
-    PageInstance,
-    LaunchOptions,
-    ScreenshotOptions,
-    BrowserType
-} from '../types';
 import { BrowserAdapterRegistry } from '../adapters/adapter-registry';
+import {
+  BrowserAdapter,
+  BrowserInstance,
+  BrowserManager,
+  BrowserType,
+  LaunchOptions,
+  PageInstance,
+  ScreenshotOptions
+} from '../types';
 
 /**
  * Browser manager implementation with adapter abstraction
@@ -126,7 +126,7 @@ export class BrowserManagerImpl implements BrowserManager {
   /**
    * Get the current page instance
    */
-  getCurrentPage(): PageInstance | null {
+  async getCurrentPage(): Promise<PageInstance | null> {
     return this.currentPage;
   }
 
