@@ -109,11 +109,8 @@ export async function executeTestInstruction(
   console.log(`🤖 Instruction: "${instruction}"`);
 
   try {
-    const plan = await actionEngine.parseInstruction(instruction);
-    console.log(`✅ Generated ${plan.steps.length} steps`);
-    console.log('📋 Action plan:', JSON.stringify(plan.steps, null, 2));
-
-    const result = await actionEngine.executeActionPlan(plan);
+    // Use executeTask which includes logging and screenshots
+    const result = await actionEngine.executeTask(instruction);
     console.log(`${result.success ? '✅' : '❌'} Execution result: ${result.success ? 'Success' : 'Failed'}`);
 
     return {

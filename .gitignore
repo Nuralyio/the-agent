@@ -115,6 +115,7 @@ Thumbs.db
 
 # Browser automation specific
 screenshots/
+execution-logs/
 test-results/
 downloads/
 playwright-report/
