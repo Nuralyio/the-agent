@@ -1,0 +1,26 @@
+# Prettier ignore file
+node_modules/
+dist/
+build/
+lib/
+es/
+types/
+coverage/
+test-results/
+playwright-report/
+allure-results/
+allure-report/
+*.min.js
+*.min.css
+*.bundle.js
+*.chunk.js
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+*.log
+.env
+.env.*
+examples/**/*.js
+examples/**/*.d.ts
+examples/**/*.js.map
+examples/**/*.d.ts.map

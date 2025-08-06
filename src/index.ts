@@ -1,14 +1,14 @@
-import {
-    BrowserConfig,
-    BrowserType,
-    AIConfig,
-    TaskResult,
-    ExecutionOptions,
-    BrowserAdapter,
-    LaunchOptions
-} from './types';
-import { BrowserManagerImpl } from './core/browser-manager';
 import { BrowserAdapterRegistry } from './adapters/adapter-registry';
+import { BrowserManagerImpl } from './core/browser-manager';
+import {
+  AIConfig,
+  BrowserAdapter,
+  BrowserConfig,
+  BrowserType,
+  ExecutionOptions,
+  LaunchOptions,
+  TaskResult
+} from './types';
 
 /**
  * Main Browser Automation Framework class
@@ -22,7 +22,7 @@ export class BrowserAutomation {
   constructor(config?: Partial<BrowserConfig & { ai?: AIConfig }>) {
     this.browserManager = new BrowserManagerImpl();
     this.registry = this.browserManager.getRegistry();
-    
+
     // Default configuration
     this.config = {
       adapter: 'auto',
@@ -94,7 +94,7 @@ export class BrowserAutomation {
     try {
       // Parse instruction and execute basic commands
       await this.executeBasicInstruction(instruction);
-      
+
       result.success = true;
     } catch (error) {
       result.success = false;
@@ -185,6 +185,13 @@ export class BrowserAutomation {
   }
 
   /**
+   * Get the browser manager instance (for advanced usage)
+   */
+  getBrowserManager() {
+    return this.browserManager;
+  }
+
+  /**
    * Close the browser and cleanup
    */
   async close(): Promise<void> {
@@ -236,7 +243,8 @@ export class BrowserAutomation {
 }
 
 // Export main class and types
-export * from './types';
 export { BrowserAdapterRegistry } from './adapters/adapter-registry';
 export { PlaywrightAdapter } from './adapters/playwright-adapter';
 export { PuppeteerAdapter } from './adapters/puppeteer-adapter';
+export * from './types';
+
