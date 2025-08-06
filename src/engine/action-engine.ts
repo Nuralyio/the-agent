@@ -10,6 +10,7 @@ import {
   TaskContext,
   TaskResult
 } from '../types';
+import { ExecutionLogger } from '../utils/execution-logger';
 import { ActionPlanner } from './action-planner';
 import { ContextualStepAnalyzer } from './contextual-analyzer';
 import { StepContextManager, StepExecutionResult } from './step-context';
@@ -48,17 +49,33 @@ export class ActionEngine implements IActionEngine {
   async executeTask(instruction: string, options?: ExecutionOptions): Promise<TaskResult> {
     console.log(`🤖 Processing instruction: "${instruction}"`);
 
+    // Initialize execution logger
+    const logger = new ExecutionLogger(instruction);
+    console.log(`📝 Execution logging started: ${logger.getSessionId()}`);
+
     try {
       // 1. Parse the instruction into actionable steps
       const actionPlan = await this.parseInstruction(instruction);
       console.log(`📋 Generated ${actionPlan.steps.length} steps`);
 
-      // 2. Execute the action plan
-      const result = await this.executeActionPlan(actionPlan);
+      // 2. Execute the action plan with logging
+      const result = await this.executeActionPlan(actionPlan, logger);
+
+      // 3. Finalize logging
+      const logPath = logger.finishSession(result.success);
+      console.log(`📋 Complete execution log saved to: ${logPath}`);
 
       return result;
     } catch (error) {
       console.error('❌ Task execution failed:', error);
+
+      // Finalize logging even on failure
+      try {
+        logger.finishSession(false);
+      } catch (logError) {
+        console.warn('⚠️ Failed to finalize execution log:', logError);
+      }
+
       return {
         success: false,
         steps: [],
@@ -93,7 +110,7 @@ export class ActionEngine implements IActionEngine {
   /**
    * Execute a structured action plan with dynamic refinement and context awareness
    */
-  async executeActionPlan(plan: ActionPlan): Promise<TaskResult> {
+  async executeActionPlan(plan: ActionPlan, logger?: ExecutionLogger): Promise<TaskResult> {
     const executedSteps: any[] = [];
     const screenshots: Buffer[] = [];
     let currentPlan = plan;
@@ -158,6 +175,27 @@ export class ActionEngine implements IActionEngine {
         // Add step result to context manager
         this.stepContextManager.addStepResult(stepExecutionResult);
 
+        // Take screenshot for logging
+        let screenshotBuffer: Buffer | undefined;
+        try {
+          screenshotBuffer = await this.browserManager.takeScreenshot();
+        } catch (error) {
+          console.warn(`⚠️ Failed to take screenshot for step ${i + 1}:`, error);
+        }
+
+        // Log step execution with screenshot
+        if (logger) {
+          await logger.logStepExecution(
+            i,
+            currentPlan.steps[i]!,
+            stepExecutionResult,
+            pageStateAfter.url,
+            pageStateAfter.title,
+            screenshotBuffer,
+            pageStateAfter.viewport
+          );
+        }
+
         executedSteps.push({
           step: currentPlan.steps[i]!,
           result: stepResult,
@@ -165,10 +203,11 @@ export class ActionEngine implements IActionEngine {
           success: stepResult.success
         });
 
-        // Take screenshot after important steps
+        // Take screenshot after important steps for TaskResult
         if (step.type === ActionType.NAVIGATE || step.type === ActionType.CLICK) {
-          const screenshot = await this.browserManager.takeScreenshot();
-          screenshots.push(screenshot);
+          if (screenshotBuffer) {
+            screenshots.push(screenshotBuffer);
+          }
         }
 
         // If step failed, try to adapt the remaining plan
