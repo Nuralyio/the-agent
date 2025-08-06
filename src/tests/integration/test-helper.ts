@@ -7,11 +7,13 @@ import {
 } from '../../config/environment';
 import { ActionEngine } from '../../engine/action-engine';
 import { BrowserAutomation } from '../../index';
+import { getTestServer, replaceHttpbinUrls, TestServer } from '../test-server';
 
 export interface TestContext {
   automation: BrowserAutomation;
   actionEngine: ActionEngine;
   aiEngine: AIEngine;
+  testServer: TestServer;
 }
 
 /**
@@ -60,7 +62,10 @@ export async function setupTestContext(): Promise<TestContext> {
     aiEngine
   );
 
-  return { automation, actionEngine, aiEngine };
+  // Get test server instance (will be started by test runner)
+  const testServer = getTestServer();
+
+  return { automation, actionEngine, aiEngine, testServer };
 }
 
 /**
@@ -69,6 +74,7 @@ export async function setupTestContext(): Promise<TestContext> {
 export async function teardownTestContext(context: TestContext): Promise<void> {
   console.log('🧹 Cleaning up test context...');
   await context.automation.close();
+  // Note: Test server is managed globally and will be stopped by test runner
 }
 
 /**
@@ -107,11 +113,19 @@ export async function executeTestInstruction(
   testName: string
 ): Promise<{ success: boolean; steps: any[] }> {
   console.log(`\n📋 ${testName}`);
-  console.log(`🤖 Instruction: "${instruction}"`);
+  
+  // Replace httpbin URLs with local test server URLs for stability
+  const testServer = getTestServer();
+  const localInstruction = replaceHttpbinUrls(instruction, testServer);
+  
+  console.log(`🤖 Instruction: "${localInstruction}"`);
+  if (localInstruction !== instruction) {
+    console.log(`🔄 Replaced external URLs with local test server`);
+  }
 
   try {
     // Use executeTask which includes logging and screenshots
-    const result = await actionEngine.executeTask(instruction);
+    const result = await actionEngine.executeTask(localInstruction);
     console.log(`${result.success ? '✅' : '❌'} Execution result: ${result.success ? 'Success' : 'Failed'}`);
 
     return {

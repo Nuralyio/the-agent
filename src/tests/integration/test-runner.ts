@@ -3,6 +3,7 @@ import { FormFillingTest } from './form-filling.test';
 import { InteractionTest } from './interaction.test';
 import { NavigationTest } from './navigation.test';
 import { ScreenshotTest } from './screenshot.test';
+import { getTestServer } from '../test-server';
 
 /**
  * Master test runner for all integration tests
@@ -533,7 +534,14 @@ Examples:
   }
 
   async function main() {
+    const testServer = getTestServer();
+    
     try {
+      // Start the test server first
+      console.log('🚀 Starting local test server for stable testing...');
+      await testServer.start();
+      console.log(`✅ Test server ready at ${testServer.getBaseUrl()}`);
+      
       const options = parseArgs();
 
       if (options.help) {
@@ -596,17 +604,21 @@ Examples:
       // Exit with appropriate code based on test results
       if (allTestsPassed) {
         console.log('\n🎉 All tests passed! Exiting with success.');
-        // Give time for cleanup then exit successfully
+        // Stop test server and give time for cleanup then exit successfully
+        await testServer.stop();
         setTimeout(() => {
           process.exit(0);
         }, 100);
       } else {
         console.log('\n❌ Some tests failed! Exiting with error.');
-        // Exit immediately with error code
+        // Stop test server and exit immediately with error code
+        await testServer.stop();
         process.exit(1);
       }
     } catch (error) {
       console.error('💥 Test runner failed:', error);
+      // Stop test server on error
+      await testServer.stop();
       process.exit(1);
     }
   }
@@ -614,18 +626,24 @@ Examples:
   main();
 
   // Handle process termination signals for clean exit
-  process.on('SIGINT', () => {
-    console.log('\n⚠️ Received SIGINT, forcing exit...');
+  process.on('SIGINT', async () => {
+    console.log('\n⚠️ Received SIGINT, stopping test server...');
+    const testServer = getTestServer();
+    await testServer.stop();
     process.exit(0);
   });
 
-  process.on('SIGTERM', () => {
-    console.log('\n⚠️ Received SIGTERM, forcing exit...');
+  process.on('SIGTERM', async () => {
+    console.log('\n⚠️ Received SIGTERM, stopping test server...');
+    const testServer = getTestServer();
+    await testServer.stop();
     process.exit(0);
   });
 
-  process.on('SIGHUP', () => {
-    console.log('\n⚠️ Received SIGHUP, forcing exit...');
+  process.on('SIGHUP', async () => {
+    console.log('\n⚠️ Received SIGHUP, stopping test server...');
+    const testServer = getTestServer();
+    await testServer.stop();
     process.exit(0);
   });
 }
