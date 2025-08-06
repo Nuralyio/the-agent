@@ -61,8 +61,9 @@ export class ActionPlanner {
 
 Available action types:
 - NAVIGATE: Navigate to a URL
-- CLICK: Click on an element (provide valid CSS selector)
-- TYPE: Type text into an input field (provide CSS selector and text)
+- CLICK: Click on an element (buttons, radio buttons, checkboxes, links)
+- TYPE: Type text into input fields, textareas, and time inputs
+- FILL: Fill form fields with data (use sparingly, prefer TYPE)
 - SCROLL: Scroll the page (up, down, or to element)
 - WAIT: Wait for a specified time or element to appear
 - EXTRACT: Extract text content from an element
@@ -79,10 +80,14 @@ IMPORTANT RULES:
 1. ONLY respond with valid JSON - no markdown, no explanations, no comments
 2. For CLICK actions, use ACTUAL CSS selectors from the page content above
 3. Look at the page content to find the best selectors for elements
-4. For NAVIGATE actions, provide the URL in "value" field with full protocol (https://)
-5. For SCREENSHOT actions, provide filename in "value" field
-6. Each step must have valid "type" and "description"
-7. Always close JSON properly with closing braces
+4. For radio buttons: use CLICK on input[value="desired_value"]
+5. For checkboxes: use CLICK on input[value="desired_value"]
+6. For select dropdowns: NOT SUPPORTED - ask user to use simpler form elements
+7. For form filling, prefer individual TYPE actions over FILL to avoid JSON nesting issues
+8. Each step MUST have valid "type" and "description" fields - this is mandatory
+9. Always close JSON properly with closing braces - ensure the "reasoning" field ends with quotes
+10. NEVER use SELECT action type - it's not supported
+11. NEVER use pseudo-selectors like ::checked - they are not supported
 
 Required JSON structure:
 {
@@ -91,7 +96,7 @@ Required JSON structure:
       "type": "ACTION_TYPE",
       "target": { "selector": "css-selector", "description": "human description" },
       "value": "value if needed",
-      "description": "what this step does"
+      "description": "what this step does - REQUIRED FOR ALL STEPS"
     }
   ],
   "reasoning": "brief explanation of the approach"
@@ -107,6 +112,54 @@ Example for "click on login button":
     }
   ],
   "reasoning": "Looking for submit button which is commonly used for login"
+}
+
+Example for "fill out contact form":
+{
+  "steps": [
+    {
+      "type": "TYPE",
+      "target": { "selector": "input[name='name']", "description": "name input field" },
+      "value": "John Doe",
+      "description": "Fill the name field"
+    },
+    {
+      "type": "TYPE",
+      "target": { "selector": "input[name='email']", "description": "email input field" },
+      "value": "john@example.com",
+      "description": "Fill the email field"
+    }
+  ],
+  "reasoning": "Breaking down form filling into individual TYPE actions for each field"
+}
+
+Example for "select radio button for medium size":
+{
+  "steps": [
+    {
+      "type": "CLICK",
+      "target": { "selector": "input[value='medium']", "description": "medium size radio button" },
+      "description": "Select medium size option"
+    }
+  ],
+  "reasoning": "Click on the radio button with value 'medium'"
+}
+
+Example for "select checkboxes for bacon and cheese":
+{
+  "steps": [
+    {
+      "type": "CLICK",
+      "target": { "selector": "input[value='bacon']", "description": "bacon checkbox" },
+      "description": "Select bacon topping"
+    },
+    {
+      "type": "CLICK",
+      "target": { "selector": "input[value='cheese']", "description": "cheese checkbox" },
+      "description": "Select cheese topping"
+    }
+  ],
+  "reasoning": "Click on each checkbox to select toppings"
 }
 
 Example for "navigate to aymen.co":
@@ -187,6 +240,7 @@ Convert this to browser automation steps. Respond with ONLY valid JSON, no other
           'NAVIGATE': ActionType.NAVIGATE,
           'CLICK': ActionType.CLICK,
           'TYPE': ActionType.TYPE,
+          'FILL': ActionType.FILL,
           'SCROLL': ActionType.SCROLL,
           'WAIT': ActionType.WAIT,
           'EXTRACT': ActionType.EXTRACT,
@@ -196,6 +250,7 @@ Convert this to browser automation steps. Respond with ONLY valid JSON, no other
           'navigate': ActionType.NAVIGATE,
           'click': ActionType.CLICK,
           'type': ActionType.TYPE,
+          'fill': ActionType.FILL,
           'scroll': ActionType.SCROLL,
           'wait': ActionType.WAIT,
           'extract': ActionType.EXTRACT,
@@ -287,35 +342,53 @@ Please analyze the situation and provide an updated action plan that should work
       let cleanHtml = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
       cleanHtml = cleanHtml.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
 
-      // Extract text content and important attributes
-      const relevantTags = [
-        'a', 'button', 'input', 'select', 'textarea', 'form',
-        'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'div', 'span',
-        'nav', 'header', 'footer', 'main', 'section', 'article'
-      ];
+      // Extract form-related content more effectively
+      const formContent = this.extractFormElements(cleanHtml);
 
-      let extractedContent = '';
-
-      // Simple regex-based extraction (could be improved with proper HTML parser)
-      for (const tag of relevantTags) {
-        const regex = new RegExp(`<${tag}[^>]*>([^<]*)<\/${tag}>`, 'gi');
-        const matches = cleanHtml.match(regex);
-        if (matches) {
-          matches.slice(0, 10).forEach(match => { // Limit to avoid too much content
-            extractedContent += match + '\n';
-          });
-        }
-      }
-
-      // Limit content length to avoid overwhelming the AI
-      if (extractedContent.length > 3000) {
-        extractedContent = extractedContent.substring(0, 3000) + '...';
-      }
-
-      return extractedContent || 'Limited page content available';
+      return formContent;
     } catch (error) {
       console.error('Error extracting page content:', error);
       return 'Error extracting page content';
     }
+  }
+
+  private extractFormElements(html: string): string {
+    let content = '';
+
+    // Extract input fields with their attributes
+    const inputMatches = html.match(/<input[^>]*>/gi) || [];
+    inputMatches.forEach(input => {
+      content += input + '\n';
+    });
+
+    // Extract textarea fields
+    const textareaMatches = html.match(/<textarea[^>]*>.*?<\/textarea>/gi) || [];
+    textareaMatches.forEach(textarea => {
+      content += textarea + '\n';
+    });
+
+    // Extract buttons
+    const buttonMatches = html.match(/<button[^>]*>.*?<\/button>/gi) || [];
+    buttonMatches.forEach(button => {
+      content += button + '\n';
+    });
+
+    // Extract form labels for context (important for radio buttons and checkboxes)
+    const labelMatches = html.match(/<label[^>]*>.*?<\/label>/gi) || [];
+    labelMatches.forEach(label => {
+      content += label + '\n';
+    });
+
+    // Extract fieldsets for grouped form elements
+    const fieldsetMatches = html.match(/<fieldset[^>]*>.*?<\/fieldset>/gis) || [];
+    fieldsetMatches.forEach(fieldset => {
+      // Extract just the legend and structure, not the full content to avoid duplication
+      const legendMatch = fieldset.match(/<legend[^>]*>.*?<\/legend>/gi);
+      if (legendMatch) {
+        content += legendMatch[0] + '\n';
+      }
+    });
+
+    return content || 'No form elements found';
   }
 }

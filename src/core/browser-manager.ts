@@ -17,6 +17,7 @@ export class BrowserManagerImpl implements BrowserManager {
   private currentBrowser: BrowserInstance | null = null;
   private currentPage: PageInstance | null = null;
   private registry: BrowserAdapterRegistry;
+  private defaultLaunchOptions?: LaunchOptions;
 
   constructor() {
     this.registry = new BrowserAdapterRegistry();
@@ -41,6 +42,11 @@ export class BrowserManagerImpl implements BrowserManager {
     const defaultOptions = this.currentAdapter.getDefaultOptions();
     const mergedOptions = { ...defaultOptions, ...options };
 
+    // Store the options for future auto-launches
+    if (options) {
+      this.defaultLaunchOptions = options;
+    }
+
     this.currentBrowser = await this.currentAdapter.launch(mergedOptions);
     return this.currentBrowser;
   }
@@ -50,7 +56,8 @@ export class BrowserManagerImpl implements BrowserManager {
    */
   async createPage(url?: string): Promise<PageInstance> {
     if (!this.currentBrowser) {
-      await this.launchBrowser();
+      // Use stored launch options if available, otherwise use defaults
+      await this.launchBrowser(this.defaultLaunchOptions);
     }
 
     this.currentPage = await this.currentBrowser!.createPage(url);
