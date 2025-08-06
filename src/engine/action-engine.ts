@@ -96,7 +96,7 @@ export class ActionEngine implements IActionEngine {
       try {
         // Capture current page state before executing the step
         const currentPageState = await this.captureState();
-        
+
         // For steps that need page interaction (CLICK, TYPE), refine the plan with current page content
         if (step.type === ActionType.CLICK || step.type === ActionType.TYPE || step.type === ActionType.EXTRACT) {
           console.log(`🔄 Refining step ${i + 1} with current page content...`);
@@ -127,13 +127,13 @@ export class ActionEngine implements IActionEngine {
           console.warn(`⚠️ Step ${i + 1} failed, attempting to adapt remaining plan...`);
           const updatedPageState = await this.captureState();
           const remainingSteps = currentPlan.steps.slice(i + 1);
-          
+
           if (remainingSteps.length > 0) {
             const adaptedPlan = await this.actionPlanner.adaptPlan({
               ...currentPlan,
               steps: remainingSteps
             }, updatedPageState);
-            
+
             // Update the current plan with adapted steps
             currentPlan.steps = [
               ...currentPlan.steps.slice(0, i + 1),
@@ -155,18 +155,18 @@ export class ActionEngine implements IActionEngine {
           timestamp: new Date(),
           success: false
         });
-        
+
         // Try to adapt the plan even on error
         try {
           const errorPageState = await this.captureState();
           const remainingSteps = currentPlan.steps.slice(i + 1);
-          
+
           if (remainingSteps.length > 0) {
             const adaptedPlan = await this.actionPlanner.adaptPlan({
               ...currentPlan,
               steps: remainingSteps
             }, errorPageState);
-            
+
             currentPlan.steps = [
               ...currentPlan.steps.slice(0, i + 1),
               ...adaptedPlan.steps
