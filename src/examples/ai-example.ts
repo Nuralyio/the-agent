@@ -108,8 +108,8 @@ async function aiAutomationExample() {
     }
 
     // Example 4: Real-world navigation and interaction
-    console.log('\n📋 Example 4: Navigate to httpbin.org and find forms');
-    const instruction4 = "navigate to https://httpbin.org/forms/post then look for a text input field and take a screenshot";
+    console.log('\n📋 Example 4: Navigate to httpbin.org and fill out a form');
+    const instruction4 = "navigate to https://httpbin.org/forms/post then fill in the form with name 'John Doe' and email 'john@example.com' and submit it";
 
     try {
       const plan4 = await actionEngine.parseInstruction(instruction4);

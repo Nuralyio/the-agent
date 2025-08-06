@@ -1,6 +1,6 @@
-import { BrowserAdapter, BrowserType, LaunchOptions, BrowserInstance } from '../types';
-import { PlaywrightBrowserInstance } from './playwright-instance';
 import * as playwright from 'playwright';
+import { BrowserAdapter, BrowserInstance, BrowserType, LaunchOptions } from '../types';
+import { PlaywrightBrowserInstance } from './playwright-instance';
 
 /**
  * Playwright browser adapter implementation
@@ -15,7 +15,7 @@ export class PlaywrightAdapter implements BrowserAdapter {
    */
   async launch(options: LaunchOptions): Promise<BrowserInstance> {
     const browserType = this.getBrowserType(options);
-    
+
     const launchOptions: any = {
       headless: options.headless ?? true,
       args: options.args ?? []
@@ -66,7 +66,7 @@ export class PlaywrightAdapter implements BrowserAdapter {
     }
 
     // Check for browser type in args
-    const browserArg = options.args.find(arg => 
+    const browserArg = options.args.find(arg =>
       arg.includes('firefox') || arg.includes('webkit') || arg.includes('chromium')
     );
 

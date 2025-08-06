@@ -23,6 +23,13 @@
     "example:simple": "ts-node src/examples/simple-example.ts",
     "example:advanced": "ts-node src/examples/advanced-example.ts",
     "example:ai": "ts-node src/examples/ai-example.ts",
+    "test:integration": "ts-node src/tests/integration/test-runner.ts",
+    "test:integration:navigation": "ts-node src/tests/integration/test-runner.ts navigation",
+    "test:integration:screenshot": "ts-node src/tests/integration/test-runner.ts screenshot",
+    "test:integration:forms": "ts-node src/tests/integration/test-runner.ts form",
+    "test:integration:interactions": "ts-node src/tests/integration/test-runner.ts interaction",
+    "test:integration:planning": "ts-node src/tests/integration/test-runner.ts planning",
+    "test:integration:list": "ts-node src/tests/integration/test-runner.ts --list",
     "install:browsers": "npx playwright install",
     "postinstall": "npm run install:browsers"
   },

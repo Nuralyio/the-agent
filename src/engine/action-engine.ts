@@ -97,8 +97,8 @@ export class ActionEngine implements IActionEngine {
         // Capture current page state before executing the step
         const currentPageState = await this.captureState();
 
-        // For steps that need page interaction (CLICK, TYPE), refine the plan with current page content
-        if (step.type === ActionType.CLICK || step.type === ActionType.TYPE || step.type === ActionType.EXTRACT) {
+        // For steps that need page interaction (CLICK, TYPE, FILL), refine the plan with current page content
+        if (step.type === ActionType.CLICK || step.type === ActionType.TYPE || step.type === ActionType.FILL || step.type === ActionType.EXTRACT) {
           console.log(`🔄 Refining step ${i + 1} with current page content...`);
           const refinedStep = await this.refineStepWithPageContent(step, currentPageState);
           currentPlan.steps[i] = refinedStep;
@@ -202,6 +202,8 @@ export class ActionEngine implements IActionEngine {
         return await this.executeClick(step);
       case ActionType.TYPE:
         return await this.executeType(step);
+      case ActionType.FILL:
+        return await this.executeFill(step);
       case ActionType.WAIT:
         return await this.executeWait(step);
       case ActionType.EXTRACT:
@@ -268,6 +270,66 @@ export class ActionEngine implements IActionEngine {
     }
 
     return { success: true };
+  }
+
+  private async executeFill(step: ActionStep): Promise<any> {
+    const page = await this.browserManager.getCurrentPage();
+    if (!page) throw new Error('No active page');
+
+    if (!step.value) {
+      throw new Error('No form data specified for fill action');
+    }
+
+    try {
+      // Parse form data - can be a single value or JSON object with multiple fields
+      let formData: { [key: string]: string } = {};
+
+      if (typeof step.value === 'string') {
+        try {
+          // Try to parse as JSON first
+          formData = JSON.parse(step.value);
+        } catch {
+          // If not JSON, treat as single value for the target selector
+          if (step.target?.selector) {
+            formData[step.target.selector] = step.value;
+          } else {
+            throw new Error('No target selector specified for single value fill');
+          }
+        }
+      } else if (typeof step.value === 'object') {
+        formData = step.value as { [key: string]: string };
+      }
+
+      console.log(`📝 Filling form with data:`, formData);
+
+      // Fill each field
+      for (const [selector, value] of Object.entries(formData)) {
+        try {
+          console.log(`📝 Filling field "${selector}" with value "${value}"`);
+
+          // Wait for the element to be available
+          await page.waitForSelector(selector);
+
+          // Clear the field first by selecting all and typing
+          await page.click(selector); // Click to focus
+          await page.evaluate(() => document.execCommand('selectAll')); // Select all text
+          await page.type(selector, value); // Type the new value (will replace selected text)
+
+        } catch (fieldError) {
+          console.warn(`⚠️ Failed to fill field "${selector}":`, fieldError);
+          // Continue with other fields even if one fails
+        }
+      }
+
+      return { success: true, filledFields: Object.keys(formData) };
+    } catch (error) {
+      console.error('❌ Form fill failed:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        canContinue: true
+      };
+    }
   }
 
   private async executeWait(step: ActionStep): Promise<any> {

@@ -53,7 +53,7 @@ export function loadEnvironmentConfig(): EnvironmentConfig {
     browser: {
       adapter: process.env.DEFAULT_ADAPTER || 'playwright',
       type: (process.env.DEFAULT_BROWSER as BrowserType) || BrowserType.CHROME,
-      headless: process.env.HEADLESS === 'true',
+      headless: process.env.BROWSER_HEADLESS === 'true',
       viewport: {
         width: parseInt(process.env.VIEWPORT_WIDTH || '1920'),
         height: parseInt(process.env.VIEWPORT_HEIGHT || '1080'),
