@@ -1,8 +1,6 @@
 import { AIEngine } from '../ai/ai-engine';
 import {
-  createAIProviderConfigs,
-  getAvailableProviders,
-  loadEnvironmentConfig,
+  createAIProviderConfigs, loadEnvironmentConfig,
   logConfigurationStatus,
   validateDefaultProvider
 } from '../config/environment';

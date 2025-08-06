@@ -56,7 +56,7 @@ export class ActionPlanner {
   private async parseInstructionWithAI(instruction: string, pageState: PageState): Promise<ParsedInstruction> {
     // Extract relevant content from page for better selector identification
     const pageContent = this.extractRelevantPageContent(pageState.content);
-    
+
     const systemPrompt = `You are a browser automation expert. Your job is to convert natural language instructions into a sequence of browser automation actions.
 
 Available action types:
@@ -286,16 +286,16 @@ Please analyze the situation and provide an updated action plan that should work
       // Remove script and style tags
       let cleanHtml = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
       cleanHtml = cleanHtml.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
-      
+
       // Extract text content and important attributes
       const relevantTags = [
-        'a', 'button', 'input', 'select', 'textarea', 'form', 
+        'a', 'button', 'input', 'select', 'textarea', 'form',
         'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'div', 'span',
         'nav', 'header', 'footer', 'main', 'section', 'article'
       ];
-      
+
       let extractedContent = '';
-      
+
       // Simple regex-based extraction (could be improved with proper HTML parser)
       for (const tag of relevantTags) {
         const regex = new RegExp(`<${tag}[^>]*>([^<]*)<\/${tag}>`, 'gi');
