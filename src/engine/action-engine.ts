@@ -11,6 +11,8 @@ import {
   TaskResult
 } from '../types';
 import { ActionPlanner } from './action-planner';
+import { StepContextManager, StepExecutionResult } from './step-context';
+import { ContextualStepAnalyzer } from './contextual-analyzer';
 
 /**
  * Core ActionEngine implementation that orchestrates task execution
@@ -19,6 +21,8 @@ export class ActionEngine implements IActionEngine {
   private browserManager: BrowserManager;
   private actionPlanner: ActionPlanner;
   private aiEngine: AIEngine;
+  private stepContextManager: StepContextManager;
+  private contextualAnalyzer?: ContextualStepAnalyzer;
 
   constructor(
     browserManager: BrowserManager,
@@ -27,6 +31,15 @@ export class ActionEngine implements IActionEngine {
     this.browserManager = browserManager;
     this.aiEngine = aiEngine;
     this.actionPlanner = new ActionPlanner(aiEngine);
+    this.stepContextManager = new StepContextManager();
+    
+    // Initialize contextual analyzer
+    try {
+      this.contextualAnalyzer = new ContextualStepAnalyzer();
+      console.log('✅ Contextual step analyzer initialized');
+    } catch (error) {
+      console.warn('⚠️ Contextual analyzer not initialized:', error);
+    }
   }
 
   /**
@@ -78,14 +91,17 @@ export class ActionEngine implements IActionEngine {
   }
 
   /**
-   * Execute a structured action plan with dynamic refinement
+   * Execute a structured action plan with dynamic refinement and context awareness
    */
   async executeActionPlan(plan: ActionPlan): Promise<TaskResult> {
     const executedSteps: any[] = [];
     const screenshots: Buffer[] = [];
     let currentPlan = plan;
 
-    console.log(`🚀 Executing ${currentPlan.steps.length} steps with dynamic refinement`);
+    console.log(`🚀 Executing ${currentPlan.steps.length} steps with context-aware refinement`);
+
+    // Reset context for new plan execution
+    this.stepContextManager.reset();
 
     for (let i = 0; i < currentPlan.steps.length; i++) {
       const step = currentPlan.steps[i];
@@ -95,20 +111,53 @@ export class ActionEngine implements IActionEngine {
 
       try {
         // Capture current page state before executing the step
-        const currentPageState = await this.captureState();
+        const pageStateBefore = await this.captureState();
 
-        // For steps that need page interaction (CLICK, TYPE, FILL), refine the plan with current page content
-        if (step.type === ActionType.CLICK || step.type === ActionType.TYPE || step.type === ActionType.FILL || step.type === ActionType.EXTRACT) {
-          console.log(`🔄 Refining step ${i + 1} with current page content...`);
-          const refinedStep = await this.refineStepWithPageContent(step, currentPageState);
+        // Get current step context including previous steps
+        const stepContext = this.stepContextManager.getCurrentContext(i, currentPlan.steps.length);
+
+        // For steps that need page interaction, refine with context and page content
+        if (this.needsRefinement(step)) {
+          console.log(`🔄 Refining step ${i + 1} with context and page content...`);
+          const refinedStep = await this.refineStepWithContext(step, stepContext, pageStateBefore);
           currentPlan.steps[i] = refinedStep;
-          console.log(`✨ Refined step ${i + 1}: ${refinedStep.description}`);
+          console.log(`✨ Context-refined step ${i + 1}: ${refinedStep.description}`);
           if (refinedStep.target?.selector) {
-            console.log(`🎯 Updated selector: ${refinedStep.target.selector}`);
+            console.log(`🎯 Context-improved selector: ${refinedStep.target.selector}`);
           }
         }
 
         const stepResult = await this.executeStep(currentPlan.steps[i]!);
+        
+        // Capture page state after step execution
+        const pageStateAfter = await this.captureState();
+
+        // Create detailed step execution result
+        const stepExecutionResult: StepExecutionResult = {
+          step: currentPlan.steps[i]!,
+          success: stepResult.success,
+          timestamp: new Date(),
+          pageStateBefore,
+          pageStateAfter,
+          elementFound: stepResult.success
+        };
+
+        // Add optional properties only if they exist
+        if (stepResult.error) {
+          stepExecutionResult.error = stepResult.error;
+        }
+        const selector = currentPlan.steps[i]!.target?.selector;
+        if (selector) {
+          stepExecutionResult.selectorUsed = selector;
+        }
+        const value = currentPlan.steps[i]!.value;
+        if (stepResult.success && value) {
+          stepExecutionResult.valueEntered = value;
+        }
+
+        // Add step result to context manager
+        this.stepContextManager.addStepResult(stepExecutionResult);
+
         executedSteps.push({
           step: currentPlan.steps[i]!,
           result: stepResult,
@@ -482,5 +531,114 @@ Respond with ONLY a JSON object with the refined step.`;
       console.warn('Failed to refine step, using original:', error);
       return step;
     }
+  }
+
+  /**
+   * Check if a step needs context-aware refinement
+   */
+  private needsRefinement(step: ActionStep): boolean {
+    return step.type === ActionType.CLICK || 
+           step.type === ActionType.TYPE || 
+           step.type === ActionType.FILL || 
+           step.type === ActionType.EXTRACT;
+  }
+
+  /**
+   * Refine a step using both previous step context and current page content
+   */
+  private async refineStepWithContext(
+    step: ActionStep, 
+    stepContext: any, 
+    pageState: PageState
+  ): Promise<ActionStep> {
+    try {
+      // If we have contextual analyzer, use it
+      if (this.contextualAnalyzer) {
+        console.log('🧠 Using contextual analysis for step refinement...');
+        const successfulSelectors = this.stepContextManager.getSuccessfulSelectors();
+        return await this.contextualAnalyzer.improveStepWithContext(step, stepContext, successfulSelectors, pageState.content || '');
+      }
+
+      // Fallback to regular page content refinement with context-aware prompt
+      const contextualPrompt = this.createContextualPrompt(step, stepContext, pageState);
+      
+      const refinedPlan = await this.actionPlanner.createActionPlan(contextualPrompt, {
+        url: pageState.url,
+        pageTitle: pageState.title,
+        currentStep: stepContext.currentStepIndex,
+        totalSteps: stepContext.totalSteps,
+        variables: {}
+      }, pageState);
+
+      if (refinedPlan.steps.length > 0) {
+        const refinedStep = refinedPlan.steps[0]!;
+        const result: ActionStep = {
+          type: step.type,
+          description: step.description
+        };
+
+        // Only assign target if it exists
+        const targetToUse = refinedStep.target || step.target;
+        if (targetToUse) {
+          result.target = targetToUse;
+        }
+
+        // Only assign value if it exists
+        const valueToUse = refinedStep.value || step.value;
+        if (valueToUse) {
+          result.value = valueToUse;
+        }
+
+        return result;
+      }
+
+      return step;
+    } catch (error) {
+      console.warn('Failed to refine step with context, using original:', error);
+      return step;
+    }
+  }
+
+  /**
+   * Create a context-aware prompt for step refinement
+   */
+  private createContextualPrompt(step: ActionStep, stepContext: any, pageState: PageState): string {
+    const recentSteps = stepContext.previousSteps.slice(-2);
+    const successfulSelectors = this.stepContextManager.getSuccessfulSelectors();
+
+    return `
+CONTEXT-AWARE STEP REFINEMENT
+
+Previous steps (recent):
+${recentSteps.map((s: any, i: number) => `${i + 1}. ${s.step.type}: ${s.step.description} → ${s.success ? 'SUCCESS' : 'FAILED'} (selector: ${s.selectorUsed || s.step.target?.selector})`).join('\n')}
+
+Successful selectors used before:
+${successfulSelectors.join(', ') || 'None yet'}
+
+Current step to refine:
+- Type: ${step.type}
+- Description: ${step.description}
+- Current selector: ${step.target?.selector || 'none'}
+
+Current page: ${pageState.url}
+
+Based on previous successful actions and patterns, provide the BEST CSS selector for this step.
+Prefer selectors that have worked before or follow similar successful patterns.
+
+Respond with ONLY a JSON object containing the refined step.`;
+  }
+
+  /**
+   * Get step context manager for external access
+   */
+  getStepContextManager(): StepContextManager {
+    return this.stepContextManager;
+  }
+
+  /**
+   * Export current execution context
+   */
+  exportExecutionContext(): string {
+    return this.stepContextManager.exportContextSummary();
   }
 }
