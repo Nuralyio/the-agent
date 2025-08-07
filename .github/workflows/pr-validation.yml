@@ -9,103 +9,103 @@ jobs:
   validate:
     name: Code Quality & Basic Tests
     runs-on: ubuntu-latest
-    environment: ci  # This references the environment you configured
-    
+    environment: ci # This references the environment you configured
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Fetch full history for better diff analysis
-        
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        
-    - name: Install dependencies
-      run: |
-        if [ -f package-lock.json ]; then
-          npm ci
-        else
-          npm install
-        fi
-      
-    - name: Code formatting check
-      run: npm run format:check
-      
-    - name: Linting
-      run: npm run lint
-      
-    - name: TypeScript compilation
-      run: npm run typecheck
-      
-    - name: Install Playwright
-      run: npx playwright install chromium --with-deps
-      
-    - name: Run core functionality tests
-      run: |
-        npm test -- --headless --browser chrome --adapter playwright "Navigation Tests"
-        npm test -- --headless --browser chrome --adapter playwright "Screenshot Tests"
-      env:
-        CI: true
-        BROWSER_HEADLESS: true
-        # AI Provider Configuration
-        DEFAULT_AI_PROVIDER: ${{ vars.DEFAULT_AI_PROVIDER }}
-        OLLAMA_BASE_URL: ${{ vars.OLLAMA_BASE_URL }}
-        OLLAMA_MODEL: ${{ vars.OLLAMA_MODEL }}
-        OLLAMA_TEMPERATURE: ${{ vars.OLLAMA_TEMPERATURE }}
-        
-    - name: Check for test artifacts
-      if: failure()
-      run: |
-        echo "Tests failed. Checking for generated artifacts..."
-        ls -la execution-logs/ || echo "No execution logs found"
-        ls -la screenshots/ || echo "No screenshots found"      - name: Comment PR with test results
-        if: failure()
-        uses: actions/github-script@v6
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          script: |
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
+          fetch-depth: 0 # Fetch full history for better diff analysis
 
-            const botComment = comments.find(comment =>
-              comment.user.type === 'Bot' &&
-              comment.body.includes('## Test Results')
-            );
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
 
-            const body = `## Test Results ❌
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
-            The automated tests failed for this pull request. Please check the following:
+      - name: Code formatting check
+        run: npm run format:check
 
-            - ✅ Code formatting and linting passed
-            - ❌ Core functionality tests failed
+      - name: Linting
+        run: npm run lint
 
-            **Next steps:**
-            1. Check the test logs in the Actions tab
-            2. Run tests locally: \`npm test -- --headless "Navigation Tests"\`
-            3. Fix any failing tests and push your changes
+      - name: TypeScript compilation
+        run: npm run typecheck
 
-            The tests will run automatically when you push new commits.
-            `;
+      - name: Install Playwright
+        run: npx playwright install chromium --with-deps
 
-            if (botComment) {
-              github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-                body: body
-              });
-            } else {
-              github.rest.issues.createComment({
+      - name: Run core functionality tests
+        run: |
+          npm test -- --headless --browser chrome --adapter playwright "Navigation Tests"
+          npm test -- --headless --browser chrome --adapter playwright "Screenshot Tests"
+        env:
+          CI: true
+          BROWSER_HEADLESS: true
+          # AI Provider Configuration
+          DEFAULT_AI_PROVIDER: ${{ vars.DEFAULT_AI_PROVIDER }}
+          OLLAMA_BASE_URL: ${{ vars.OLLAMA_BASE_URL }}
+          OLLAMA_MODEL: ${{ vars.OLLAMA_MODEL }}
+          OLLAMA_TEMPERATURE: ${{ vars.OLLAMA_TEMPERATURE }}
+
+      - name: Check for test artifacts
+        if: failure()
+        run: |
+          echo "Tests failed. Checking for generated artifacts..."
+          ls -la execution-logs/ || echo "No execution logs found"
+          ls -la screenshots/ || echo "No screenshots found"      - name: Comment PR with test results
+          if: failure()
+          uses: actions/github-script@v6
+          with:
+            script: |
+              const { data: comments } = await github.rest.issues.listComments({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                body: body
               });
-            }
+
+              const botComment = comments.find(comment =>
+                comment.user.type === 'Bot' &&
+                comment.body.includes('## Test Results')
+              );
+
+              const body = `## Test Results ❌
+
+              The automated tests failed for this pull request. Please check the following:
+
+              - ✅ Code formatting and linting passed
+              - ❌ Core functionality tests failed
+
+              **Next steps:**
+              1. Check the test logs in the Actions tab
+              2. Run tests locally: \`npm test -- --headless "Navigation Tests"\`
+              3. Fix any failing tests and push your changes
+
+              The tests will run automatically when you push new commits.
+              `;
+
+              if (botComment) {
+                github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: botComment.id,
+                  body: body
+                });
+              } else {
+                github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: body
+                });
+              }
 
   security-scan:
     name: Security & Dependency Check

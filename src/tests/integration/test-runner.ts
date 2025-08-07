@@ -103,7 +103,7 @@ export class TestRunner {
     }
 
     this.printSummary(results);
-    
+
     // Return true if all tests passed, false if any failed
     return results.every(result => result.success);
   }
@@ -194,7 +194,7 @@ export class TestRunner {
     }
 
     this.printSummary(results);
-    
+
     // Return true if all tests passed, false if any failed
     return results.every(result => result.success);
   }
