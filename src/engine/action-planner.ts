@@ -196,25 +196,25 @@ Convert this to browser automation steps. Respond with ONLY valid JSON, no other
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         console.log(`🔄 Attempt ${attempt}/${maxRetries} to get valid JSON from LLM`);
-        
+
         const response = await this.aiEngine.generateText(prompt, systemPrompt);
-        
+
         console.log(`📊 Response stats: ${response.content.length} chars`);
-        
+
         // Try to parse the response - let JSON.parse detect any issues
         const result = this.parseAIResponse(response.content);
         console.log(`✅ Successfully got valid JSON on attempt ${attempt}`);
         return result;
-        
+
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
         console.warn(`⚠️ Attempt ${attempt} failed: ${lastError.message}`);
-        
+
         if (attempt === maxRetries) {
           console.error(`❌ All ${maxRetries} attempts failed to get valid JSON`);
           break;
         }
-        
+
         // Wait a bit before retrying
         await new Promise(resolve => setTimeout(resolve, 500));
       }
@@ -229,7 +229,7 @@ Convert this to browser automation steps. Respond with ONLY valid JSON, no other
    */
   private parseAIResponse(response: string): ParsedInstruction {
     const trimmed = response.trim();
-    
+
     try {
       console.log(`🔍 Parsing AI response: ${trimmed.length} chars`);
 
