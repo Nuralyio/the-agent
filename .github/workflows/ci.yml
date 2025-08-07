@@ -9,61 +9,64 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
+    
     strategy:
       matrix:
         node-version: [18.x, 20.x]
         browser: [chrome, firefox]
         adapter: [playwright, puppeteer]
-
+        exclude:
+          # Firefox with Puppeteer is not supported
+          - browser: firefox
+            adapter: puppeteer
+        
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Install dependencies
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
-
-      - name: Install Playwright browsers
-        if: matrix.adapter == 'playwright'
-        run: npx playwright install --with-deps
-
-      - name: Install Chrome for Puppeteer
-        if: matrix.adapter == 'puppeteer'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
-
-      - name: Run ESLint
-        run: npm run lint
-        continue-on-error: true
-
-      - name: Run TypeScript check
-        run: npx tsc --noEmit
-
-      - name: Run all tests
-        run: npm test -- --headless --browser ${{ matrix.browser }} --adapter ${{ matrix.adapter }}
-        env:
-          CI: true
-          BROWSER_HEADLESS: true
-          BROWSER_TYPE: ${{ matrix.browser }}
-          BROWSER_ADAPTER: ${{ matrix.adapter }}
-
-      - name: Upload test artifacts
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-artifacts-${{ matrix.node-version }}-${{ matrix.browser }}-${{ matrix.adapter }}
-          path: |
-            execution-logs/
-            screenshots/
-          retention-days: 7
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        
+    - name: Install dependencies
+      run: |
+        if [ -f package-lock.json ]; then
+          npm ci
+        else
+          npm install
+        fi
+        
+    - name: Install Playwright browsers
+      if: matrix.adapter == 'playwright'
+      run: npx playwright install --with-deps
+      
+    - name: Install Chrome for Puppeteer
+      if: matrix.adapter == 'puppeteer'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
+        
+    - name: Run ESLint
+      run: npm run lint
+      
+    - name: Run TypeScript check
+      run: npx tsc --noEmit
+      
+    - name: Run all tests
+      run: npm test -- --headless --browser ${{ matrix.browser }} --adapter ${{ matrix.adapter }}
+      env:
+        CI: true
+        BROWSER_HEADLESS: true
+        BROWSER_TYPE: ${{ matrix.browser }}
+        BROWSER_ADAPTER: ${{ matrix.adapter }}
+        
+    - name: Upload test artifacts
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-artifacts-${{ matrix.node-version }}-${{ matrix.browser }}-${{ matrix.adapter }}
+        path: |
+          execution-logs/
+          screenshots/
+        retention-days: 7
