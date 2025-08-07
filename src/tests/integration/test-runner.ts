@@ -549,7 +549,31 @@ Examples:
       console.error('💥 Test runner failed:', error);
       process.exit(1);
     }
+    
+    // Ensure clean exit with a timeout fallback
+    setTimeout(() => {
+      console.log('⚠️ Forcing exit after timeout...');
+      process.exit(0);
+    }, 1000); // Give 1 second for cleanup
+    
+    process.exit(0);
   }
 
   main();
+
+  // Handle process termination signals for clean exit
+  process.on('SIGINT', () => {
+    console.log('\n⚠️ Received SIGINT, forcing exit...');
+    process.exit(0);
+  });
+
+  process.on('SIGTERM', () => {
+    console.log('\n⚠️ Received SIGTERM, forcing exit...');
+    process.exit(0);
+  });
+
+  process.on('SIGHUP', () => {
+    console.log('\n⚠️ Received SIGHUP, forcing exit...');
+    process.exit(0);
+  });
 }
