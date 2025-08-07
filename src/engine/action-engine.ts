@@ -14,6 +14,7 @@ import { ExecutionLogger } from '../utils/execution-logger';
 import { ActionPlanner } from './action-planner';
 import { ContextualStepAnalyzer } from './contextual-analyzer';
 import { StepContextManager, StepExecutionResult } from './step-context';
+import { executionStream } from '../visualization/execution-stream';
 
 /**
  * Core ActionEngine implementation that orchestrates task execution
@@ -53,6 +54,9 @@ export class ActionEngine implements IActionEngine {
     const logger = new ExecutionLogger(instruction);
     console.log(`📝 Execution logging started: ${logger.getSessionId()}`);
 
+    // Start streaming session
+    executionStream.startSession(logger.getSessionId());
+
     try {
       // Check if instruction contains navigation and handle it specially
       if (this.instructionContainsNavigation(instruction)) {
@@ -63,6 +67,9 @@ export class ActionEngine implements IActionEngine {
       const actionPlan = await this.parseInstruction(instruction);
       console.log(`📋 Generated ${actionPlan.steps.length} steps`);
 
+      // Stream the plan creation with total step count
+      executionStream.streamPlanCreated(actionPlan.steps.length);
+
       // 2. Execute the action plan with logging
       const result = await this.executeActionPlan(actionPlan, logger);
 
@@ -71,9 +78,15 @@ export class ActionEngine implements IActionEngine {
 
       console.log(`📋 Complete execution log saved to: ${logPath}`);
 
+      // Stream execution completion
+      executionStream.streamExecutionComplete();
+
       return result;
     } catch (error) {
       console.error('❌ Task execution failed:', error);
+
+      // Stream execution completion even on failure
+      executionStream.streamExecutionComplete();
 
       // Finalize logging even on failure
       try {
@@ -195,6 +208,10 @@ export class ActionEngine implements IActionEngine {
         }
 
         console.log(''); // Add spacing before step execution
+        
+        // Stream step start event
+        executionStream.streamStepStart(i, currentPlan.steps[i]!);
+        
         const stepResult = await this.executeStep(currentPlan.steps[i]!);
 
         // Capture page state after step execution
@@ -232,6 +249,13 @@ export class ActionEngine implements IActionEngine {
           screenshotBuffer = await this.browserManager.takeScreenshot();
         } catch (error) {
           console.warn(`⚠️ Failed to take screenshot for step ${i + 1}:`, error);
+        }
+
+        // Stream step completion or error
+        if (stepResult.success) {
+          executionStream.streamStepComplete(i, currentPlan.steps[i]!, screenshotBuffer);
+        } else {
+          executionStream.streamStepError(i, currentPlan.steps[i]!, stepResult.error || 'Unknown error');
         }
 
         // Log step execution with screenshot and refinement info
@@ -389,6 +413,14 @@ export class ActionEngine implements IActionEngine {
 
     // Give a small additional delay to ensure content is fully rendered
     await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Stream page change event
+    try {
+      const currentPage = await this.captureState();
+      executionStream.streamPageChange(url, currentPage.title, currentPage.screenshot);
+    } catch (error) {
+      console.warn('⚠️ Failed to stream page change:', error);
+    }
 
     return { success: true };
   }
