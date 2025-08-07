@@ -27,6 +27,9 @@ app.get('/html', (req, res) => {
         h1 { color: #333; }
         p { line-height: 1.6; }
         .content { max-width: 800px; margin: 0 auto; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .link-section { margin: 20px 0; }
     </style>
 </head>
 <body>
@@ -34,6 +37,16 @@ app.get('/html', (req, res) => {
         <h1>Test HTML Page</h1>
         <p>This is a test page for browser automation testing.</p>
         <p>It contains various HTML elements for testing navigation and screenshot functionality.</p>
+        
+        <div class="link-section">
+            <h2>Test Links</h2>
+            <ul>
+                <li><a href="/forms/post">Pizza Order Form</a></li>
+                <li><a href="/about">About Page</a></li>
+                <li><a href="#test-content">Internal Link to Test Content</a></li>
+                <li><a href="https://httpbin.org" target="_blank">External Link (HTTPBin)</a></li>
+            </ul>
+        </div>
         
         <h2>Sample Content</h2>
         <ul>
@@ -297,6 +310,45 @@ app.post('/contact/submit', (req, res) => {
     message: 'Message sent successfully!',
     data: req.body
   });
+});
+
+// About page route
+app.get('/about', (req, res) => {
+  res.send(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Test Server</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        h1 { color: #333; }
+        p { line-height: 1.6; }
+        .content { max-width: 800px; margin: 0 auto; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h1>About This Test Server</h1>
+        <p>This is a local test server designed for browser automation testing.</p>
+        <p>It provides various endpoints and pages to test different automation scenarios:</p>
+        
+        <ul>
+            <li><strong>/html</strong> - Basic HTML page with links and elements</li>
+            <li><strong>/forms/post</strong> - Pizza order form for testing form interactions</li>
+            <li><strong>/contact</strong> - Contact form for additional form testing</li>
+            <li><strong>/about</strong> - This about page</li>
+        </ul>
+        
+        <p><a href="/html">← Back to HTML Test Page</a></p>
+        <p><a href="/">← Back to Home</a></p>
+    </div>
+</body>
+</html>
+  `);
 });
 
 // Health check endpoint
