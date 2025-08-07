@@ -190,49 +190,81 @@ Example for "take a screenshot":
 
 Convert this to browser automation steps. Respond with ONLY valid JSON, no other text.`;
 
-    try {
-      const response = await this.aiEngine.generateText(prompt, systemPrompt);
-      return this.parseAIResponse(response.content);
-    } catch (error) {
-      console.error('AI parsing failed:', error);
-      throw new Error(`AI parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`🔄 Attempt ${attempt}/${maxRetries} to get valid JSON from LLM`);
+        
+        const response = await this.aiEngine.generateText(prompt, systemPrompt);
+        
+        console.log(`📊 Response stats: ${response.content.length} chars`);
+        
+        // Try to parse the response - let JSON.parse detect any issues
+        const result = this.parseAIResponse(response.content);
+        console.log(`✅ Successfully got valid JSON on attempt ${attempt}`);
+        return result;
+        
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        console.warn(`⚠️ Attempt ${attempt} failed: ${lastError.message}`);
+        
+        if (attempt === maxRetries) {
+          console.error(`❌ All ${maxRetries} attempts failed to get valid JSON`);
+          break;
+        }
+        
+        // Wait a bit before retrying
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
     }
+
+    // If we get here, all attempts failed
+    throw new Error(`Failed to get valid JSON after ${maxRetries} attempts. Last error: ${lastError?.message}`);
   }
 
   /**
    * Parse AI response into structured format with robust error handling
    */
   private parseAIResponse(response: string): ParsedInstruction {
+    const trimmed = response.trim();
+    
     try {
-      console.log('🔍 Raw AI response:', response.substring(0, 500) + (response.length > 500 ? '...' : ''));
+      console.log(`🔍 Parsing AI response: ${trimmed.length} chars`);
 
-      // Parse JSON directly without cleaning for Ollama
+      // Parse JSON directly - let it detect all formatting issues
       let parsed;
       try {
-        parsed = JSON.parse(response.trim());
+        parsed = JSON.parse(trimmed);
       } catch (parseError) {
-        console.error('❌ JSON parse error:', parseError);
-        console.error('🔤 Failed to parse JSON:', response);
-        throw new Error(`Failed to parse JSON from Ollama: ${parseError}`);
+        const errorMsg = parseError instanceof Error ? parseError.message : 'Unknown parse error';
+        console.error('❌ JSON parse error:', errorMsg);
+        console.error('📝 Response preview:', trimmed.substring(0, 200) + '...');
+        throw new Error(`JSON parsing failed: ${errorMsg}`);
       }
 
-      // Step 3: Validate structure
+      // Validate structure
       if (!parsed || typeof parsed !== 'object') {
-        throw new Error('Parsed response is not an object');
+        throw new Error('Response is not a valid JSON object');
       }
 
       if (!parsed.steps || !Array.isArray(parsed.steps)) {
-        throw new Error('Invalid response format: missing or invalid steps array');
+        throw new Error('Missing required "steps" array in response');
       }
 
-      // Step 4: Validate and normalize steps
+      if (parsed.steps.length === 0) {
+        throw new Error('Steps array is empty');
+      }
+
+      // Validate and normalize steps
       const steps: ActionStep[] = parsed.steps.map((step: any, index: number) => {
         if (!step || typeof step !== 'object') {
-          throw new Error(`Invalid step ${index}: not an object`);
+          throw new Error(`Step ${index + 1} is not a valid object`);
         }
 
         if (!step.type) {
-          throw new Error(`Invalid step ${index}: missing type`);
+          throw new Error(`Step ${index + 1} missing required "type" field`);
         }
 
         // Allow description to be either at the top level or in the target object
@@ -297,9 +329,8 @@ Convert this to browser automation steps. Respond with ONLY valid JSON, no other
       return result;
 
     } catch (error) {
-      console.error('❌ Failed to parse AI response:', error);
-      console.error('📝 Original response:', response);
-      throw new Error(`Failed to parse AI response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      // Re-throw the error with its original message for retry mechanism
+      throw error instanceof Error ? error : new Error(String(error));
     }
   }
 
