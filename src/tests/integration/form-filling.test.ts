@@ -266,13 +266,13 @@ export class FormFillingTest {
   async runAll(): Promise<void> {
     try {
       await this.setup();
-      
+
       await this.testSimpleFormFill();
       await this.testComprehensiveFormFill();
       await this.testDynamicFormDiscovery();
       await this.testRadioAndCheckboxHandling();
       await this.testFullFormAutomation();
-      
+
       console.log('✅ All form filling tests passed');
     } catch (error) {
       console.error('❌ Form filling test suite failed:', error);
