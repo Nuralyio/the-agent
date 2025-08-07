@@ -68,6 +68,7 @@ export class ActionEngine implements IActionEngine {
 
       // 3. Finalize logging
       const logPath = logger.finishSession(result.success);
+      
       console.log(`📋 Complete execution log saved to: ${logPath}`);
 
       return result;
@@ -151,7 +152,7 @@ export class ActionEngine implements IActionEngine {
 
         // For steps that need page interaction, refine with context and page content
         if (this.needsRefinement(step)) {
-          console.log(`🔄 Refining step ${i + 1} with context and page content...`);
+          console.log(`\n🔄 Refining step ${i + 1} with context and page content...`);
           const originalStep = { ...step }; // Keep copy of original step
           const refinedStep = await this.refineStepWithContext(step, stepContext, pageStateBefore);
 
@@ -183,16 +184,17 @@ export class ActionEngine implements IActionEngine {
               }
             };
 
-            console.log(`🎯 Selector refined: "${originalSelector}" → "${refinedSelector}"`);
+            console.log(`   🎯 Selector refined: "${originalSelector}" → "${refinedSelector}"`);
           }
 
           currentPlan.steps[i] = refinedStep;
-          console.log(`✨ Context-refined step ${i + 1}: ${refinedStep.description}`);
+          console.log(`   ✨ Context-refined step ${i + 1}: ${refinedStep.description}`);
           if (refinedStep.target?.selector) {
-            console.log(`🎯 Context-improved selector: ${refinedStep.target.selector}`);
+            console.log(`   🎯 Context-improved selector: ${refinedStep.target.selector}`);
           }
         }
 
+        console.log(''); // Add spacing before step execution
         const stepResult = await this.executeStep(currentPlan.steps[i]!);
 
         // Capture page state after step execution
@@ -262,6 +264,7 @@ export class ActionEngine implements IActionEngine {
 
         // If step failed, try to adapt the remaining plan
         if (!stepResult.success) {
+          console.log(''); // Add spacing before failure handling
           console.warn(`⚠️ Step ${i + 1} failed, attempting to adapt remaining plan...`);
           const updatedPageState = await this.captureState();
           const remainingSteps = currentPlan.steps.slice(i + 1);
@@ -319,6 +322,7 @@ export class ActionEngine implements IActionEngine {
     }
 
     const success = executedSteps.every(s => s.success);
+    
     console.log(success ? '✅ All steps completed successfully' : '❌ Some steps failed');
 
     return {
@@ -651,7 +655,7 @@ Respond with ONLY a JSON object with the refined step.`;
     try {
       // If we have contextual analyzer, use it
       if (this.contextualAnalyzer) {
-        console.log('🧠 Using contextual analysis for step refinement...');
+        console.log('   🧠 Using contextual analysis for step refinement...');
         const successfulSelectors = this.stepContextManager.getSuccessfulSelectors();
         return await this.contextualAnalyzer.improveStepWithContext(step, stepContext, successfulSelectors, pageState.content || '');
       }
@@ -777,6 +781,7 @@ Respond with ONLY a JSON object containing the refined step.`;
       console.log('⚠️ No navigation step found despite detection, proceeding normally');
       const result = await this.executeActionPlan(initialPlan, logger);
       const logPath = logger.finishSession(result.success);
+      
       console.log(`📋 Complete execution log saved to: ${logPath}`);
       return result;
     }
@@ -799,6 +804,7 @@ Respond with ONLY a JSON object containing the refined step.`;
 
     if (!navResult.success) {
       const logPath = logger.finishSession(false);
+      
       console.log(`📋 Complete execution log saved to: ${logPath}`);
       return navResult;
     }
@@ -838,12 +844,14 @@ Respond with ONLY a JSON object containing the refined step.`;
       }
 
       const logPath = logger.finishSession(finalResult.success);
+      
       console.log(`📋 Complete execution log saved to: ${logPath}`);
       return finalResult;
     }
 
     // Only navigation was needed
     const logPath = logger.finishSession(navResult.success);
+    
     console.log(`📋 Complete execution log saved to: ${logPath}`);
     return navResult;
   }

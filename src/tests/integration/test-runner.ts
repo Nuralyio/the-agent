@@ -48,8 +48,11 @@ export class TestRunner {
    * Run all enabled test suites
    */
   async runAll(): Promise<void> {
+    console.log('\n' + '='.repeat(80));
     console.log('🚀 === STARTING ALL INTEGRATION TESTS ===');
-    console.log(`📊 Running ${this.testSuites.filter(suite => suite.enabled).length} test suites\n`);
+    console.log('='.repeat(80));
+    console.log(`📊 Running ${this.testSuites.filter(suite => suite.enabled).length} test suites`);
+    console.log('='.repeat(80) + '\n');
 
     const results: Array<{
       name: string;
@@ -66,7 +69,10 @@ export class TestRunner {
 
       const startTime = Date.now();
       try {
-        console.log(`\n🎯 Running ${suite.name}...`);
+        console.log('\n' + '─'.repeat(60));
+        console.log(`🎯 Running ${suite.name}...`);
+        console.log('─'.repeat(60));
+        
         await suite.instance.runAll();
         const duration = Date.now() - startTime;
 
@@ -76,7 +82,9 @@ export class TestRunner {
           duration
         });
 
+        console.log('─'.repeat(60));
         console.log(`✅ ${suite.name} completed in ${duration}ms`);
+        console.log('─'.repeat(60));
       } catch (error) {
         const duration = Date.now() - startTime;
 
@@ -87,7 +95,10 @@ export class TestRunner {
           duration
         });
 
-        console.error(`❌ ${suite.name} failed in ${duration}ms:`, error);
+        console.log('─'.repeat(60));
+        console.error(`❌ ${suite.name} failed in ${duration}ms`);
+        console.error(`💥 Error: ${error}`);
+        console.log('─'.repeat(60));
       }
     }
 
@@ -98,17 +109,21 @@ export class TestRunner {
    * Run specific test suites by name
    */
   async runSpecific(suiteNames: string[]): Promise<void> {
+    console.log('\n' + '='.repeat(80));
     console.log(`🎯 === RUNNING SPECIFIC TEST SUITES ===`);
-    console.log(`📋 Requested suites: ${suiteNames.join(', ')}\n`);
+    console.log('='.repeat(80));
+    console.log(`📋 Requested suites: ${suiteNames.join(', ')}`);
+    console.log('='.repeat(80) + '\n');
 
     const suitesToRun = this.testSuites.filter(suite =>
       suiteNames.some(name => suite.name.toLowerCase().includes(name.toLowerCase()))
     );
 
     if (suitesToRun.length === 0) {
-      console.error('❌ No matching test suites found');
+      console.log('\n❌ No matching test suites found');
       console.log('📋 Available suites:');
       this.testSuites.forEach(suite => console.log(`   - ${suite.name}`));
+      console.log('');
       return;
     }
 
@@ -122,7 +137,9 @@ export class TestRunner {
     for (const suite of suitesToRun) {
       const startTime = Date.now();
       try {
-        console.log(`\n🎯 Running ${suite.name}...`);
+        console.log('\n' + '─'.repeat(60));
+        console.log(`🎯 Running ${suite.name}...`);
+        console.log('─'.repeat(60));
 
         // Setup if the method exists
         if (typeof suite.instance.setup === 'function') {
@@ -144,7 +161,9 @@ export class TestRunner {
           duration
         });
 
+        console.log('─'.repeat(60));
         console.log(`✅ ${suite.name} completed in ${duration}ms`);
+        console.log('─'.repeat(60));
       } catch (error) {
         const duration = Date.now() - startTime;
 
@@ -164,7 +183,10 @@ export class TestRunner {
           duration
         });
 
-        console.error(`❌ ${suite.name} failed in ${duration}ms:`, error);
+        console.log('─'.repeat(60));
+        console.error(`❌ ${suite.name} failed in ${duration}ms`);
+        console.error(`💥 Error: ${error}`);
+        console.log('─'.repeat(60));
       }
     }
 
@@ -196,9 +218,9 @@ export class TestRunner {
     error?: Error;
     duration: number;
   }>): void {
-    console.log('\n' + '='.repeat(60));
+    console.log('\n' + '='.repeat(80));
     console.log('📊 === TEST EXECUTION SUMMARY ===');
-    console.log('='.repeat(60));
+    console.log('='.repeat(80));
 
     const totalTests = results.length;
     const passedTests = results.filter(r => r.success).length;
@@ -227,18 +249,21 @@ export class TestRunner {
 
     const overallSuccess = failedTests === 0;
     console.log(`\n🏁 Overall Result: ${overallSuccess ? '✅ ALL TESTS PASSED' : '❌ SOME TESTS FAILED'}`);
-    console.log('='.repeat(60));
+    console.log('='.repeat(80));
   }
 
   /**
    * List available test suites
    */
   listSuites(): void {
+    console.log('\n' + '='.repeat(80));
     console.log('📋 Available Test Suites:');
+    console.log('='.repeat(80));
     this.testSuites.forEach(suite => {
       const status = suite.enabled ? '✅' : '❌';
       console.log(`   ${status} ${suite.name}`);
     });
+    console.log('='.repeat(80) + '\n');
   }
 
   /**
@@ -246,13 +271,15 @@ export class TestRunner {
    */
   async runAllParallel(): Promise<void> {
     const enabledSuites = this.testSuites.filter(suite => suite.enabled);
-    console.log(`\n🚀 Running ${enabledSuites.length} test suites in parallel...`);
+    console.log('\n' + '='.repeat(80));
+    console.log(`🚀 Running ${enabledSuites.length} test suites in parallel...`);
+    console.log('='.repeat(80) + '\n');
 
     const startTime = Date.now();
     const results = await Promise.allSettled(
       enabledSuites.map(async (suite) => {
         try {
-          console.log(`\n🎯 Starting ${suite.name}...`);
+          console.log(`🎯 Starting ${suite.name}...`);
           
           // Setup if the method exists
           if (typeof suite.instance.setup === 'function') {
@@ -266,6 +293,7 @@ export class TestRunner {
             await suite.instance.teardown();
           }
 
+          console.log(`✅ ${suite.name} completed`);
           return { name: suite.name, success: true };
         } catch (error) {
           // Ensure teardown is called even on error
@@ -277,6 +305,7 @@ export class TestRunner {
             console.error('❌ Teardown error:', teardownError);
           }
 
+          console.log(`❌ ${suite.name} failed`);
           return { name: suite.name, success: false, error: error as Error };
         }
       })
@@ -306,12 +335,14 @@ export class TestRunner {
     const suitesToRun = this.findSuitesByNames(suiteNames);
     
     if (suitesToRun.length === 0) {
-      console.log('❌ No matching test suites found.');
+      console.log('\n❌ No matching test suites found.');
       this.listSuites();
       return;
     }
 
-    console.log(`\n🚀 Running ${suitesToRun.length} test suites in parallel...`);
+    console.log('\n' + '='.repeat(80));
+    console.log(`🚀 Running ${suitesToRun.length} test suites in parallel...`);
+    console.log('='.repeat(80) + '\n');
 
     const startTime = Date.now();
     const results = await Promise.allSettled(
@@ -526,10 +557,13 @@ Examples:
         process.env.VERBOSE = 'true';
       }
 
+      console.log('\n' + '='.repeat(80));
       console.log('🎯 === RUNNING BROWSER AUTOMATION TESTS ===');
+      console.log('='.repeat(80));
       
       if (options.suites.length === 0 || options.suites.includes('all')) {
         console.log('📋 Running all test suites');
+        console.log('='.repeat(80) + '\n');
         if (options.parallel) {
           console.log('⚡ Parallel execution enabled');
           await runner.runAllParallel();
@@ -538,6 +572,7 @@ Examples:
         }
       } else {
         console.log(`📋 Requested suites: ${options.suites.join(', ')}`);
+        console.log('='.repeat(80) + '\n');
         if (options.parallel && options.suites.length > 1) {
           console.log('⚡ Parallel execution enabled');
           await runner.runSpecificParallel(options.suites);

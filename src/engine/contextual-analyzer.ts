@@ -25,20 +25,20 @@ export class ContextualStepAnalyzer {
 
       // If no previous step or it failed, use original
       if (!previousStep || !previousStep.success) {
-        console.log('🔄 No successful previous step, using original');
+        console.log('   🔄 No successful previous step, using original');
         return step;
       }
 
       // Only apply context if it's relevant to current step
       if (!this.isRelevantContext(step, previousStep)) {
-        console.log('🔄 Previous step not relevant to current step, using original');
+        console.log('   🔄 Previous step not relevant to current step, using original');
         return step;
       }
 
       // Extract pattern from previous successful selector
       const previousSelector = previousStep.selectorUsed || previousStep.step.target?.selector;
       if (!previousSelector) {
-        console.log('🔄 No previous selector available, using original');
+        console.log('   🔄 No previous selector available, using original');
         return step;
       }
 
@@ -60,10 +60,10 @@ export class ContextualStepAnalyzer {
         };
       }
 
-      console.log('🔄 No relevant selector pattern found, using original');
+      console.log('   🔄 No relevant selector pattern found, using original');
       return step;
     } catch (error: any) {
-      console.log('🔄 Context analysis failed, using original step:', error.message);
+      console.log('   🔄 Context analysis failed, using original step:', error.message);
       return step;
     }
   }
