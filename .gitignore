@@ -152,10 +152,6 @@ config/local.json
 config/secrets.json
 auth-config.json
 
-# Package lock files (choose one based on your package manager)
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
 
 # Documentation build
 docs/build/
