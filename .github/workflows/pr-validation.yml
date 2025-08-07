@@ -9,6 +9,7 @@ jobs:
   validate:
     name: Code Quality & Basic Tests
     runs-on: ubuntu-latest
+    environment: ci  # This references the environment you configured
     
     steps:
     - name: Checkout code
@@ -48,6 +49,11 @@ jobs:
       env:
         CI: true
         BROWSER_HEADLESS: true
+        # AI Provider Configuration
+        DEFAULT_AI_PROVIDER: ${{ vars.DEFAULT_AI_PROVIDER }}
+        OLLAMA_BASE_URL: ${{ vars.OLLAMA_BASE_URL }}
+        OLLAMA_MODEL: ${{ vars.OLLAMA_MODEL }}
+        OLLAMA_TEMPERATURE: ${{ vars.OLLAMA_TEMPERATURE }}
         
     - name: Check for test artifacts
       if: failure()
