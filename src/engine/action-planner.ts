@@ -231,8 +231,14 @@ Convert this to browser automation steps. Respond with ONLY valid JSON, no other
           throw new Error(`Invalid step ${index}: not an object`);
         }
 
-        if (!step.type || !step.description) {
-          throw new Error(`Invalid step ${index}: missing type or description`);
+        if (!step.type) {
+          throw new Error(`Invalid step ${index}: missing type`);
+        }
+
+        // Allow description to be either at the top level or in the target object
+        const description = step.description || (step.target && step.target.description);
+        if (!description) {
+          throw new Error(`Invalid step ${index}: missing description`);
         }
 
         // Map AI response strings to ActionType enum values
@@ -265,7 +271,7 @@ Convert this to browser automation steps. Respond with ONLY valid JSON, no other
 
         const actionStep: ActionStep = {
           type: mappedType,
-          description: step.description
+          description: description
         };
 
         if (step.target) {
