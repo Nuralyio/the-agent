@@ -12,46 +12,46 @@ jobs:
   validate-workflows:
     name: Validate GitHub Workflows
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Validate workflow syntax
-      run: |
-        echo "Validating GitHub workflow files..."
-        for workflow in .github/workflows/*.yml; do
-          echo "Checking $workflow"
-          # Basic YAML syntax validation
-          python3 -c "import yaml; yaml.safe_load(open('$workflow'))" || exit 1
-          echo "✅ $workflow is valid YAML"
-        done
-        
-    - name: Check for common issues
-      run: |
-        echo "Checking for common workflow issues..."
-        
-        # Check for missing quotes around version numbers
-        if grep -r "node-version: [0-9]" .github/workflows/; then
-          echo "⚠️ Found unquoted Node.js versions. Consider using quotes: '18.x'"
-        fi
-        
-        # Check for missing required actions versions
-        if grep -r "uses: actions/" .github/workflows/ | grep -v "@v[0-9]"; then
-          echo "⚠️ Found actions without version pins"
-          grep -r "uses: actions/" .github/workflows/ | grep -v "@v[0-9]" || true
-        fi
-        
-        echo "✅ Workflow validation completed"
-        
-    - name: List all workflows
-      run: |
-        echo "📋 Available workflows:"
-        ls -la .github/workflows/
-        echo ""
-        echo "📊 Workflow summary:"
-        for workflow in .github/workflows/*.yml; do
-          name=$(grep "^name:" "$workflow" | head -1 | cut -d':' -f2- | xargs)
-          triggers=$(grep -A5 "^on:" "$workflow" | grep -E "^\s+(push|pull_request|schedule|release)" | xargs)
-          echo "- $name: $triggers"
-        done
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate workflow syntax
+        run: |
+          echo "Validating GitHub workflow files..."
+          for workflow in .github/workflows/*.yml; do
+            echo "Checking $workflow"
+            # Basic YAML syntax validation
+            python3 -c "import yaml; yaml.safe_load(open('$workflow'))" || exit 1
+            echo "✅ $workflow is valid YAML"
+          done
+
+      - name: Check for common issues
+        run: |
+          echo "Checking for common workflow issues..."
+
+          # Check for missing quotes around version numbers
+          if grep -r "node-version: [0-9]" .github/workflows/; then
+            echo "⚠️ Found unquoted Node.js versions. Consider using quotes: '18.x'"
+          fi
+
+          # Check for missing required actions versions
+          if grep -r "uses: actions/" .github/workflows/ | grep -v "@v[0-9]"; then
+            echo "⚠️ Found actions without version pins"
+            grep -r "uses: actions/" .github/workflows/ | grep -v "@v[0-9]" || true
+          fi
+
+          echo "✅ Workflow validation completed"
+
+      - name: List all workflows
+        run: |
+          echo "📋 Available workflows:"
+          ls -la .github/workflows/
+          echo ""
+          echo "📊 Workflow summary:"
+          for workflow in .github/workflows/*.yml; do
+            name=$(grep "^name:" "$workflow" | head -1 | cut -d':' -f2- | xargs)
+            triggers=$(grep -A5 "^on:" "$workflow" | grep -E "^\s+(push|pull_request|schedule|release)" | xargs)
+            echo "- $name: $triggers"
+          done

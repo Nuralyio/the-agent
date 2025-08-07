@@ -2,9 +2,9 @@ name: Test Suite Coverage
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   schedule:
     # Run tests daily at 2 AM UTC
     - cron: '0 2 * * *'
@@ -13,149 +13,149 @@ jobs:
   quick-test:
     name: Quick Tests (Chrome + Playwright)
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        
-    - name: Install dependencies
-      run: |
-        if [ -f package-lock.json ]; then
-          npm ci
-        else
-          npm install
-        fi
-      
-    - name: Install Playwright
-      run: npx playwright install chromium --with-deps
-      
-    - name: Run linting
-      run: npm run lint
-      
-    - name: TypeScript check
-      run: npm run typecheck
-      
-    - name: Run Navigation Tests
-      run: npm test -- --headless --browser chrome --adapter playwright "Navigation Tests"
-      
-    - name: Run Screenshot Tests  
-      run: npm test -- --headless --browser chrome --adapter playwright "Screenshot Tests"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Install Playwright
+        run: npx playwright install chromium --with-deps
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: TypeScript check
+        run: npm run typecheck
+
+      - name: Run Navigation Tests
+        run: npm test -- --headless --browser chrome --adapter playwright "Navigation Tests"
+
+      - name: Run Screenshot Tests
+        run: npm test -- --headless --browser chrome --adapter playwright "Screenshot Tests"
 
   comprehensive-test:
     name: Comprehensive Test Matrix
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
+
     strategy:
       fail-fast: false
       matrix:
-        test-suite: 
-          - "Navigation Tests"
-          - "Screenshot Tests"
-          - "Form Filling Tests"
-          - "Interaction Tests"
-          - "Dynamic Planning Tests"
+        test-suite:
+          - 'Navigation Tests'
+          - 'Screenshot Tests'
+          - 'Form Filling Tests'
+          - 'Interaction Tests'
+          - 'Dynamic Planning Tests'
         browser: [chrome, firefox]
         adapter: [playwright, puppeteer]
         exclude:
           # Firefox with Puppeteer is not supported
           - browser: firefox
             adapter: puppeteer
-            
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        
-    - name: Install dependencies
-      run: |
-        if [ -f package-lock.json ]; then
-          npm ci
-        else
-          npm install
-        fi
-      
-    - name: Install Playwright browsers
-      if: matrix.adapter == 'playwright'
-      run: npx playwright install --with-deps
-      
-    - name: Install Chrome for Puppeteer
-      if: matrix.adapter == 'puppeteer'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y google-chrome-stable
-        
-    - name: Run test suite
-      run: npm test -- --headless --browser ${{ matrix.browser }} --adapter ${{ matrix.adapter }} "${{ matrix.test-suite }}"
-      env:
-        CI: true
-        BROWSER_HEADLESS: true
-        BROWSER_TYPE: ${{ matrix.browser }}
-        BROWSER_ADAPTER: ${{ matrix.adapter }}
-        TEST_TIMEOUT: 60000
-        
-    - name: Upload execution logs
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: logs-${{ matrix.test-suite }}-${{ matrix.browser }}-${{ matrix.adapter }}
-        path: execution-logs/
-        retention-days: 3
-        
-    - name: Upload screenshots
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: screenshots-${{ matrix.test-suite }}-${{ matrix.browser }}-${{ matrix.adapter }}
-        path: screenshots/
-        retention-days: 3
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Install Playwright browsers
+        if: matrix.adapter == 'playwright'
+        run: npx playwright install --with-deps
+
+      - name: Install Chrome for Puppeteer
+        if: matrix.adapter == 'puppeteer'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+      - name: Run test suite
+        run: npm test -- --headless --browser ${{ matrix.browser }} --adapter ${{ matrix.adapter }} "${{ matrix.test-suite }}"
+        env:
+          CI: true
+          BROWSER_HEADLESS: true
+          BROWSER_TYPE: ${{ matrix.browser }}
+          BROWSER_ADAPTER: ${{ matrix.adapter }}
+          TEST_TIMEOUT: 60000
+
+      - name: Upload execution logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ matrix.test-suite }}-${{ matrix.browser }}-${{ matrix.adapter }}
+          path: execution-logs/
+          retention-days: 3
+
+      - name: Upload screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ matrix.test-suite }}-${{ matrix.browser }}-${{ matrix.adapter }}
+          path: screenshots/
+          retention-days: 3
 
   parallel-test:
     name: Parallel Test Execution
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule'
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        
-    - name: Install dependencies
-      run: |
-        if [ -f package-lock.json ]; then
-          npm ci
-        else
-          npm install
-        fi
-      
-    - name: Install Playwright
-      run: npx playwright install --with-deps
-      
-    - name: Run all tests in parallel
-      run: npm test -- --headless --browser chrome --adapter playwright --parallel all
-      env:
-        CI: true
-        BROWSER_HEADLESS: true
-        
-    - name: Upload test results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: parallel-test-results
-        path: |
-          execution-logs/
-          screenshots/
-        retention-days: 7
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+
+      - name: Run all tests in parallel
+        run: npm test -- --headless --browser chrome --adapter playwright --parallel all
+        env:
+          CI: true
+          BROWSER_HEADLESS: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parallel-test-results
+          path: |
+            execution-logs/
+            screenshots/
+          retention-days: 7
