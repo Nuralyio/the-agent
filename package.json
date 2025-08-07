@@ -21,6 +21,8 @@
     "clean": "rm -rf dist",
     "prebuild": "npm run clean && npm run lint:check && npm run typecheck",
     "precommit": "npm run lint:fix && npm run format && npm run typecheck",
+    "ci:test": "npm test -- --headless all",
+    "ci:validate": "npm run lint:check && npm run typecheck && npm run ci:test",
     "example:simple": "ts-node src/examples/simple-example.ts",
     "example:advanced": "ts-node src/examples/advanced-example.ts",
     "example:ai": "ts-node src/examples/ai-example.ts",
