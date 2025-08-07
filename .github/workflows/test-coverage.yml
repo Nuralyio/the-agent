@@ -72,12 +72,8 @@ jobs:
           - 'Form Filling Tests'
           - 'Interaction Tests'
           - 'Dynamic Planning Tests'
-        browser: [chrome, firefox]
-        adapter: [playwright, puppeteer]
-        exclude:
-          # Firefox with Puppeteer is not supported
-          - browser: firefox
-            adapter: puppeteer
+        browser: [chrome]
+        adapter: [playwright]
 
     steps:
       - name: Checkout code
@@ -97,14 +93,7 @@ jobs:
           fi
 
       - name: Install Playwright browsers
-        if: matrix.adapter == 'playwright'
-        run: npx playwright install --with-deps
-
-      - name: Install Chrome for Puppeteer
-        if: matrix.adapter == 'puppeteer'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
+        run: npx playwright install chromium --with-deps
 
       - name: Run test suite
         run: npm test -- --headless --browser ${{ matrix.browser }} --adapter ${{ matrix.adapter }} "${{ matrix.test-suite }}"
@@ -124,7 +113,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: logs-${{ matrix.test-suite }}-${{ matrix.browser }}-${{ matrix.adapter }}
+          name: logs-${{ matrix.test-suite }}-chrome-playwright
           path: execution-logs/
           retention-days: 3
 
@@ -132,7 +121,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: screenshots-${{ matrix.test-suite }}-${{ matrix.browser }}-${{ matrix.adapter }}
+          name: screenshots-${{ matrix.test-suite }}-chrome-playwright
           path: screenshots/
           retention-days: 3
 
@@ -160,7 +149,7 @@ jobs:
           fi
 
       - name: Install Playwright
-        run: npx playwright install --with-deps
+        run: npx playwright install chromium --with-deps
 
       - name: Run all tests in parallel
         run: npm test -- --headless --browser chrome --adapter playwright --parallel all

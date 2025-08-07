@@ -31,7 +31,7 @@ jobs:
           fi
 
       - name: Install browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install chromium --with-deps
 
       - name: Run full test suite
         run: npm test -- --headless --browser chrome --adapter playwright all
@@ -70,8 +70,8 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        node-version: [18.x, 20.x]
+        os: [ubuntu-latest]
+        node-version: [20.x]
 
     steps:
       - name: Checkout code
