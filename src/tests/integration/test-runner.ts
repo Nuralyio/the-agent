@@ -72,7 +72,7 @@ export class TestRunner {
         console.log('\n' + '─'.repeat(60));
         console.log(`🎯 Running ${suite.name}...`);
         console.log('─'.repeat(60));
-        
+
         await suite.instance.runAll();
         const duration = Date.now() - startTime;
 
@@ -280,7 +280,7 @@ export class TestRunner {
       enabledSuites.map(async (suite) => {
         try {
           console.log(`🎯 Starting ${suite.name}...`);
-          
+
           // Setup if the method exists
           if (typeof suite.instance.setup === 'function') {
             await suite.instance.setup();
@@ -315,12 +315,12 @@ export class TestRunner {
     const processedResults = results.map((result, index) => {
       const suite = enabledSuites[index];
       if (!suite) throw new Error(`Suite at index ${index} not found`);
-      
+
       return {
         name: suite.name,
         success: result.status === 'fulfilled' && result.value.success,
-        error: result.status === 'rejected' ? result.reason : 
-               (result.status === 'fulfilled' && !result.value.success ? result.value.error : undefined),
+        error: result.status === 'rejected' ? result.reason :
+          (result.status === 'fulfilled' && !result.value.success ? result.value.error : undefined),
         duration: totalDuration / results.length // Approximate since parallel
       };
     });
@@ -333,7 +333,7 @@ export class TestRunner {
    */
   async runSpecificParallel(suiteNames: string[]): Promise<void> {
     const suitesToRun = this.findSuitesByNames(suiteNames);
-    
+
     if (suitesToRun.length === 0) {
       console.log('\n❌ No matching test suites found.');
       this.listSuites();
@@ -349,7 +349,7 @@ export class TestRunner {
       suitesToRun.map(async (suite) => {
         try {
           console.log(`\n🎯 Starting ${suite.name}...`);
-          
+
           // Setup if the method exists
           if (typeof suite.instance.setup === 'function') {
             await suite.instance.setup();
@@ -382,12 +382,12 @@ export class TestRunner {
     const processedResults = results.map((result, index) => {
       const suite = suitesToRun[index];
       if (!suite) throw new Error(`Suite at index ${index} not found`);
-      
+
       return {
         name: suite.name,
         success: result.status === 'fulfilled' && result.value.success,
-        error: result.status === 'rejected' ? result.reason : 
-               (result.status === 'fulfilled' && !result.value.success ? result.value.error : undefined),
+        error: result.status === 'rejected' ? result.reason :
+          (result.status === 'fulfilled' && !result.value.success ? result.value.error : undefined),
         duration: totalDuration / results.length // Approximate since parallel
       };
     });
@@ -399,14 +399,14 @@ export class TestRunner {
    * Helper method to find suites by names
    */
   private findSuitesByNames(suiteNames: string[]) {
-    return this.testSuites.filter(suite => 
+    return this.testSuites.filter(suite =>
       suite.enabled && suiteNames.some(name => {
         if (!name) return false;
         const suiteName = suite.name.toLowerCase();
         const searchName = name.toLowerCase();
         const firstWord = suiteName.split(' ')[0];
-        return suiteName.includes(searchName) || 
-               searchName.includes(firstWord || '');
+        return suiteName.includes(searchName) ||
+          searchName.includes(firstWord || '');
       })
     );
   }
@@ -415,7 +415,7 @@ export class TestRunner {
 // CLI interface when run directly
 if (require.main === module) {
   const runner = new TestRunner();
-  
+
   interface CLIOptions {
     suites: string[];
     headless?: boolean;
@@ -431,10 +431,10 @@ if (require.main === module) {
   function parseArgs(): CLIOptions {
     const args = process.argv.slice(2);
     const options: CLIOptions = { suites: [] };
-    
+
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
-      
+
       switch (arg) {
         case '--list':
         case '-l':
@@ -486,7 +486,7 @@ if (require.main === module) {
           break;
       }
     }
-    
+
     return options;
   }
 
@@ -509,7 +509,7 @@ Options:
 
 Test Suites:
   navigation              Navigation functionality tests
-  screenshot              Screenshot capture tests  
+  screenshot              Screenshot capture tests
   form                    Form filling tests
   interaction             Browser interaction tests
   planning                Dynamic planning tests
@@ -529,12 +529,12 @@ Examples:
   async function main() {
     try {
       const options = parseArgs();
-      
+
       if (options.help) {
         showHelp();
         return;
       }
-      
+
       if (options.list) {
         runner.listSuites();
         return;
@@ -560,7 +560,7 @@ Examples:
       console.log('\n' + '='.repeat(80));
       console.log('🎯 === RUNNING BROWSER AUTOMATION TESTS ===');
       console.log('='.repeat(80));
-      
+
       if (options.suites.length === 0 || options.suites.includes('all')) {
         console.log('📋 Running all test suites');
         console.log('='.repeat(80) + '\n');
@@ -584,13 +584,13 @@ Examples:
       console.error('💥 Test runner failed:', error);
       process.exit(1);
     }
-    
+
     // Ensure clean exit with a timeout fallback
     setTimeout(() => {
       console.log('⚠️ Forcing exit after timeout...');
       process.exit(0);
     }, 1000); // Give 1 second for cleanup
-    
+
     process.exit(0);
   }
 
