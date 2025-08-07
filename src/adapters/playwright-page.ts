@@ -1,6 +1,6 @@
-import { PageInstance, ElementHandle, ScreenshotOptions, WaitOptions } from '../types';
+import type { BrowserContext, Page } from 'playwright';
+import { ElementHandle, PageInstance, ScreenshotOptions, WaitOptions } from '../types';
 import { PlaywrightElementHandle } from './playwright-element';
-import type { Page, BrowserContext } from 'playwright';
 
 /**
  * Playwright implementation of PageInstance
@@ -9,7 +9,7 @@ export class PlaywrightPageInstance implements PageInstance {
   constructor(
     private page: Page,
     private context: BrowserContext
-  ) {}
+  ) { }
 
   /**
    * Get the page URL
@@ -29,7 +29,7 @@ export class PlaywrightPageInstance implements PageInstance {
    * Navigate to a URL
    */
   async navigate(url: string): Promise<void> {
-    await this.page.goto(url);
+    await this.page.goto(url, { waitUntil: 'domcontentloaded' });
   }
 
   /**
@@ -44,7 +44,7 @@ export class PlaywrightPageInstance implements PageInstance {
    */
   async screenshot(options?: ScreenshotOptions): Promise<Buffer> {
     const screenshotOptions: Parameters<Page['screenshot']>[0] = {};
-    
+
     if (options?.fullPage !== undefined) screenshotOptions.fullPage = options.fullPage;
     if (options?.path) screenshotOptions.path = options.path;
     if (options?.type) screenshotOptions.type = options.type;
@@ -74,11 +74,11 @@ export class PlaywrightPageInstance implements PageInstance {
     const locator = this.page.locator(selector);
     const count = await locator.count();
     const elements: ElementHandle[] = [];
-    
+
     for (let i = 0; i < count; i++) {
       elements.push(new PlaywrightElementHandle(locator.nth(i)));
     }
-    
+
     return elements;
   }
 
@@ -87,7 +87,7 @@ export class PlaywrightPageInstance implements PageInstance {
    */
   async waitForSelector(selector: string, options?: WaitOptions): Promise<ElementHandle> {
     const waitOptions: { timeout?: number; state?: 'attached' | 'detached' | 'visible' | 'hidden' } = {};
-    
+
     if (options?.timeout) waitOptions.timeout = options.timeout;
     if (options?.state) waitOptions.state = options.state;
 
@@ -96,9 +96,9 @@ export class PlaywrightPageInstance implements PageInstance {
     const locatorOptions: any = {};
     if (options?.timeout) locatorOptions.timeout = options.timeout;
     if (options?.state) locatorOptions.state = options.state;
-    
+
     await locator.waitFor(locatorOptions);
-    
+
     return new PlaywrightElementHandle(locator);
   }
 

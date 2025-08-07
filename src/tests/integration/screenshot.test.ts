@@ -10,7 +10,7 @@ export class ScreenshotTest {
 
   async setup(): Promise<void> {
     this.context = await setupTestContext();
-    await initializePage(this.context.automation, 'https://httpbin.org/html');
+    await initializePage(this.context.automation);
   }
 
   async teardown(): Promise<void> {

@@ -74,17 +74,18 @@ export async function teardownTestContext(context: TestContext): Promise<void> {
 /**
  * Initialize page for testing
  */
-export async function initializePage(automation: BrowserAutomation, url: string = 'https://example.com'): Promise<void> {
-  console.log(`🌐 Navigating to ${url}...`);
+export async function initializePage(automation: BrowserAutomation): Promise<void> {
+  console.log('🔧 Initializing automation framework...');
 
-  // Initialize the automation framework first to apply configuration
+  // Initialize the automation framework to apply configuration
   await automation.initialize();
 
-  // Then navigate to the URL
-  await automation.navigate(url);
+  // Create a blank page so the action engine has something to work with
+  console.log('📄 Opening blank page...');
+  await automation.navigate('about:blank');
 
-  // Wait a moment for the page to load
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  // Wait a moment for initialization to complete
+  await new Promise(resolve => setTimeout(resolve, 500));
 }
 
 /**
