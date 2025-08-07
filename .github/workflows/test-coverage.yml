@@ -13,7 +13,7 @@ jobs:
   quick-test:
     name: Quick Tests (Chrome + Playwright)
     runs-on: ubuntu-latest
-    environment: ci  # This references the environment you configured
+    environment: ci # This references the environment you configured
 
     steps:
       - name: Checkout code
@@ -60,7 +60,7 @@ jobs:
   comprehensive-test:
     name: Comprehensive Test Matrix
     runs-on: ubuntu-latest
-    environment: ci  # This references the environment you configured
+    environment: ci # This references the environment you configured
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     strategy:
@@ -139,7 +139,7 @@ jobs:
   parallel-test:
     name: Parallel Test Execution
     runs-on: ubuntu-latest
-    environment: ci  # This references the environment you configured
+    environment: ci # This references the environment you configured
     if: github.event_name == 'schedule'
 
     steps:
