@@ -1,10 +1,12 @@
 # GitHub Actions Workflows
 
-This repository uses GitHub Actions for continuous integration and testing. Here's an overview of our workflows:
+This repository uses GitHub Actions for continuous integration and testing.
+Here's an overview of our workflows:
 
 ## 🔄 Continuous Integration Workflows
 
 ### 1. **CI Tests** (`ci.yml`)
+
 - **Triggers**: Push to `main`/`develop`, Pull Requests
 - **Purpose**: Core validation with multiple browser/adapter combinations
 - **Matrix**: Node.js 18.x & 20.x × Chrome & Firefox × Playwright & Puppeteer
@@ -15,6 +17,7 @@ This repository uses GitHub Actions for continuous integration and testing. Here
   - Artifact collection on failure
 
 ### 2. **Test Coverage** (`test-coverage.yml`)
+
 - **Triggers**: Push to `main`, PRs, Daily at 2 AM UTC
 - **Purpose**: Comprehensive test suite coverage
 - **Jobs**:
@@ -24,6 +27,7 @@ This repository uses GitHub Actions for continuous integration and testing. Here
 - **Artifacts**: Execution logs and screenshots on failure
 
 ### 3. **Pull Request Validation** (`pr-validation.yml`)
+
 - **Triggers**: PR opened/updated
 - **Purpose**: Code quality and basic functionality validation
 - **Features**:
@@ -35,6 +39,7 @@ This repository uses GitHub Actions for continuous integration and testing. Here
   - npm audit for dependency vulnerabilities
 
 ### 4. **Release** (`release.yml`)
+
 - **Triggers**: Release published, version tags
 - **Purpose**: Release validation and distribution
 - **Features**:
@@ -47,6 +52,7 @@ This repository uses GitHub Actions for continuous integration and testing. Here
 ## 🎯 Test Execution Strategy
 
 ### Matrix Testing
+
 ```yaml
 Browser Support: [chrome, firefox]
 Adapters: [playwright, puppeteer]
@@ -60,6 +66,7 @@ Test Suites:
 ```
 
 ### Environment Variables
+
 ```bash
 CI=true
 BROWSER_HEADLESS=true
@@ -101,16 +108,20 @@ npm test -- --parallel all  # Parallel execution
 ## 🔧 Workflow Configuration
 
 ### Secrets Required
+
 - `NPM_TOKEN`: For npm package publishing (optional)
 
 ### Branch Protection
+
 Recommended branch protection rules for `main`:
+
 - Require PR reviews: 1
 - Require status checks: CI Tests, PR Validation
 - Restrict pushes to main branch
 - Require up-to-date branches
 
 ### Artifact Retention
+
 - Test artifacts: 3-7 days
 - Build artifacts: 30 days
 - Screenshots: 3 days (failure only)
@@ -118,12 +129,15 @@ Recommended branch protection rules for `main`:
 ## 📈 Monitoring & Debugging
 
 ### Test Failure Investigation
+
 1. Check the Actions tab for detailed logs
 2. Download execution-logs and screenshots artifacts
 3. Review console output for specific error messages
-4. Run locally with same configuration: `npm test -- --headless --browser [browser] --adapter [adapter] "[suite]"`
+4. Run locally with same configuration:
+   `npm test -- --headless --browser [browser] --adapter [adapter] "[suite]"`
 
 ### Performance Monitoring
+
 - Test execution times tracked per matrix combination
 - Artifact sizes monitored for storage optimization
 - Daily scheduled runs for regression detection
