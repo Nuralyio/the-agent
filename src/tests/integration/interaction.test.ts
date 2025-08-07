@@ -8,7 +8,7 @@ export class InteractionTest {
 
   async setup(): Promise<void> {
     this.context = await setupTestContext();
-    await initializePage(this.context.automation, 'https://httpbin.org/html');
+    await initializePage(this.context.automation);
   }
 
   async teardown(): Promise<void> {
@@ -65,10 +65,10 @@ export class InteractionTest {
    * Test typing in search or input fields
    */
   async testTypingInteraction(): Promise<void> {
-    // Navigate to a page with input fields
-    await initializePage(this.context.automation, 'https://httpbin.org/forms/post');
+    // Initialize without navigation - let the instruction handle navigation
+    await initializePage(this.context.automation);
 
-    const instruction = "find an input field and type 'Test Search Query' into it";
+    const instruction = "navigate to https://httpbin.org/forms/post and find an input field and type 'Test Search Query' into it";
 
     const result = await executeTestInstruction(
       this.context.actionEngine,

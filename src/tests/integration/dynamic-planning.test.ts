@@ -8,7 +8,7 @@ export class DynamicPlanningTest {
 
   async setup(): Promise<void> {
     this.context = await setupTestContext();
-    await initializePage(this.context.automation, 'https://httpbin.org/html');
+    await initializePage(this.context.automation);
   }
 
   async teardown(): Promise<void> {
@@ -65,7 +65,7 @@ export class DynamicPlanningTest {
    */
   async testCrossPageAdaptability(): Promise<void> {
     // Test on HTML page first
-    const htmlInstruction = "identify what type of page this is and take appropriate action";
+    const htmlInstruction = "navigate to https://httpbin.org/html and identify what type of page this is and take appropriate action";
 
     const htmlResult = await executeTestInstruction(
       this.context.actionEngine,
@@ -76,9 +76,9 @@ export class DynamicPlanningTest {
     assert(htmlResult.success, "HTML page analysis should complete successfully");
 
     // Navigate to forms page
-    await initializePage(this.context.automation, 'https://httpbin.org/forms/post');
+    await initializePage(this.context.automation);
 
-    const formInstruction = "identify what type of page this is and take appropriate action";
+    const formInstruction = "navigate to https://httpbin.org/forms/post and identify what type of page this is and take appropriate action";
 
     const formResult = await executeTestInstruction(
       this.context.actionEngine,

@@ -54,6 +54,11 @@ export class ActionEngine implements IActionEngine {
     console.log(`📝 Execution logging started: ${logger.getSessionId()}`);
 
     try {
+      // Check if instruction contains navigation and handle it specially
+      if (this.instructionContainsNavigation(instruction)) {
+        return await this.executeNavigationAwareTask(instruction, logger);
+      }
+
       // 1. Parse the instruction into actionable steps
       const actionPlan = await this.parseInstruction(instruction);
       console.log(`📋 Generated ${actionPlan.steps.length} steps`);
@@ -133,7 +138,7 @@ export class ActionEngine implements IActionEngine {
         // Get current step context including previous steps
         const stepContext = this.stepContextManager.getCurrentContext(i, currentPlan.steps.length);
 
-        // Track refinement information  
+        // Track refinement information
         let refinementInfo: {
           wasRefined: boolean;
           originalStep?: ActionStep;
@@ -149,12 +154,12 @@ export class ActionEngine implements IActionEngine {
           console.log(`🔄 Refining step ${i + 1} with context and page content...`);
           const originalStep = { ...step }; // Keep copy of original step
           const refinedStep = await this.refineStepWithContext(step, stepContext, pageStateBefore);
-          
+
           // Check if step was actually refined by comparing selectors specifically
           const originalSelector = originalStep.target?.selector;
           const refinedSelector = refinedStep.target?.selector;
           const wasActuallyRefined = originalSelector !== refinedSelector;
-          
+
           if (wasActuallyRefined) {
             // Determine the refinement reason based on the change
             let refinementReason = 'Context-aware selector improvement';
@@ -167,7 +172,7 @@ export class ActionEngine implements IActionEngine {
                 refinementReason = `Contextual analysis improved selector specificity`;
               }
             }
-            
+
             refinementInfo = {
               wasRefined: true,
               originalStep: originalStep,
@@ -177,10 +182,10 @@ export class ActionEngine implements IActionEngine {
                 pageContentAnalysis: `Refined "${originalSelector}" to "${refinedSelector}"`
               }
             };
-            
+
             console.log(`🎯 Selector refined: "${originalSelector}" → "${refinedSelector}"`);
           }
-          
+
           currentPlan.steps[i] = refinedStep;
           console.log(`✨ Context-refined step ${i + 1}: ${refinedStep.description}`);
           if (refinedStep.target?.selector) {
@@ -373,6 +378,14 @@ export class ActionEngine implements IActionEngine {
 
     console.log(`🌐 Navigating to: ${url}`);
     await page.navigate(url);
+
+    // Wait for the DOM to be ready after navigation
+    console.log('⏳ Waiting for page to load...');
+    await page.waitForLoad();
+
+    // Give a small additional delay to ensure content is fully rendered
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     return { success: true };
   }
 
@@ -724,5 +737,142 @@ Respond with ONLY a JSON object containing the refined step.`;
    */
   exportExecutionContext(): string {
     return this.stepContextManager.exportContextSummary();
+  }
+
+  /**
+   * Check if instruction contains navigation keywords
+   */
+  private instructionContainsNavigation(instruction: string): boolean {
+    const navigationKeywords = [
+      'navigate to', 'go to', 'visit', 'open', 'load',
+      'browse to', 'head to', 'access', 'http://', 'https://',
+      '.com', '.org', '.net', '.io', '.co'
+    ];
+
+    const lowerInstruction = instruction.toLowerCase();
+    return navigationKeywords.some(keyword => lowerInstruction.includes(keyword));
+  }
+
+  /**
+   * Execute task with navigation-aware planning
+   */
+  private async executeNavigationAwareTask(instruction: string, logger: ExecutionLogger): Promise<TaskResult> {
+    console.log('🌐 Detected navigation in instruction - using smart planning');
+
+    // 1. First, parse just to identify the navigation part
+    const initialPageState = await this.captureState();
+    const initialPlan = await this.actionPlanner.createActionPlan(instruction, {
+      url: initialPageState.url,
+      pageTitle: initialPageState.title,
+      currentStep: 0,
+      totalSteps: 0,
+      variables: {}
+    }, initialPageState);
+
+    // 2. Find the first NAVIGATE step
+    const navigateStepIndex = initialPlan.steps.findIndex(step => step.type === ActionType.NAVIGATE);
+
+    if (navigateStepIndex === -1) {
+      // No navigation step found, proceed normally
+      console.log('⚠️ No navigation step found despite detection, proceeding normally');
+      const result = await this.executeActionPlan(initialPlan, logger);
+      const logPath = logger.finishSession(result.success);
+      console.log(`📋 Complete execution log saved to: ${logPath}`);
+      return result;
+    }
+
+    console.log(`🎯 Found navigation step at index ${navigateStepIndex}`);
+
+    // 3. Execute navigation step(s) first
+    const navigationSteps = initialPlan.steps.slice(0, navigateStepIndex + 1);
+    const remainingInstruction = this.extractRemainingInstruction(instruction, navigationSteps);
+
+    // Execute navigation
+    const navigationPlan: ActionPlan = {
+      steps: navigationSteps,
+      context: initialPlan.context,
+      expectedOutcome: 'Navigate to target page'
+    };
+
+    console.log(`🚀 Executing ${navigationSteps.length} navigation step(s)`);
+    const navResult = await this.executeActionPlan(navigationPlan, logger);
+
+    if (!navResult.success) {
+      const logPath = logger.finishSession(false);
+      console.log(`📋 Complete execution log saved to: ${logPath}`);
+      return navResult;
+    }
+
+    // 4. Re-capture page state after navigation
+    const newPageState = await this.captureState();
+    console.log(`📄 Re-captured page state: ${newPageState.url}`);
+
+    // 5. Re-plan remaining instruction with new page content
+    if (remainingInstruction.trim()) {
+      console.log(`🔄 Re-planning remaining instruction: "${remainingInstruction}"`);
+
+      const remainingPlan = await this.actionPlanner.createActionPlan(remainingInstruction, {
+        url: newPageState.url,
+        pageTitle: newPageState.title,
+        currentStep: 0,
+        totalSteps: 0,
+        variables: {}
+      }, newPageState);
+
+      console.log(`📋 Generated ${remainingPlan.steps.length} additional steps for remaining actions`);
+
+      // 6. Execute remaining steps
+      const remainingResult = await this.executeActionPlan(remainingPlan, logger);
+
+      // 7. Combine results
+      const finalResult: TaskResult = {
+        success: navResult.success && remainingResult.success,
+        steps: [...navResult.steps, ...remainingResult.steps],
+        screenshots: [...(navResult.screenshots || []), ...(remainingResult.screenshots || [])]
+      };
+
+      // Add error only if there is one
+      const errorMessage = remainingResult.error || navResult.error;
+      if (errorMessage) {
+        finalResult.error = errorMessage;
+      }
+
+      const logPath = logger.finishSession(finalResult.success);
+      console.log(`📋 Complete execution log saved to: ${logPath}`);
+      return finalResult;
+    }
+
+    // Only navigation was needed
+    const logPath = logger.finishSession(navResult.success);
+    console.log(`📋 Complete execution log saved to: ${logPath}`);
+    return navResult;
+  }
+
+  /**
+   * Extract the remaining instruction after navigation
+   */
+  private extractRemainingInstruction(originalInstruction: string, navigationSteps: ActionStep[]): string {
+    // This is a simple approach - remove navigation-related phrases
+    let remaining = originalInstruction;
+
+    // Remove common navigation phrases
+    const navigationPhrases = [
+      /navigate to [^\s,]+/gi,
+      /go to [^\s,]+/gi,
+      /visit [^\s,]+/gi,
+      /open [^\s,]+/gi,
+      /browse to [^\s,]+/gi,
+      /https?:\/\/[^\s,]+/gi
+    ];
+
+    navigationPhrases.forEach(phrase => {
+      remaining = remaining.replace(phrase, '');
+    });
+
+    // Clean up conjunctions and extra spaces
+    remaining = remaining.replace(/^(and |then |, |,)/i, '');
+    remaining = remaining.replace(/\s+/g, ' ').trim();
+
+    return remaining;
   }
 }

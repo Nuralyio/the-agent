@@ -205,6 +205,7 @@ export interface PageInstance {
   content(): Promise<string>;
   evaluate<T>(fn: () => T): Promise<T>;
   waitForSelector(selector: string, options?: WaitOptions): Promise<ElementHandle>;
+  waitForLoad(): Promise<void>;
   close(): Promise<void>;
 }
 
