@@ -43,6 +43,30 @@ export interface ExecutionLogEntry {
     previousStepsCount: number;
     sessionDuration: number;
   };
+  refinement?: {
+    wasRefined: boolean;
+    originalStep?: {
+      description: string;
+      selector?: string;
+      value?: string;
+    };
+    refinedStep?: {
+      description: string;
+      selector?: string;
+      value?: string;
+    };
+    refinementReason?: string;
+    contextUsed?: {
+      previousStepPatterns?: string[];
+      pageContentAnalysis?: string;
+    };
+  };
+  iteration?: {
+    stepIteration: number;
+    totalIterations: number;
+    planAdapted: boolean;
+    adaptationReason?: string;
+  };
 }
 
 /**
@@ -112,7 +136,22 @@ export class ExecutionLogger {
     pageUrl: string,
     pageTitle: string,
     screenshotBuffer?: Buffer,
-    viewport?: { width: number; height: number }
+    viewport?: { width: number; height: number },
+    refinementInfo?: {
+      wasRefined: boolean;
+      originalStep?: ActionStep;
+      refinementReason?: string;
+      contextUsed?: {
+        previousStepPatterns?: string[];
+        pageContentAnalysis?: string;
+      };
+    },
+    iterationInfo?: {
+      stepIteration: number;
+      totalIterations: number;
+      planAdapted: boolean;
+      adaptationReason?: string;
+    }
   ): Promise<void> {
     const timestamp = new Date();
     const executionTime = timestamp.getTime() - result.timestamp.getTime();
@@ -168,7 +207,36 @@ export class ExecutionLogger {
       context: {
         previousStepsCount: stepIndex,
         sessionDuration: timestamp.getTime() - this.startTime.getTime()
-      }
+      },
+      ...(refinementInfo && {
+        refinement: {
+          wasRefined: refinementInfo.wasRefined,
+          ...(refinementInfo.originalStep && {
+            originalStep: {
+              description: refinementInfo.originalStep.description,
+              ...(refinementInfo.originalStep.target?.selector && { selector: refinementInfo.originalStep.target.selector }),
+              ...(refinementInfo.originalStep.value && { value: refinementInfo.originalStep.value })
+            }
+          }),
+          ...(refinementInfo.wasRefined && {
+            refinedStep: {
+              description: step.description,
+              ...(step.target?.selector && { selector: step.target.selector }),
+              ...(step.value && { value: step.value })
+            }
+          }),
+          ...(refinementInfo.refinementReason && { refinementReason: refinementInfo.refinementReason }),
+          ...(refinementInfo.contextUsed && { contextUsed: refinementInfo.contextUsed })
+        }
+      }),
+      ...(iterationInfo && {
+        iteration: {
+          stepIteration: iterationInfo.stepIteration,
+          totalIterations: iterationInfo.totalIterations,
+          planAdapted: iterationInfo.planAdapted,
+          ...(iterationInfo.adaptationReason && { adaptationReason: iterationInfo.adaptationReason })
+        }
+      })
     };
 
     // Add to session log
