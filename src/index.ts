@@ -1,8 +1,7 @@
 import { BrowserAdapterRegistry } from './adapters/adapter-registry';
+import { AIEngine } from './ai/ai-engine';
 import { BrowserManagerImpl } from './core/browser-manager';
 import { ActionEngine } from './engine/action-engine';
-import { AIEngine } from './ai/ai-engine';
-import { executionStream } from './visualization/execution-stream';
 import {
   AIConfig,
   BrowserAdapter,
@@ -12,6 +11,7 @@ import {
   LaunchOptions,
   TaskResult
 } from './types';
+import { executionStream } from './visualization/execution-stream';
 
 /**
  * Main Browser Automation Framework class
@@ -47,7 +47,7 @@ export class BrowserAutomation {
    * Initialize the framework with the specified configuration
    */
   async initialize(): Promise<void> {
-        // Auto-select adapter if needed
+    // Auto-select adapter if needed
     if (this.config.adapter === 'auto') {
       const adapter = await this.registry.autoSelectAdapter({
         browserType: this.config.browserType,

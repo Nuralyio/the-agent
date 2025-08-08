@@ -1,12 +1,15 @@
 # Browser Automation Visualizer
 
-A modern React-based dashboard built with Remix.js and FluentUI for visualizing and controlling browser automation tasks in real-time.
+A modern React-based dashboard built with Remix.js and FluentUI for visualizing
+and controlling browser automation tasks in real-time.
 
 ## 🚀 Features
 
-- **Real-time Visualization**: Live updates of browser automation execution via Server-Sent Events
+- **Real-time Visualization**: Live updates of browser automation execution via
+  Server-Sent Events
 - **Chat-based Control**: Natural language interface to trigger automation tasks
-- **Step-by-Step Tracking**: Visual progression of automation steps with status indicators
+- **Step-by-Step Tracking**: Visual progression of automation steps with status
+  indicators
 - **Screenshot Viewer**: Live screenshots with zoom and controls
 - **Modern UI**: Built with Microsoft FluentUI for a professional look and feel
 - **Responsive Design**: Works on desktop and mobile devices
@@ -45,12 +48,14 @@ visualization-ui/
 ### Installation
 
 1. **Install dependencies:**
+
    ```bash
    cd visualization-ui
    npm install
    ```
 
 2. **Start the development server:**
+
    ```bash
    npm run dev
    ```
@@ -64,7 +69,8 @@ visualization-ui/
 
 ### Chat Interface
 
-The chat interface allows you to control browser automation using natural language:
+The chat interface allows you to control browser automation using natural
+language:
 
 ```
 Examples:
@@ -78,6 +84,7 @@ Examples:
 ### Quick Commands
 
 Pre-built commands for common automation tasks:
+
 - Take a screenshot
 - Go to google.com
 - Scroll down 500 pixels
@@ -87,6 +94,7 @@ Pre-built commands for common automation tasks:
 ### Real-time Updates
 
 The dashboard automatically connects to the automation server and displays:
+
 - Live execution steps
 - Current browser screenshots
 - Progress indicators
@@ -100,12 +108,13 @@ By default, the app connects to `http://localhost:3002`. To change this:
 
 ```typescript
 // In app/routes/_index.tsx
-const [serverUrl] = useState("http://your-server:port");
+const [serverUrl] = useState('http://your-server:port');
 ```
 
 ### API Endpoints
 
 The app uses these endpoints from the automation server:
+
 - `GET /api/status` - Server status
 - `GET /api/sessions` - List execution sessions
 - `GET /api/sessions/:id` - Session details
@@ -118,6 +127,7 @@ The app uses these endpoints from the automation server:
 ### ChatInterface
 
 Interactive chat for automation control:
+
 ```typescript
 <ChatInterface
   onExecuteTask={handleExecuteTask}
@@ -129,6 +139,7 @@ Interactive chat for automation control:
 ### ExecutionSteps
 
 Visual step tracker:
+
 ```typescript
 <ExecutionSteps
   session={currentSession}
@@ -140,6 +151,7 @@ Visual step tracker:
 ### ScreenshotViewer
 
 Live screenshot display with zoom:
+
 ```typescript
 <ScreenshotViewer
   screenshot={currentScreenshot}
@@ -155,11 +167,12 @@ Live screenshot display with zoom:
 Embed the dashboard in your application:
 
 ```html
-<iframe 
-  src="http://localhost:3003" 
-  width="100%" 
+<iframe
+  src="http://localhost:3003"
+  width="100%"
   height="600px"
-  style="border: 1px solid #ccc; border-radius: 8px;">
+  style="border: 1px solid #ccc; border-radius: 8px;"
+>
 </iframe>
 ```
 
@@ -171,7 +184,7 @@ Use the automation API directly:
 import { automationAPI, quickExecute } from '~/utils/automationAPI';
 
 // Execute a task
-const result = await quickExecute("take a screenshot");
+const result = await quickExecute('take a screenshot');
 
 // Get server status
 const status = await automationAPI.getServerStatus();
@@ -182,9 +195,10 @@ const status = await automationAPI.getServerStatus();
 ### Real-time Communication
 
 Uses Server-Sent Events (SSE) for live updates:
+
 ```typescript
 const eventSource = new EventSource('/api/execution/stream');
-eventSource.onmessage = (event) => {
+eventSource.onmessage = event => {
   const data = JSON.parse(event.data);
   handleExecutionEvent(data);
 };
@@ -193,6 +207,7 @@ eventSource.onmessage = (event) => {
 ### State Management
 
 React hooks manage application state:
+
 ```typescript
 const { state, currentScreenshot } = useVisualizationStream(serverUrl);
 const { loading, error, executeTask } = useVisualizationAPI(serverUrl);
@@ -201,11 +216,12 @@ const { loading, error, executeTask } = useVisualizationAPI(serverUrl);
 ### Responsive Design
 
 FluentUI components provide responsive, accessible UI:
+
 ```typescript
-<div style={{ 
-  display: 'grid', 
-  gridTemplateColumns: '1fr 1fr 1fr', 
-  gap: '24px' 
+<div style={{
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr 1fr',
+  gap: '24px'
 }}>
   {/* Three-column layout on desktop */}
 </div>
@@ -264,11 +280,13 @@ CMD ["npm", "start"]
 ## 📚 Technologies Used
 
 - **[Remix.js](https://remix.run/)** - Full-stack React framework
-- **[FluentUI](https://developer.microsoft.com/fluentui)** - Microsoft's design system
+- **[FluentUI](https://developer.microsoft.com/fluentui)** - Microsoft's design
+  system
 - **[TypeScript](https://www.typescriptlang.org/)** - Type-safe JavaScript
 - **[Vite](https://vitejs.dev/)** - Fast build tool
 - **Server-Sent Events** - Real-time communication
 
 ## 📄 License
 
-This project is part of the Browser Automation Framework and follows the same license terms.
+This project is part of the Browser Automation Framework and follows the same
+license terms.

@@ -19,10 +19,6 @@
     },
     "noUncheckedIndexedAccess": false
   },
-  "include": [
-    "remix.env.d.ts",
-    "**/*.ts",
-    "**/*.tsx"
-  ],
+  "include": ["remix.env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }

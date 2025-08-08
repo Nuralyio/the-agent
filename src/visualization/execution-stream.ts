@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { ActionStep, ActionType } from '../types';
+import { ActionStep } from '../types';
 
 export interface ExecutionEvent {
   type: 'plan_created' | 'step_start' | 'step_complete' | 'step_error' | 'screenshot' | 'page_change' | 'execution_complete';
@@ -40,7 +40,7 @@ export class ExecutionStream extends EventEmitter {
   startSession(sessionId: string): void {
     this.currentSessionId = sessionId;
     this.executionHistory = [];
-    
+
     this.broadcastEvent({
       type: 'execution_complete', // Reset event
       sessionId,
@@ -171,7 +171,7 @@ export class ExecutionStream extends EventEmitter {
    */
   addClient(clientId: string, response: any): void {
     console.log(`📺 New visualization client connected: ${clientId}`);
-    
+
     this.clients.set(clientId, {
       id: clientId,
       response,

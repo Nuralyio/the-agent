@@ -7,7 +7,7 @@ import { visualizationServer } from './visualization-server';
  */
 async function startVisualizationServer() {
   console.log('🚀 Starting Visualization Server with Environment Configuration');
-  
+
   // Load configuration from environment variables (.env file)
   const envConfig = loadEnvironmentConfig();
   logConfigurationStatus(envConfig);
