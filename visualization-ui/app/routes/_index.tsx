@@ -132,7 +132,7 @@ const styles = {
     color: '#ffffff',
   },
   avatarUser: {
-    backgroundColor: '#ff6b35',
+    backgroundColor: '#007ACC',
     color: '#ffffff',
   },
   messageBubble: {
@@ -143,7 +143,7 @@ const styles = {
     position: 'relative' as const,
   },
   messageBubbleUser: {
-    backgroundColor: '#ff6b35',
+    backgroundColor: '#007ACC',
     marginLeft: 'auto',
   },
   messageText: {
@@ -160,7 +160,7 @@ const styles = {
   },
   stepBubble: {
     backgroundColor: '#1f2937',
-    border: '1px solid #ff6b35',
+    border: '1px solid #007ACC',
     borderRadius: '8px',
     padding: '10px 14px',
     margin: '4px 0',
@@ -176,7 +176,7 @@ const styles = {
   stepTitle: {
     fontSize: '13px',
     fontWeight: '500',
-    color: '#ff6b35',
+    color: '#007ACC',
   },
   stepDescription: {
     fontSize: '12px',
@@ -265,9 +265,9 @@ const styles = {
     border: '1px solid #374151',
     transition: 'border-color 0.15s ease',
   },
-  inputWrapperFocused: {
-    borderColor: '#ff6b35',
-    boxShadow: '0 0 0 1px #ff6b35',
+  inputFocused: {
+    borderColor: '#007ACC',
+    boxShadow: '0 0 0 1px #007ACC',
   },
   textInput: {
     width: '100%',
@@ -289,7 +289,7 @@ const styles = {
     right: '8px',
     top: '50%',
     transform: 'translateY(-50%)',
-    backgroundColor: '#ff6b35',
+    backgroundColor: '#007ACC',
     color: '#ffffff',
     border: 'none',
     borderRadius: '8px',
@@ -366,7 +366,7 @@ const styles = {
   },
   statusCard: {
     backgroundColor: '#1f2937',
-    border: '1px solid #ff6b35',
+    border: '1px solid #007ACC',
     borderRadius: '8px',
     padding: '16px',
     marginTop: 'auto',
@@ -402,8 +402,8 @@ const styles = {
     transition: 'all 0.15s ease',
   },
   rightTabActive: {
-    color: '#ff6b35',
-    borderBottomColor: '#ff6b35',
+    color: '#007ACC',
+    borderBottomColor: '#007ACC',
   },
   rightTabContent: {
     flex: 1,
@@ -1015,12 +1015,12 @@ export default function Dashboard() {
                   disabled={!taskDescription.trim()}
                   onMouseOver={(e) => {
                     if (!e.currentTarget.disabled) {
-                      e.currentTarget.style.backgroundColor = '#e55a2b';
+                      e.currentTarget.style.backgroundColor = '#005999';
                     }
                   }}
                   onMouseOut={(e) => {
                     if (!e.currentTarget.disabled) {
-                      e.currentTarget.style.backgroundColor = '#ff6b35';
+                      e.currentTarget.style.backgroundColor = '#007ACC';
                     }
                   }}
                 >
@@ -1108,7 +1108,7 @@ export default function Dashboard() {
                 </span>
               </div>
               <div style={{ fontSize: '13px', color: '#9ca3af', lineHeight: '1.4' }}>
-                <div>Engine: <strong style={{ color: '#ff6b35' }}>{selectedEngine.charAt(0).toUpperCase() + selectedEngine.slice(1)}</strong></div>
+                <div>Engine: <strong style={{ color: '#007ACC' }}>{selectedEngine.charAt(0).toUpperCase() + selectedEngine.slice(1)}</strong></div>
                 <div style={{ marginTop: '4px' }}>Ready to execute automation tasks</div>
               </div>
             </div>
@@ -1134,7 +1134,7 @@ export default function Dashboard() {
                     style={{
                       ...styles.planStepItem,
                       ...(step.status === 'pending' ? { borderColor: '#6b7280' } : {}),
-                      ...(step.status === 'running' ? { borderColor: '#ff6b35', backgroundColor: '#2a1a0f' } : {}),
+                      ...(step.status === 'running' ? { borderColor: '#007ACC', backgroundColor: '#0f1a2a' } : {}),
                       ...(step.status === 'completed' ? { borderColor: '#10b981', backgroundColor: '#0f2a1a' } : {}),
                       ...(step.status === 'error' ? { borderColor: '#ef4444', backgroundColor: '#2a0f0f' } : {}),
                       cursor: step.screenshot ? 'pointer' : 'default',
@@ -1147,7 +1147,7 @@ export default function Dashboard() {
                           ...styles.planStepStatus,
                           backgroundColor: 
                             step.status === 'pending' ? '#6b7280' :
-                            step.status === 'running' ? '#ff6b35' :
+                            step.status === 'running' ? '#007ACC' :
                             step.status === 'completed' ? '#10b981' :
                             step.status === 'error' ? '#ef4444' : '#6b7280'
                         }}
