@@ -22,7 +22,7 @@ export class DynamicPlanningTest {
    */
   async testPageContentAdaptation(): Promise<void> {
     // Navigate to a real page with interactive elements
-    const navigationInstruction = "navigate to https://httpbin.org/html";
+    const navigationInstruction = "navigate to http://localhost:3005/html";
     await executeTestInstruction(
       this.context.actionEngine,
       navigationInstruction,
@@ -52,7 +52,7 @@ export class DynamicPlanningTest {
    */
   async testSelectorRefinement(): Promise<void> {
     // Navigate to a page with headings
-    const navigationInstruction = "navigate to https://httpbin.org/html";
+    const navigationInstruction = "navigate to http://localhost:3005/html";
     await executeTestInstruction(
       this.context.actionEngine,
       navigationInstruction,
@@ -79,7 +79,7 @@ export class DynamicPlanningTest {
    */
   async testCrossPageAdaptability(): Promise<void> {
     // Test on HTML page first
-    const htmlInstruction = "navigate to https://httpbin.org/html and take a screenshot";
+    const htmlInstruction = "navigate to http://localhost:3005/html and take a screenshot";
 
     const htmlResult = await executeTestInstruction(
       this.context.actionEngine,
@@ -92,7 +92,7 @@ export class DynamicPlanningTest {
     // Navigate to forms page
     await initializePage(this.context.automation);
 
-    const formInstruction = "navigate to https://httpbin.org/forms/post and take a screenshot";
+    const formInstruction = "navigate to http://localhost:3005/forms/post and take a screenshot";
 
     const formResult = await executeTestInstruction(
       this.context.actionEngine,
@@ -114,7 +114,7 @@ export class DynamicPlanningTest {
    * Test multi-step planning with refinement
    */
   async testMultiStepRefinement(): Promise<void> {
-    const instruction = "navigate to https://httpbin.org/html and then take a screenshot of the page";
+    const instruction = "navigate to http://localhost:3005/html and then take a screenshot of the page";
 
     const result = await executeTestInstruction(
       this.context.actionEngine,
@@ -138,7 +138,7 @@ export class DynamicPlanningTest {
    * Test contextual decision making
    */
   async testContextualDecisions(): Promise<void> {
-    const instruction = "navigate to https://httpbin.org/html and take a screenshot";
+    const instruction = "navigate to http://localhost:3005/html and take a screenshot";
 
     const result = await executeTestInstruction(
       this.context.actionEngine,
@@ -162,7 +162,7 @@ export class DynamicPlanningTest {
    * Test recovery from failed steps
    */
   async testErrorRecovery(): Promise<void> {
-    const instruction = "navigate to https://httpbin.org/html and try to take a screenshot";
+    const instruction = "navigate to http://localhost:3005/html and try to take a screenshot";
 
     const result = await executeTestInstruction(
       this.context.actionEngine,

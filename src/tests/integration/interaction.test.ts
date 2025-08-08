@@ -21,7 +21,7 @@ export class InteractionTest {
    * Test clicking elements and extracting data
    */
   async testClickAndExtract(): Promise<void> {
-    const instruction = "navigate to http://localhost:3001/html, find any link on the page, and click it";
+    const instruction = "navigate to http://localhost:3005/html, find any link on the page, and click it";
 
     const result = await executeTestInstruction(
       this.context.actionEngine,
@@ -43,7 +43,7 @@ export class InteractionTest {
    * Test scroll and interaction workflow
    */
   async testScrollAndInteract(): Promise<void> {
-    const instruction = "navigate to http://localhost:3001/html, scroll down the page, and click on the test button";
+    const instruction = "navigate to http://localhost:3005/html, scroll down the page, and click on the test button";
 
     const result = await executeTestInstruction(
       this.context.actionEngine,
@@ -70,7 +70,7 @@ export class InteractionTest {
     // Initialize without navigation - let the instruction handle navigation
     await initializePage(this.context.automation);
 
-    const instruction = "navigate to http://localhost:3001/forms/post and find an input field and type 'Test Search Query' into it";
+    const instruction = "navigate to http://localhost:3005/forms/post and find an input field and type 'Test Search Query' into it";
 
     const result = await executeTestInstruction(
       this.context.actionEngine,
@@ -91,7 +91,7 @@ export class InteractionTest {
    * Test verification of page elements
    */
   async testElementVerification(): Promise<void> {
-    const instruction = "navigate to http://localhost:3001/html and take a screenshot to verify the page loaded";
+    const instruction = "navigate to http://localhost:3005/html and take a screenshot to verify the page loaded";
 
     const result = await executeTestInstruction(
       this.context.actionEngine,
@@ -112,7 +112,7 @@ export class InteractionTest {
    * Test complex multi-action workflow
    */
   async testComplexWorkflow(): Promise<void> {
-    const instruction = "navigate to http://localhost:3001/html, take a screenshot, click on any link";
+    const instruction = "navigate to http://localhost:3005/html, take a screenshot, click on any link";
 
     const result = await executeTestInstruction(
       this.context.actionEngine,
@@ -133,7 +133,7 @@ export class InteractionTest {
    * Test wait and timing operations
    */
   async testWaitOperations(): Promise<void> {
-    const instruction = "navigate to http://localhost:3001/html, wait for 2 seconds, then click the test button";
+    const instruction = "navigate to http://localhost:3005/html, wait for 2 seconds, then click the test button";
 
     const result = await executeTestInstruction(
       this.context.actionEngine,
@@ -157,7 +157,7 @@ export class InteractionTest {
    * Test error handling with invalid actions
    */
   async testErrorHandling(): Promise<void> {
-    const instruction = "navigate to http://localhost:3001/html and click on a non-existent element with id 'this-definitely-does-not-exist'";
+    const instruction = "navigate to http://localhost:3005/html and click on a non-existent element with id 'this-definitely-does-not-exist'";
 
     const result = await executeTestInstruction(
       this.context.actionEngine,

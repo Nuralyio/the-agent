@@ -9,7 +9,7 @@ export interface StepExecutionResult {
   success: boolean;
   error?: string;
   timestamp: Date;
-  pageStateBefore: PageState;
+  pageStateBefore?: PageState;
   pageStateAfter?: PageState;
   elementFound?: boolean;
   selectorUsed?: string;
