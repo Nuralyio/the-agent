@@ -1,5 +1,8 @@
 import { BrowserAdapterRegistry } from './adapters/adapter-registry';
 import { BrowserManagerImpl } from './core/browser-manager';
+import { ActionEngine } from './engine/action-engine';
+import { AIEngine } from './ai/ai-engine';
+import { executionStream } from './visualization/execution-stream';
 import {
   AIConfig,
   BrowserAdapter,
@@ -18,6 +21,8 @@ export class BrowserAutomation {
   private registry: BrowserAdapterRegistry;
   private config: BrowserConfig;
   private aiConfig?: AIConfig;
+  private actionEngine?: ActionEngine;
+  private aiEngine?: AIEngine;
 
   constructor(config?: Partial<BrowserConfig & { ai?: AIConfig }>) {
     this.browserManager = new BrowserManagerImpl();
@@ -42,36 +47,44 @@ export class BrowserAutomation {
    * Initialize the framework with the specified configuration
    */
   async initialize(): Promise<void> {
-    // Auto-select adapter if needed
+        // Auto-select adapter if needed
     if (this.config.adapter === 'auto') {
       const adapter = await this.registry.autoSelectAdapter({
         browserType: this.config.browserType,
         features: [],
-        crossBrowser: false,
-        performance: 'balanced'
+        crossBrowser: false
       });
-      this.browserManager.setAdapter(adapter);
-    } else {
-      const adapter = this.registry.get(this.config.adapter);
-      if (!adapter) {
-        throw new Error(`Adapter '${this.config.adapter}' not found`);
-      }
-      this.browserManager.setAdapter(adapter);
+      this.config.adapter = adapter.name;
     }
 
-    // Launch browser
+    // Set up browser launch options
     const launchOptions: LaunchOptions = {
-      headless: this.config.headless,
-      viewport: this.config.viewport,
-      args: ['--no-sandbox', '--disable-dev-shm-usage']
+      headless: this.config.headless || false,
+      viewport: this.config.viewport
     };
 
+    // Add optional launch options
     if (this.config.userAgent) launchOptions.userAgent = this.config.userAgent;
     if (this.config.locale) launchOptions.locale = this.config.locale;
     if (this.config.timezone) launchOptions.timezone = this.config.timezone;
     if (this.config.proxy) launchOptions.proxy = this.config.proxy;
 
     await this.browserManager.launchBrowser(launchOptions);
+
+    // Create an initial blank page to ensure we have an active page
+    await this.browserManager.createPage();
+    console.log('📄 Initial page created successfully');
+
+    // Initialize AI engine if configuration is provided
+    if (this.aiConfig) {
+      console.log('🤖 Initializing AI engine with config:', this.aiConfig);
+      this.aiEngine = new AIEngine();
+      this.aiEngine.addProvider('ollama', this.aiConfig);
+      this.actionEngine = new ActionEngine(this.browserManager, this.aiEngine);
+      console.log('✅ ActionEngine initialized successfully');
+    } else {
+      console.log('⚠️  No AI configuration found, ActionEngine will not be available');
+    }
   }
 
   /**
@@ -82,8 +95,29 @@ export class BrowserAutomation {
       await this.initialize();
     }
 
-    // For now, return a basic implementation
-    // This will be expanded with AI integration
+    // If we have an ActionEngine (AI is configured), use it for intelligent planning
+    if (this.actionEngine) {
+      console.log('🎯 Using ActionEngine for intelligent task planning');
+      try {
+        // Parse the instruction into an action plan
+        const plan = await this.actionEngine.parseInstruction(instruction);
+        console.log('📋 Generated action plan with', plan.steps.length, 'steps');
+
+        // Stream plan creation event with the actual steps
+        executionStream.streamPlanCreated(plan.steps.length, plan.steps);
+
+        // Execute the action plan
+        const result = await this.actionEngine.executeActionPlan(plan);
+        return result;
+      } catch (error) {
+        console.error('❌ AI execution failed, falling back to basic execution:', error);
+        // Fall through to basic execution
+      }
+    } else {
+      console.log('⚠️  No ActionEngine available, using basic execution');
+    }
+
+    // Fallback to basic execution for simple commands
     const result: TaskResult = {
       success: true,
       steps: [],
@@ -94,7 +128,6 @@ export class BrowserAutomation {
     try {
       // Parse instruction and execute basic commands
       await this.executeBasicInstruction(instruction);
-
       result.success = true;
     } catch (error) {
       result.success = false;
@@ -102,6 +135,20 @@ export class BrowserAutomation {
     }
 
     return result;
+  }
+
+  /**
+   * Execute a task using the smart ActionEngine (same as tests)
+   * This provides navigation-aware planning and better form field detection
+   */
+  async executeTask(instruction: string): Promise<TaskResult> {
+    if (this.actionEngine) {
+      console.log('🎯 Using ActionEngine.executeTask for intelligent task planning');
+      return await this.actionEngine.executeTask(instruction);
+    } else {
+      console.log('⚠️ No ActionEngine available, falling back to basic execute');
+      return await this.execute(instruction);
+    }
   }
 
   /**

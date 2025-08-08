@@ -5,6 +5,7 @@ export interface ExecutionEvent {
   type: 'plan_created' | 'step_start' | 'step_complete' | 'step_error' | 'screenshot' | 'page_change' | 'execution_complete';
   stepIndex?: number;
   step?: ActionStep;
+  steps?: ActionStep[];
   totalSteps?: number;
   screenshot?: string; // Base64 encoded
   url?: string;
@@ -48,9 +49,9 @@ export class ExecutionStream extends EventEmitter {
   }
 
   /**
-   * Stream plan creation event with total step count
+   * Stream plan creation event with total step count and steps
    */
-  streamPlanCreated(totalSteps: number): void {
+  streamPlanCreated(totalSteps: number, steps?: ActionStep[]): void {
     if (!this.currentSessionId) return;
 
     const event: ExecutionEvent = {
@@ -59,6 +60,10 @@ export class ExecutionStream extends EventEmitter {
       sessionId: this.currentSessionId,
       timestamp: new Date()
     };
+
+    if (steps) {
+      event.steps = steps;
+    }
 
     this.executionHistory.push(event);
     this.broadcastEvent(event);

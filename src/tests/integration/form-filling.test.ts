@@ -20,8 +20,8 @@ export class FormFillingTest {
   /**
    * Test simple form filling
    */
-  async testSimpleFormFill(): Promise<void> {
-    const instruction = "Navigate to https://httpbin.org/forms/post and type 'John Doe' into the customer name field and type 'john@example.com' into the email address field";
+  async testBasicFormFilling(): Promise<void> {
+    const instruction = "Navigate to http://localhost:3005/forms/post and type 'John Doe' into the customer name field and type 'john@example.com' into the email address field";
 
     const result = await executeTestInstruction(
       this.context.actionEngine,
@@ -47,7 +47,7 @@ export class FormFillingTest {
     // Test with navigation included in the instruction
     const result = await executeTestInstruction(
       this.context.actionEngine,
-      'Navigate to https://httpbin.org/forms/post then type "Jane Smith" in customer name field, type "555-123-4567" in phone field, type "jane@email.com" in email field',
+      'Navigate to http://localhost:3005/forms/post then type "Jane Smith" in customer name field, type "555-123-4567" in phone field, type "jane@email.com" in email field',
       'Form Filling Test: Comprehensive Form Fill'
     );
 
@@ -71,7 +71,7 @@ export class FormFillingTest {
     // Test AI's ability to analyze form structure and identify all available fields
     const result = await executeTestInstruction(
       this.context.actionEngine,
-      'Navigate to https://httpbin.org/forms/post and fill in the customer name with "Test User" and email with "test@example.com"',
+      'Navigate to http://localhost:3005/forms/post and fill in the customer name with "Test User" and email with "test@example.com"',
       'Form Filling Test: Dynamic Form Discovery'
     );
 
@@ -100,7 +100,7 @@ export class FormFillingTest {
     // Test radio button selection
     const radioResult = await executeTestInstruction(
       this.context.actionEngine,
-      'Navigate to https://httpbin.org/forms/post and select the medium pizza size',
+      'Navigate to http://localhost:3005/forms/post and select the medium pizza size',
       'Form Filling Test: Radio Button Click'
     );
 
@@ -118,7 +118,7 @@ export class FormFillingTest {
     // Test checkbox selection
     const checkboxResult = await executeTestInstruction(
       this.context.actionEngine,
-      'Navigate to https://httpbin.org/forms/post and select bacon and cheese toppings',
+      'Navigate to http://localhost:3005/forms/post and select bacon and cheese toppings',
       'Form Filling Test: Checkbox Selection'
     );
 
@@ -142,7 +142,7 @@ export class FormFillingTest {
    * Test form filling with validation
    */
   async testFormFillWithValidation(): Promise<void> {
-    const instruction = "Navigate to https://httpbin.org/forms/post, type 'Jane Smith' into the customer name field, type 'jane@test.com' into the email field, and verify the fields are filled correctly";
+    const instruction = "Navigate to http://localhost:3005/forms/post, type 'Jane Smith' into the customer name field, type 'jane@test.com' into the email field, and verify the fields are filled correctly";
 
     const result = await executeTestInstruction(
       this.context.actionEngine,
@@ -166,7 +166,7 @@ export class FormFillingTest {
    * Test form submission workflow
    */
   async testFormSubmission(): Promise<void> {
-    const instruction = "Navigate to https://httpbin.org/forms/post, fill the form with name 'Test User' and email 'test@domain.com', then submit it";
+    const instruction = "Navigate to http://localhost:3005/forms/post, fill the form with name 'Test User' and email 'test@domain.com', then submit it";
 
     const result = await executeTestInstruction(
       this.context.actionEngine,
@@ -215,7 +215,7 @@ export class FormFillingTest {
    * Test form clearing and refilling
    */
   async testFormClearAndRefill(): Promise<void> {
-    const instruction = "Navigate to https://httpbin.org/forms/post, clear the form fields and then fill them with name 'Cleared User' and email 'cleared@example.com'";
+    const instruction = "Navigate to http://localhost:3005/forms/post, clear the form fields and then fill them with name 'Cleared User' and email 'cleared@example.com'";
 
     const result = await executeTestInstruction(
       this.context.actionEngine,
@@ -243,7 +243,7 @@ export class FormFillingTest {
 
     const result = await executeTestInstruction(
       this.context.actionEngine,
-      'Navigate to https://httpbin.org/forms/post and fill out the complete pizza order: customer name "Sarah Johnson", phone "555-987-6543", email "sarah@test.com", select large pizza size, select mushroom and onion toppings, set delivery time to "19:45", and add delivery instructions "Ring doorbell"',
+      'Navigate to http://localhost:3005/forms/post and fill out the complete pizza order: customer name "Sarah Johnson", phone "555-987-6543", email "sarah@test.com", select large pizza size, select mushroom and onion toppings, set delivery time to "19:45", and add delivery instructions "Ring doorbell"',
       'Form Filling Test: Complete Form'
     );
 
@@ -267,7 +267,7 @@ export class FormFillingTest {
     try {
       await this.setup();
 
-      await this.testSimpleFormFill();
+      await this.testBasicFormFilling();
       await this.testComprehensiveFormFill();
       await this.testDynamicFormDiscovery();
       await this.testRadioAndCheckboxHandling();

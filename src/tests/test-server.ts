@@ -8,7 +8,7 @@ export class TestServer {
   private port: number;
   private isRunning = false;
 
-  constructor(port = 3001) {
+  constructor(port = 3005) {
     this.port = port;
   }
 

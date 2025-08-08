@@ -21,7 +21,7 @@ export class NavigationTest {
    * Test simple navigation to a URL
    */
   async testSimpleNavigation(): Promise<void> {
-    const instruction = "go to https://httpbin.org/html";
+    const instruction = "go to http://localhost:3005/html";
 
     const result = await executeTestInstruction(
       this.context.actionEngine,
@@ -41,7 +41,7 @@ export class NavigationTest {
    * Test navigation with domain inference
    */
   async testDomainInference(): Promise<void> {
-    const instruction = "navigate to httpbin.org";
+    const instruction = "navigate to localhost:3005";
 
     const result = await executeTestInstruction(
       this.context.actionEngine,

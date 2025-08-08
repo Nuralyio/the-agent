@@ -11,10 +11,10 @@ import {
   TaskResult
 } from '../types';
 import { ExecutionLogger } from '../utils/execution-logger';
+import { executionStream, ExecutionStream } from '../visualization/execution-stream';
 import { ActionPlanner } from './action-planner';
 import { ContextualStepAnalyzer } from './contextual-analyzer';
 import { StepContextManager, StepExecutionResult } from './step-context';
-import { executionStream } from '../visualization/execution-stream';
 
 /**
  * Core ActionEngine implementation that orchestrates task execution
@@ -60,15 +60,15 @@ export class ActionEngine implements IActionEngine {
     try {
       // Check if instruction contains navigation and handle it specially
       if (this.instructionContainsNavigation(instruction)) {
-        return await this.executeNavigationAwareTask(instruction, logger);
+        return await this.executeNavigationAwareTask(instruction, logger, executionStream);
       }
 
       // 1. Parse the instruction into actionable steps
       const actionPlan = await this.parseInstruction(instruction);
       console.log(`📋 Generated ${actionPlan.steps.length} steps`);
 
-      // Stream the plan creation with total step count
-      executionStream.streamPlanCreated(actionPlan.steps.length);
+      // Stream the plan creation with total step count and step details
+      executionStream.streamPlanCreated(actionPlan.steps.length, actionPlan.steps);
 
       // 2. Execute the action plan with logging
       const result = await this.executeActionPlan(actionPlan, logger);
@@ -108,13 +108,18 @@ export class ActionEngine implements IActionEngine {
    * Parse natural language instruction into structured action plan
    */
   async parseInstruction(instruction: string): Promise<ActionPlan> {
-    // Capture current page state for context
-    const pageState = await this.captureState();
+    // Try to capture current page state for context, but handle case where no page is loaded
+    let pageState: PageState | undefined = undefined;
+    try {
+      pageState = await this.captureState();
+    } catch (error) {
+      console.log('🔍 No active page available for context, proceeding with navigation planning');
+    }
 
-    // Create context from page state
+    // Create context from page state (or empty context if no page)
     const context: TaskContext = {
-      url: pageState.url,
-      pageTitle: pageState.title,
+      url: pageState?.url || '',
+      pageTitle: pageState?.title || '',
       currentStep: 0,
       totalSteps: 0,
       variables: {}
@@ -146,8 +151,13 @@ export class ActionEngine implements IActionEngine {
       console.log(`📍 Step ${i + 1}: ${step.description}`);
 
       try {
-        // Capture current page state before executing the step
-        const pageStateBefore = await this.captureState();
+        // Try to capture current page state before executing the step
+        let pageStateBefore: PageState | undefined = undefined;
+        try {
+          pageStateBefore = await this.captureState();
+        } catch (error) {
+          console.log(`🔍 No active page for step ${i + 1}, proceeding without state context`);
+        }
 
         // Get current step context including previous steps
         const stepContext = this.stepContextManager.getCurrentContext(i, currentPlan.steps.length);
@@ -208,11 +218,12 @@ export class ActionEngine implements IActionEngine {
         }
 
         console.log(''); // Add spacing before step execution
-        
+
         // Stream step start event
         executionStream.streamStepStart(i, currentPlan.steps[i]!);
-        
-        const stepResult = await this.executeStep(currentPlan.steps[i]!);
+
+        // Execute step with retry mechanism and progressive refinement
+        const stepResult = await this.executeStepWithRetry(currentPlan.steps[i]!, stepContext, pageStateBefore, 3);
 
         // Capture page state after step execution
         const pageStateAfter = await this.captureState();
@@ -222,7 +233,7 @@ export class ActionEngine implements IActionEngine {
           step: currentPlan.steps[i]!,
           success: stepResult.success,
           timestamp: new Date(),
-          pageStateBefore,
+          ...(pageStateBefore && { pageStateBefore }),
           pageStateAfter,
           elementFound: stepResult.success
         };
@@ -383,9 +394,234 @@ export class ActionEngine implements IActionEngine {
     }
   }
 
+  /**
+   * Execute a step with retry mechanism and progressive refinement
+   */
+  private async executeStepWithRetry(
+    step: ActionStep, 
+    stepContext: any, 
+    pageState: PageState | undefined, 
+    maxRetries: number = 3
+  ): Promise<any> {
+    let lastError: any = null;
+    let currentStep = step;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`🔄 Attempt ${attempt}/${maxRetries}: ${currentStep.description}`);
+        
+        if (currentStep.target?.selector) {
+          console.log(`   🎯 Using selector: ${currentStep.target.selector}`);
+        }
+
+        const result = await this.executeStep(currentStep);
+        
+        if (result.success) {
+          if (attempt > 1) {
+            console.log(`   ✅ Step succeeded on attempt ${attempt} after refinement`);
+          }
+          return result;
+        } else {
+          lastError = result.error;
+          console.log(`   ❌ Attempt ${attempt} failed: ${result.error}`);
+        }
+      } catch (error) {
+        lastError = error;
+        console.log(`   ❌ Attempt ${attempt} failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+
+      // If this wasn't the last attempt, try to refine the step
+      if (attempt < maxRetries) {
+        console.log(`   🔧 Refining step for retry ${attempt + 1}...`);
+        
+        try {
+          // Progressive refinement strategies
+          const refinedStep = await this.progressivelyRefineStep(currentStep, stepContext, pageState, attempt);
+          
+          if (refinedStep.target?.selector !== currentStep.target?.selector) {
+            console.log(`   🎯 Refined selector: "${currentStep.target?.selector}" → "${refinedStep.target?.selector}"`);
+            currentStep = refinedStep;
+          } else {
+            console.log(`   ⚠️ No refinement found, will retry with same selector`);
+            // Add a small delay before retry
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        } catch (refinementError) {
+          console.log(`   ⚠️ Refinement failed: ${refinementError instanceof Error ? refinementError.message : 'Unknown error'}`);
+          // Add a delay before raw retry
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+    }
+
+    // All retries failed
+    console.log(`   💥 All ${maxRetries} attempts failed. Final error: ${lastError instanceof Error ? lastError.message : lastError}`);
+    return {
+      success: false,
+      error: `Failed after ${maxRetries} attempts. Last error: ${lastError instanceof Error ? lastError.message : lastError}`,
+      canContinue: true
+    };
+  }
+
+  /**
+   * Apply progressive refinement strategies based on attempt number
+   */
+  private async progressivelyRefineStep(
+    step: ActionStep,
+    stepContext: any,
+    pageState: PageState | undefined,
+    attempt: number
+  ): Promise<ActionStep> {
+    if (!pageState) {
+      return step;
+    }
+
+    // Strategy 1 (attempt 1): Use contextual analysis
+    if (attempt === 1 && this.contextualAnalyzer) {
+      try {
+        const successfulSelectors = this.stepContextManager.getSuccessfulSelectors();
+        return await this.contextualAnalyzer.improveStepWithContext(
+          step, 
+          stepContext, 
+          successfulSelectors, 
+          pageState.content || ''
+        );
+      } catch (error) {
+        console.log(`   ⚠️ Contextual refinement failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+
+    // Strategy 2 (attempt 2): Try alternative selector patterns
+    if (attempt === 2 && step.target?.selector) {
+      const alternativeStep = await this.generateAlternativeSelector(step, pageState);
+      if (alternativeStep.target?.selector !== step.target.selector) {
+        return alternativeStep;
+      }
+    }
+
+    // Strategy 3 (attempt 3+): Use AI-powered refinement with error context
+    if (attempt >= 3) {
+      return await this.aiRefineStepWithErrorContext(step, stepContext, pageState);
+    }
+
+    return step;
+  }
+
+  /**
+   * Generate alternative selector patterns for common failure cases
+   */
+  private async generateAlternativeSelector(step: ActionStep, pageState: PageState): Promise<ActionStep> {
+    if (!step.target?.selector) {
+      return step;
+    }
+
+    const originalSelector = step.target.selector;
+    let alternativeSelector = originalSelector;
+
+    // Common selector alternatives based on patterns
+    if (originalSelector.includes('li:first-child a')) {
+      // Try more specific patterns
+      alternativeSelector = originalSelector.replace('li:first-child a', 'li:first-of-type a, .article:first-child a, article:first-child a');
+    } else if (originalSelector.includes(':first-child')) {
+      // Try :first-of-type instead
+      alternativeSelector = originalSelector.replace(':first-child', ':first-of-type');
+    } else if (originalSelector.includes('article')) {
+      // Try multiple article patterns
+      alternativeSelector = 'article a, .article a, [class*="article"] a, .post a, .entry a';
+    } else if (originalSelector.startsWith('.') && !originalSelector.includes(' ')) {
+      // For single class selectors, try variations
+      const className = originalSelector.substring(1);
+      alternativeSelector = `${originalSelector}, [class*="${className}"], [class^="${className}"], [class$="${className}"]`;
+    }
+
+    if (alternativeSelector !== originalSelector) {
+      console.log(`   🔄 Trying alternative selector pattern: ${alternativeSelector}`);
+      
+      return {
+        ...step,
+        target: {
+          ...step.target,
+          selector: alternativeSelector
+        }
+      };
+    }
+
+    return step;
+  }
+
+  /**
+   * Use AI to refine step with error context
+   */
+  private async aiRefineStepWithErrorContext(
+    step: ActionStep,
+    stepContext: any,
+    pageState: PageState
+  ): Promise<ActionStep> {
+    try {
+      const refinementPrompt = `
+SELECTOR REFINEMENT WITH ERROR CONTEXT
+
+Failed step: ${step.description}
+Failed selector: ${step.target?.selector}
+Step type: ${step.type}
+
+Current page URL: ${pageState.url}
+Current page title: ${pageState.title}
+
+The selector failed to find elements after multiple attempts. Analyze the page content and provide a better selector.
+
+Focus on finding elements that match the intent: "${step.description}"
+
+Respond with ONLY a JSON object with the refined step.`;
+
+      const refinedPlan = await this.actionPlanner.createActionPlan(refinementPrompt, {
+        url: pageState.url,
+        pageTitle: pageState.title,
+        currentStep: 0,
+        totalSteps: 1,
+        variables: {}
+      }, pageState);
+
+      if (refinedPlan.steps.length > 0) {
+        const refinedStep = refinedPlan.steps[0]!;
+        const result: ActionStep = {
+          type: step.type,
+          description: step.description
+        };
+
+        // Only assign target if it exists
+        const targetToUse = refinedStep.target || step.target;
+        if (targetToUse) {
+          result.target = targetToUse;
+        }
+
+        // Only assign value if it exists
+        if (step.value) {
+          result.value = step.value;
+        }
+
+        // Only assign condition if it exists
+        if (step.condition) {
+          result.condition = step.condition;
+        }
+
+        return result;
+      }
+    } catch (error) {
+      console.log(`   ⚠️ AI refinement failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
+    return step;
+  }
+
   private async executeNavigate(step: ActionStep): Promise<any> {
-    const page = await this.browserManager.getCurrentPage();
-    if (!page) throw new Error('No active page');
+    let page = await this.browserManager.getCurrentPage();
+
+    // If no page exists, create one
+    if (!page) {
+      console.log('📄 No active page found, creating new page for navigation...');
+      page = await this.browserManager.createPage();
+    }
 
     // Get URL from value or target description
     let url = step.value;
@@ -523,7 +759,7 @@ export class ActionEngine implements IActionEngine {
       await new Promise(resolve => setTimeout(resolve, timeout));
     } else {
       // Default wait time
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
     return { success: true };
   }
@@ -682,17 +918,22 @@ Respond with ONLY a JSON object with the refined step.`;
   private async refineStepWithContext(
     step: ActionStep,
     stepContext: any,
-    pageState: PageState
+    pageState: PageState | undefined
   ): Promise<ActionStep> {
     try {
-      // If we have contextual analyzer, use it
-      if (this.contextualAnalyzer) {
+      // If we have contextual analyzer and page state, use it
+      if (this.contextualAnalyzer && pageState) {
         console.log('   🧠 Using contextual analysis for step refinement...');
         const successfulSelectors = this.stepContextManager.getSuccessfulSelectors();
         return await this.contextualAnalyzer.improveStepWithContext(step, stepContext, successfulSelectors, pageState.content || '');
       }
 
-      // Fallback to regular page content refinement with context-aware prompt
+      // Fallback to regular page content refinement with context-aware prompt (if page state available)
+      if (!pageState) {
+        console.log('   ⚠️  No page state available, returning original step');
+        return step;
+      }
+
       const contextualPrompt = this.createContextualPrompt(step, stepContext, pageState);
 
       const refinedPlan = await this.actionPlanner.createActionPlan(contextualPrompt, {
@@ -792,7 +1033,7 @@ Respond with ONLY a JSON object containing the refined step.`;
   /**
    * Execute task with navigation-aware planning
    */
-  private async executeNavigationAwareTask(instruction: string, logger: ExecutionLogger): Promise<TaskResult> {
+  private async executeNavigationAwareTask(instruction: string, logger: ExecutionLogger, executionStream: ExecutionStream): Promise<TaskResult> {
     console.log('🌐 Detected navigation in instruction - using smart planning');
 
     // 1. First, parse just to identify the navigation part
@@ -804,6 +1045,9 @@ Respond with ONLY a JSON object containing the refined step.`;
       totalSteps: 0,
       variables: {}
     }, initialPageState);
+
+    // Stream the initial plan creation
+    executionStream.streamPlanCreated(initialPlan.steps.length, initialPlan.steps);
 
     // 2. Find the first NAVIGATE step
     const navigateStepIndex = initialPlan.steps.findIndex(step => step.type === ActionType.NAVIGATE);
@@ -858,6 +1102,9 @@ Respond with ONLY a JSON object containing the refined step.`;
       }, newPageState);
 
       console.log(`📋 Generated ${remainingPlan.steps.length} additional steps for remaining actions`);
+
+      // Stream the remaining plan creation with step details
+      executionStream.streamPlanCreated(remainingPlan.steps.length, remainingPlan.steps);
 
       // 6. Execute remaining steps
       const remainingResult = await this.executeActionPlan(remainingPlan, logger);

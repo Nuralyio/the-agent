@@ -3,7 +3,7 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.TEST_SERVER_PORT || 3000;
+const PORT = process.env.TEST_SERVER_PORT || 3005;
 
 // Enable CORS and body parsing
 app.use(cors());

@@ -13,7 +13,7 @@ The test server provides:
 ## Available Test Pages
 
 ### 1. HTML Test Page (`/html`)
-- **URL**: `http://localhost:3001/html`
+- **URL**: `http://localhost:3005/html`
 - **Purpose**: Basic HTML content for navigation and screenshot tests
 - **Features**:
   - Simple HTML structure
@@ -21,7 +21,7 @@ The test server provides:
   - Consistent content for reliable screenshots
 
 ### 2. Pizza Order Form (`/forms/post`)
-- **URL**: `http://localhost:3001/forms/post`
+- **URL**: `http://localhost:3005/forms/post`
 - **Purpose**: Complex form testing with all input types
 - **Features**:
   - Text inputs (name, phone, email)
@@ -32,7 +32,7 @@ The test server provides:
   - Form submission handling
 
 ### 3. Contact Form (`/contact`)
-- **URL**: `http://localhost:3001/contact`
+- **URL**: `http://localhost:3005/contact`
 - **Purpose**: Simple form testing
 - **Features**:
   - Basic form fields
@@ -40,7 +40,7 @@ The test server provides:
   - Submission handling
 
 ### 4. Health Check (`/health`)
-- **URL**: `http://localhost:3001/health`
+- **URL**: `http://localhost:3005/health`
 - **Purpose**: Server status monitoring
 - **Returns**: JSON status response
 
@@ -63,20 +63,20 @@ npm run test:server
 # Or run directly
 node test-server/server.js
 
-# Server will be available at http://localhost:3001
+# Server will be available at http://localhost:3005
 ```
 
 ### URL Replacement
 The test framework automatically replaces httpbin.org URLs with local test server URLs:
 
-- `https://httpbin.org/html` → `http://localhost:3001/html`
-- `https://httpbin.org/forms/post` → `http://localhost:3001/forms/post`
+- `https://httpbin.org/html` → `http://localhost:3005/html`
+- `https://httpbin.org/forms/post` → `http://localhost:3005/forms/post`
 
 ## Configuration
 
 The test server can be configured with environment variables:
 
-- `TEST_SERVER_PORT`: Port number (default: 3001)
+- `TEST_SERVER_PORT`: Port number (default: 3005)
 
 ## Benefits Over External Services
 
@@ -109,7 +109,7 @@ const localInstruction = replaceHttpbinUrls(
   "Navigate to https://httpbin.org/forms/post",
   testServer
 );
-// Result: "Navigate to http://localhost:3001/forms/post"
+// Result: "Navigate to http://localhost:3005/forms/post"
 ```
 
 ## Files

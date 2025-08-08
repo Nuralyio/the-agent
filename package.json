@@ -28,7 +28,7 @@
     "example:advanced": "ts-node src/examples/advanced-example.ts",
     "example:ai": "ts-node src/examples/ai-example.ts",
     "example:visualization": "ts-node src/examples/visualization-example.ts",
-    "serve:visualization": "ts-node -e \"import('./src/visualization/visualization-server').then(m => m.visualizationServer.start())\"",
+    "serve:visualization": "ts-node src/visualization/server-start.ts",
     "install:browsers": "npx playwright install",
     "postinstall": "npm run install:browsers"
   },
