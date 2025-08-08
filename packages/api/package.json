@@ -6,14 +6,18 @@
   "scripts": {
     "build": "tsc",
     "dev": "nodemon --exec ts-node src/server.ts",
+    "dev:debug": "nodemon --exec ts-node --inspect src/server.ts",
     "start": "node dist/server.js",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
-    "prebuild": "npm run clean"
+    "prebuild": "npm run clean",
+    "format": "prettier --write src/**/*.ts",
+    "format:check": "prettier --check src/**/*.ts"
   },
   "keywords": [
     "api",
