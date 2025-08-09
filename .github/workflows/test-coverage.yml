@@ -38,11 +38,11 @@ jobs:
       - name: Run linting
         run: npm run lint
 
-      - name: TypeScript check
-        run: npm run typecheck
-
       - name: Build packages
         run: npm run build
+
+      - name: TypeScript check
+        run: npm run typecheck
 
       - name: Run Navigation Tests
         run: npm run test:integration
