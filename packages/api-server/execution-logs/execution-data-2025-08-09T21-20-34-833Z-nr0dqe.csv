@@ -1,2 +1,0 @@
-SessionId,StepIndex,Timestamp,Type,Description,Selector,Value,Success,ExecutionTimeMs,ElementFound,SelectorUsed,ValueEntered,PageUrl,PageTitle,ScreenshotPath,PreviousStepsCount,SessionDuration
-2025-08-09T21-20-34-833Z-nr0dqe,1,2025-08-09T21:20:40.750Z,navigate,"Navigate to Google website","","https://google.com",true,30,true,"","https://google.com","https://www.google.com/","Google","/Users/aymen/Desktop/projects/nuraly/TheAgent/Agent/packages/api-server/execution-logs/screenshot-2025-08-09T21-20-34-833Z-nr0dqe-step-1-success.png",0,5917

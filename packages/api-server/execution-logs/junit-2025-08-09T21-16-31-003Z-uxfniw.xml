@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="AutomationSession_2025-08-09T21-16-31-003Z-uxfniw" tests="0" failures="0" errors="0" time="1.138" timestamp="2025-08-09T21:16:31.003Z">
-  <properties>
-    <property name="instruction" value="go google and screenqshot" />
-    <property name="success_rate" value="0.0%" />
-    <property name="avg_step_time" value="0ms" />
-  </properties>
-</testsuite>

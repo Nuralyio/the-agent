@@ -1,0 +1,56 @@
+{
+  "sessionId": "2025-08-09T22-21-06-710Z-lr6lxy",
+  "startTime": "2025-08-09T22:21:06.710Z",
+  "instruction": "go to google.com \n",
+  "totalSteps": 1,
+  "successfulSteps": 1,
+  "failedSteps": 0,
+  "totalDuration": 6167,
+  "success": true,
+  "entries": [
+    {
+      "timestamp": "2025-08-09T22:21:12.833Z",
+      "sessionId": "2025-08-09T22-21-06-710Z-lr6lxy",
+      "stepIndex": 1,
+      "step": {
+        "type": "navigate",
+        "description": "Go to Google website",
+        "value": "https://google.com"
+      },
+      "result": {
+        "success": true,
+        "executionTimeMs": 32,
+        "elementFound": true,
+        "valueEntered": "https://google.com"
+      },
+      "page": {
+        "url": "https://www.google.com/",
+        "title": "Google",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        }
+      },
+      "screenshot": {
+        "filename": "screenshot-2025-08-09T22-21-06-710Z-lr6lxy-step-1-success.png",
+        "path": "/Users/aymen/Desktop/projects/nuraly/TheAgent/Agent/packages/api-server/execution-logs/screenshot-2025-08-09T22-21-06-710Z-lr6lxy-step-1-success.png"
+      },
+      "context": {
+        "previousStepsCount": 0,
+        "sessionDuration": 6123
+      },
+      "refinement": {
+        "wasRefined": false
+      }
+    }
+  ],
+  "summary": {
+    "stepTypes": {
+      "navigate": 1
+    },
+    "errorTypes": {},
+    "averageStepTime": 32,
+    "successRate": 1
+  },
+  "endTime": "2025-08-09T22:21:12.877Z"
+}
