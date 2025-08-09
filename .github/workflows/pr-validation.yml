@@ -39,13 +39,14 @@ jobs:
       - name: TypeScript compilation
         run: npm run typecheck
 
+      - name: Build packages
+        run: npm run build
+
       - name: Install Playwright
-        run: npx playwright install chromium --with-deps
+        run: npm run install:browsers
 
       - name: Run core functionality tests
-        run: |
-          npm test -- --headless --browser chrome --adapter playwright "Navigation Tests"
-          npm test -- --headless --browser chrome --adapter playwright "Screenshot Tests"
+        run: npm run test:integration
         env:
           CI: true
           BROWSER_HEADLESS: true
@@ -59,8 +60,8 @@ jobs:
         if: failure()
         run: |
           echo "Tests failed. Checking for generated artifacts..."
-          ls -la execution-logs/ || echo "No execution logs found"
-          ls -la screenshots/ || echo "No screenshots found"      - name: Comment PR with test results
+          ls -la logs/ || echo "No execution logs found"
+          ls -la packages/core/screenshots/ || echo "No screenshots found"      - name: Comment PR with test results
           if: failure()
           uses: actions/github-script@v6
           with:
@@ -85,7 +86,7 @@ jobs:
 
               **Next steps:**
               1. Check the test logs in the Actions tab
-              2. Run tests locally: \`npm test -- --headless "Navigation Tests"\`
+              2. Run tests locally: \`npm run test:integration\`
               3. Fix any failing tests and push your changes
 
               The tests will run automatically when you push new commits.
