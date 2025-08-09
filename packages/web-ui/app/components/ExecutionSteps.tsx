@@ -1,4 +1,4 @@
-import { Badge, Caption1, Card, CardBody, CardHeader, ProgressBar, Title3 } from '@fluentui/react-components';
+import { Badge, Caption1, Card, CardHeader, ProgressBar, Title3 } from '@fluentui/react-components';
 import {
   Camera24Regular,
   CheckmarkCircle24Regular,
@@ -22,12 +22,12 @@ export function ExecutionSteps({ session, onStepClick, selectedStepIndex }: Exec
           <Title3>Execution Steps</Title3>
           <Caption1>No active execution</Caption1>
         </CardHeader>
-        <CardBody>
+        <div>
           <div style={{ textAlign: 'center', padding: '40px', color: '#605e5c' }}>
             <Clock24Regular style={{ fontSize: '48px', marginBottom: '16px' }} />
             <div>Waiting for automation to start...</div>
           </div>
-        </CardBody>
+        </div>
       </Card>
     );
   }
@@ -77,7 +77,7 @@ export function ExecutionSteps({ session, onStepClick, selectedStepIndex }: Exec
         </div>
       </CardHeader>
 
-      <CardBody style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {/* Progress */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -155,7 +155,7 @@ export function ExecutionSteps({ session, onStepClick, selectedStepIndex }: Exec
             </div>
           )}
         </div>
-      </CardBody>
+      </div>
     </Card>
   );
 }
