@@ -800,7 +800,16 @@ Respond with ONLY a JSON object with the refined step.`;
     if (step.value) {
       const fs = require('fs');
       const path = require('path');
-      const screenshotPath = path.resolve(step.value);
+
+      // Save screenshots in execution-logs folder instead of root
+      const executionLogsDir = path.join(process.cwd(), 'execution-logs');
+      const screenshotPath = path.join(executionLogsDir, step.value);
+
+      // Ensure execution-logs directory exists
+      if (!fs.existsSync(executionLogsDir)) {
+        fs.mkdirSync(executionLogsDir, { recursive: true });
+      }
+
       fs.writeFileSync(screenshotPath, screenshot);
       console.log(`📸 Screenshot saved to: ${screenshotPath}`);
     }

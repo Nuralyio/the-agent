@@ -122,7 +122,8 @@ export class ExecutionLogger {
 
     // Setup directories
     this.logDir = join(process.cwd(), 'execution-logs');
-    this.screenshotDir = join(this.logDir, 'screenshots', this.sessionLog.sessionId);
+    // Save screenshots directly in execution-logs folder with other files
+    this.screenshotDir = this.logDir;
     this.ensureDirectories();
   }
 
@@ -159,7 +160,8 @@ export class ExecutionLogger {
     // Save screenshot if provided
     let screenshotInfo: { filename: string; path: string } | undefined;
     if (screenshotBuffer) {
-      const screenshotFilename = `step-${stepIndex + 1}-${result.success ? 'success' : 'failed'}.png`;
+      // Include session ID in filename to avoid conflicts when saving in shared folder
+      const screenshotFilename = `screenshot-${this.sessionLog.sessionId}-step-${stepIndex + 1}-${result.success ? 'success' : 'failed'}.png`;
       const screenshotPath = join(this.screenshotDir, screenshotFilename);
 
       try {
@@ -265,24 +267,24 @@ export class ExecutionLogger {
     this.sessionLog.success = success;
 
     // Calculate final summary
-    this.sessionLog.summary.successRate = this.sessionLog.totalSteps > 0 ? 
+    this.sessionLog.summary.successRate = this.sessionLog.totalSteps > 0 ?
       this.sessionLog.successfulSteps / this.sessionLog.totalSteps : 0;
-    
+
     this.sessionLog.summary.averageStepTime = this.sessionLog.totalSteps > 0 ?
       this.sessionLog.entries.reduce((sum, entry) => sum + entry.result.executionTimeMs, 0) / this.sessionLog.totalSteps : 0;
 
     // Save the complete log
     const logFilename = `execution-${this.sessionLog.sessionId}.json`;
     const logPath = join(this.logDir, logFilename);
-    
+
     try {
       writeFileSync(logPath, JSON.stringify(this.sessionLog, null, 2));
       console.log(`📋 Execution log saved: ${logPath}`);
       console.log(`📊 Session Summary: ${this.sessionLog.successfulSteps}/${this.sessionLog.totalSteps} steps successful (${(this.sessionLog.summary.successRate * 100).toFixed(1)}%)`);
-      
+
       // Generate visualization and export formats
       this.generateVisualizationFormats();
-      
+
       return logPath;
     } catch (error) {
       console.error(`❌ Failed to save execution log: ${error}`);
@@ -302,20 +304,20 @@ export class ExecutionLogger {
       // Generate HTML report
       const reportFileName = `execution-report-${this.sessionLog.sessionId}.html`;
       ExecutionVisualizer.generateHTMLReport(this.sessionLog, join(this.logDir, reportFileName));
-      
+
       // Generate other formats
       ExecutionFormatConverter.convertToCSV(this.sessionLog, join(this.logDir, `execution-data-${this.sessionLog.sessionId}.csv`));
       ExecutionFormatConverter.convertToJUnit(this.sessionLog, join(this.logDir, `junit-${this.sessionLog.sessionId}.xml`));
-      
+
       // Generate diagram files
       const mermaidContent = ExecutionVisualizer.generateMermaidDiagram(this.sessionLog);
       const plantumlContent = ExecutionVisualizer.generatePlantUMLSequence(this.sessionLog);
-      
-      writeFileSync(join(this.logDir, `mermaid-${this.sessionLog.sessionId}.md`), 
+
+      writeFileSync(join(this.logDir, `mermaid-${this.sessionLog.sessionId}.md`),
         `# Execution Flow Diagram\n\n\`\`\`mermaid\n${mermaidContent}\n\`\`\``);
-        
+
       writeFileSync(join(this.logDir, `sequence-${this.sessionLog.sessionId}.puml`), plantumlContent);
-      
+
       console.log(`🎨 Visualization formats generated for session ${this.sessionLog.sessionId}`);
     } catch (error) {
       console.warn(`⚠️ Failed to generate visualization formats: ${error}`);
@@ -344,9 +346,7 @@ export class ExecutionLogger {
     if (!existsSync(this.logDir)) {
       mkdirSync(this.logDir, { recursive: true });
     }
-    if (!existsSync(this.screenshotDir)) {
-      mkdirSync(this.screenshotDir, { recursive: true });
-    }
+    // No need to create separate screenshot directory since we're using the same folder
   }
 
   private updateSummaryStats(stepType: string, error?: string, executionTime?: number): void {

@@ -179,7 +179,7 @@ Example for "take a screenshot":
   "steps": [
     {
       "type": "SCREENSHOT",
-      "value": "screenshot.png",
+      "value": "",
       "description": "Take a screenshot of the current page"
     }
   ],
