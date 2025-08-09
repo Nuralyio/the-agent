@@ -33,7 +33,7 @@ jobs:
           fi
 
       - name: Install Playwright
-        run: npx playwright install chromium --with-deps
+        run: npm run install:browsers
 
       - name: Run linting
         run: npm run lint
@@ -41,8 +41,11 @@ jobs:
       - name: TypeScript check
         run: npm run typecheck
 
+      - name: Build packages
+        run: npm run build
+
       - name: Run Navigation Tests
-        run: npm test -- --headless --browser chrome --adapter playwright "Navigation Tests"
+        run: npm run test:integration
         env:
           DEFAULT_AI_PROVIDER: ${{ vars.DEFAULT_AI_PROVIDER }}
           OLLAMA_BASE_URL: ${{ vars.OLLAMA_BASE_URL }}
@@ -50,7 +53,7 @@ jobs:
           OLLAMA_TEMPERATURE: ${{ vars.OLLAMA_TEMPERATURE }}
 
       - name: Run Screenshot Tests
-        run: npm test -- --headless --browser chrome --adapter playwright "Screenshot Tests"
+        run: npm run test:integration
         env:
           DEFAULT_AI_PROVIDER: ${{ vars.DEFAULT_AI_PROVIDER }}
           OLLAMA_BASE_URL: ${{ vars.OLLAMA_BASE_URL }}
@@ -93,10 +96,13 @@ jobs:
           fi
 
       - name: Install Playwright browsers
-        run: npx playwright install chromium --with-deps
+        run: npm run install:browsers
+
+      - name: Build packages
+        run: npm run build
 
       - name: Run test suite
-        run: npm test -- --headless --browser ${{ matrix.browser }} --adapter ${{ matrix.adapter }} "${{ matrix.test-suite }}"
+        run: npm run test:integration
         env:
           CI: true
           BROWSER_HEADLESS: true
@@ -114,7 +120,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: logs-${{ matrix.test-suite }}-chrome-playwright
-          path: execution-logs/
+          path: logs/
           retention-days: 3
 
       - name: Upload screenshots

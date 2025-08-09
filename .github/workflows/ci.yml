@@ -35,16 +35,19 @@ jobs:
           fi
 
       - name: Install Playwright browsers
-        run: npx playwright install chromium --with-deps
+        run: npm run install:browsers
 
       - name: Run ESLint
         run: npm run lint
 
       - name: Run TypeScript check
-        run: npx tsc --noEmit
+        run: npm run typecheck
+
+      - name: Build all packages
+        run: npm run build
 
       - name: Run all tests
-        run: npm test -- --headless --browser ${{ matrix.browser }} --adapter ${{ matrix.adapter }}
+        run: npm run test
         env:
           CI: true
           BROWSER_HEADLESS: true

@@ -31,10 +31,10 @@ jobs:
           fi
 
       - name: Install browsers
-        run: npx playwright install chromium --with-deps
+        run: npm run install:browsers
 
       - name: Run full test suite
-        run: npm test -- --headless --browser chrome --adapter playwright all
+        run: npm run test
         env:
           CI: true
           BROWSER_HEADLESS: true
@@ -45,8 +45,10 @@ jobs:
       - name: Run post-build verification
         run: |
           echo "Checking build output..."
-          ls -la dist/
-          node -e "console.log('Build verification:', require('./dist/index.js') ? 'SUCCESS' : 'FAILED')"
+          ls -la packages/core/dist/
+          ls -la packages/api-server/dist/
+          ls -la packages/web-ui/build/
+          echo "Build verification completed successfully"
 
       - name: Create build artifact
         uses: actions/upload-artifact@v4
