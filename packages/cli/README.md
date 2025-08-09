@@ -1,6 +1,8 @@
 # @theagent/cli
 
-Command-line interface for the browser automation framework. Provides easy-to-use commands for running automation tasks, managing projects, and executing tests.
+Command-line interface for the browser automation framework. Provides
+easy-to-use commands for running automation tasks, managing projects, and
+executing tests.
 
 ## Installation
 
@@ -49,7 +51,7 @@ theagent test --watch
 ## Options
 
 - `-b, --browser <type>` - Browser type (chrome, firefox, safari, edge)
-- `-a, --adapter <name>` - Adapter (playwright, puppeteer, selenium)  
+- `-a, --adapter <name>` - Adapter (playwright, puppeteer, selenium)
 - `--headless` - Run in headless mode
 - `-o, --output <path>` - Screenshot output path
 - `-w, --watch` - Watch mode for tests

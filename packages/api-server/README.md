@@ -1,11 +1,13 @@
 # @theagent/api-server
 
-HTTP API server for the browser automation framework. Provides REST API endpoints and WebSocket connections for real-time automation visualization and control.
+HTTP API server for the browser automation framework. Provides REST API
+endpoints and WebSocket connections for real-time automation visualization and
+control.
 
 ## Features
 
 - 🌐 **REST API**: Complete HTTP API for automation control
-- 🔌 **WebSocket Support**: Real-time execution streaming  
+- 🔌 **WebSocket Support**: Real-time execution streaming
 - 📊 **Visualization**: Live automation monitoring and screenshots
 - 🎯 **Session Management**: Multiple automation sessions
 - 📝 **Logging**: Comprehensive execution logging
@@ -29,7 +31,7 @@ await server.start();
 ## API Endpoints
 
 - `GET /api/status` - Server status
-- `GET /api/sessions` - List execution sessions  
+- `GET /api/sessions` - List execution sessions
 - `GET /api/sessions/:id` - Session details
 - `POST /api/execute` - Execute automation task
 - `GET /api/execution/stream` - Server-Sent Events stream

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander';
-import chalk from 'chalk';
 import { BrowserAutomation, BrowserType } from '@theagent/core';
+import chalk from 'chalk';
+import { Command } from 'commander';
 
 const program = new Command();
 
@@ -24,7 +24,7 @@ program
     console.log(chalk.gray(`Task: ${task}`));
     console.log(chalk.gray(`Browser: ${options.browser}`));
     console.log(chalk.gray(`Adapter: ${options.adapter}`));
-    
+
     try {
       const automation = new BrowserAutomation({
         adapter: options.adapter,
@@ -34,12 +34,12 @@ program
 
       await automation.initialize();
       const result = await automation.execute(task);
-      
+
       if (options.output) {
         await automation.screenshot(options.output);
         console.log(chalk.green(`📸 Screenshot saved to ${options.output}`));
       }
-      
+
       await automation.close();
       console.log(chalk.green('✅ Task completed successfully'));
       console.log(result);

@@ -1,5 +1,3 @@
-import express from 'express';
-import cors from 'cors';
 import { VisualizationServer } from './visualization/visualization-server';
 
 const PORT = process.env.PORT || 3002;

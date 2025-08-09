@@ -1,11 +1,13 @@
 # @theagent/core
 
-Core browser automation framework with multi-adapter support for Playwright, Puppeteer, and Selenium. Provides AI-powered element detection and natural language instruction parsing.
+Core browser automation framework with multi-adapter support for Playwright,
+Puppeteer, and Selenium. Provides AI-powered element detection and natural
+language instruction parsing.
 
 ## Features
 
 - 🎭 **Multi-Adapter Support**: Playwright, Puppeteer, and Selenium adapters
-- 🌐 **Cross-Browser Compatibility**: Chrome, Firefox, Safari, Edge support  
+- 🌐 **Cross-Browser Compatibility**: Chrome, Firefox, Safari, Edge support
 - 🤖 **AI Integration**: Ollama-powered natural language instruction parsing
 - 🎯 **Smart Element Detection**: AI-powered element identification
 - 📱 **Responsive Testing**: Multiple viewport and device simulation
