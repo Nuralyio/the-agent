@@ -1,10 +1,10 @@
-import cors from 'cors';
-import express from 'express';
-import { v4 as uuidv4 } from 'uuid';
 import { createAIProviderConfigs, isProviderAvailable, loadEnvironmentConfig } from '@theagent/core/dist/config/environment';
 import { BrowserAutomation } from '@theagent/core/dist/index';
 import { AIConfig, BrowserType } from '@theagent/core/dist/types';
 import { executionStream } from '@theagent/core/dist/visualization/execution-stream';
+import cors from 'cors';
+import express from 'express';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * VisualizationServer - HTTP server for web-based execution visualization

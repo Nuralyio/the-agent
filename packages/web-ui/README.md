@@ -1,6 +1,7 @@
 # @theagent/web-ui
 
-A modern React-based dashboard built with Remix.js for visualizing and controlling browser automation tasks in real-time.
+A modern React-based dashboard built with Remix.js for visualizing and
+controlling browser automation tasks in real-time.
 
 ## 🚀 Features
 
