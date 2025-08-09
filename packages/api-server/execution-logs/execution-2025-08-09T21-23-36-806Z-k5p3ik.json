@@ -1,0 +1,125 @@
+{
+  "sessionId": "2025-08-09T21-23-36-806Z-k5p3ik",
+  "startTime": "2025-08-09T21:23:36.806Z",
+  "instruction": "go to google com and do screenshot",
+  "totalSteps": 3,
+  "successfulSteps": 3,
+  "failedSteps": 0,
+  "totalDuration": 7250,
+  "success": true,
+  "entries": [
+    {
+      "timestamp": "2025-08-09T21:23:40.701Z",
+      "sessionId": "2025-08-09T21-23-36-806Z-k5p3ik",
+      "stepIndex": 1,
+      "step": {
+        "type": "navigate",
+        "description": "Navigate to Google homepage",
+        "value": "https://www.google.com"
+      },
+      "result": {
+        "success": true,
+        "executionTimeMs": 33,
+        "elementFound": true,
+        "valueEntered": "https://www.google.com"
+      },
+      "page": {
+        "url": "https://www.google.com/",
+        "title": "Google",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        }
+      },
+      "screenshot": {
+        "filename": "screenshot-2025-08-09T21-23-36-806Z-k5p3ik-step-1-success.png",
+        "path": "/Users/aymen/Desktop/projects/nuraly/TheAgent/Agent/packages/api-server/execution-logs/screenshot-2025-08-09T21-23-36-806Z-k5p3ik-step-1-success.png"
+      },
+      "context": {
+        "previousStepsCount": 0,
+        "sessionDuration": 3895
+      },
+      "refinement": {
+        "wasRefined": false
+      }
+    },
+    {
+      "timestamp": "2025-08-09T21:23:43.922Z",
+      "sessionId": "2025-08-09T21-23-36-806Z-k5p3ik",
+      "stepIndex": 1,
+      "step": {
+        "type": "navigate",
+        "description": "Navigate to google.com",
+        "value": "https://www.google.com/"
+      },
+      "result": {
+        "success": true,
+        "executionTimeMs": 36,
+        "elementFound": true,
+        "valueEntered": "https://www.google.com/"
+      },
+      "page": {
+        "url": "https://www.google.com/",
+        "title": "Google",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        }
+      },
+      "screenshot": {
+        "filename": "screenshot-2025-08-09T21-23-36-806Z-k5p3ik-step-1-success.png",
+        "path": "/Users/aymen/Desktop/projects/nuraly/TheAgent/Agent/packages/api-server/execution-logs/screenshot-2025-08-09T21-23-36-806Z-k5p3ik-step-1-success.png"
+      },
+      "context": {
+        "previousStepsCount": 0,
+        "sessionDuration": 7116
+      },
+      "refinement": {
+        "wasRefined": false
+      }
+    },
+    {
+      "timestamp": "2025-08-09T21:23:44.055Z",
+      "sessionId": "2025-08-09T21-23-36-806Z-k5p3ik",
+      "stepIndex": 2,
+      "step": {
+        "type": "screenshot",
+        "description": "Take a screenshot of the current page"
+      },
+      "result": {
+        "success": true,
+        "executionTimeMs": 33,
+        "elementFound": true
+      },
+      "page": {
+        "url": "https://www.google.com/",
+        "title": "Google",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        }
+      },
+      "screenshot": {
+        "filename": "screenshot-2025-08-09T21-23-36-806Z-k5p3ik-step-2-success.png",
+        "path": "/Users/aymen/Desktop/projects/nuraly/TheAgent/Agent/packages/api-server/execution-logs/screenshot-2025-08-09T21-23-36-806Z-k5p3ik-step-2-success.png"
+      },
+      "context": {
+        "previousStepsCount": 1,
+        "sessionDuration": 7249
+      },
+      "refinement": {
+        "wasRefined": false
+      }
+    }
+  ],
+  "summary": {
+    "stepTypes": {
+      "navigate": 2,
+      "screenshot": 1
+    },
+    "errorTypes": {},
+    "averageStepTime": 34,
+    "successRate": 1
+  },
+  "endTime": "2025-08-09T21:23:44.056Z"
+}

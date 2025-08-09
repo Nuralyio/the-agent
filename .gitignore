@@ -1,9 +1,19 @@
+# ========================================
+# MONOREPO STRUCTURE - TheAgent Framework
+# ========================================
+
 # Dependencies
 node_modules/
+**/node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+.pnpm-store/
+
+# Package manager lockfiles (keep npm, ignore others)
+yarn.lock
+pnpm-lock.yaml
 
 # Runtime data
 pids
@@ -13,10 +23,12 @@ pids
 
 # Coverage directory used by tools like istanbul
 coverage/
+**/coverage/
 *.lcov
 
 # nyc test coverage
 .nyc_output
+**/.nyc_output
 
 # Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
@@ -35,6 +47,7 @@ jspm_packages/
 
 # TypeScript cache
 *.tsbuildinfo
+**/*.tsbuildinfo
 
 # Optional npm cache directory
 .npm
@@ -42,6 +55,7 @@ jspm_packages/
 # Optional eslint cache
 .eslintcache
 .eslintrc.cache
+**/.eslintcache
 
 # Microbundle cache
 .rpt2_cache/
@@ -90,12 +104,47 @@ temp/
 # Runtime configuration files
 *.log
 
-# Build outputs
+# ========================================
+# BUILD OUTPUTS - All Packages
+# ========================================
+
+# TypeScript/JavaScript build outputs
+dist/
+**/dist/
 build/
+**/build/
 lib/
+**/lib/
 es/
+**/es/
 dist/types/
-*.d.ts.map
+**/*.d.ts.map
+
+# Package-specific build outputs
+packages/*/dist/
+packages/*/build/
+packages/*/lib/
+apps/*/dist/
+apps/*/build/
+
+# Next.js build output (if used in web-ui)
+.next
+**/.next
+
+# Remix build output (web-ui package)
+packages/web-ui/build/
+packages/web-ui/public/build/
+
+# Nuxt.js build / generate output
+.nuxt
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
 
 # IDE files
 # .vscode/ - commented out to include project-specific VS Code settings
@@ -113,18 +162,30 @@ dist/types/
 ehthumbs.db
 Thumbs.db
 
-# Browser automation specific
+# ========================================
+# BROWSER AUTOMATION SPECIFIC
+# ========================================
+
+# Execution artifacts
+logs/
+**/logs/
+logs/execution-logs/
 screenshots/
-execution-logs/
+**/screenshots/
 test-results/
+**/test-results/
 downloads/
+**/downloads/
 playwright-report/
-test-results/
+**/playwright-report/
 allure-results/
+**/allure-results/
 allure-report/
+**/allure-report/
 
 # Browser binaries (if downloaded locally)
 .playwright/
+**/.playwright/
 chrome-linux/
 chrome-mac/
 chrome-win/
@@ -136,22 +197,68 @@ webkit/
 *.mp4
 *.webm
 *.zip
+**/temp-screenshots/
+**/debug-screenshots/
 
 # Selenium specific
 geckodriver.log
 chromedriver.log
 selenium-debug.log
+**/geckodriver.log
+**/chromedriver.log
+**/selenium-debug.log
+
+# ========================================
+# DEVELOPMENT & TOOLING
+# ========================================
+
+# Temporary folders
+tmp/
+temp/
+**/tmp/
+**/temp/
+
+# Runtime configuration files
+*.log
+**/*.log
+
+# Parcel cache
+.cache
+.parcel-cache
+**/.cache
+**/.parcel-cache
+
+# ========================================
+# AI & CONFIGURATION
+# ========================================
 
 # AI model cache
-.cache/
 models/
+**/models/
 .openai_cache/
+**/.openai_cache/
 
 # Configuration files with sensitive data
 config/local.json
 config/secrets.json
 auth-config.json
+**/config/local.json
+**/config/secrets.json
+**/auth-config.json
 
+# Environment files
+.env
+.env.test
+.env.production
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+**/.env.*.local
+
+# ========================================
+# DOCUMENTATION & REPORTS
+# ========================================
 
 # Documentation build
 docs/build/
@@ -160,3 +267,34 @@ docs/.docusaurus/
 # Benchmark results
 benchmarks/results/
 performance-reports/
+**/performance-reports/
+
+# ========================================
+# PACKAGE-SPECIFIC IGNORES
+# ========================================
+
+# CLI package binaries
+packages/cli/bin/
+
+# API Server uploads/temp files
+packages/api-server/uploads/
+packages/api-server/temp/
+
+# Web UI cache and build artifacts
+packages/web-ui/.cache/
+packages/web-ui/public/build/
+
+# Core package test artifacts
+packages/core/test-artifacts/
+packages/core/debug-logs/
+
+# Example outputs
+apps/examples/outputs/
+apps/examples/screenshots/
+
+# ========================================
+# CLEANUP COMPLETED - Old Structure Removed
+# ========================================
+
+# Old structure artifacts (backup files only)
+package.json.old

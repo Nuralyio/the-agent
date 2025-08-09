@@ -1,0 +1,14 @@
+@startuml
+title Execution Sequence Diagram\ngo google and screenqshot
+
+actor User
+participant "Browser" as B
+participant "Action Engine" as AE
+participant "Page" as P
+
+User -> AE: Execute instruction
+activate AE
+
+AE --> User: Execution completed
+deactivate AE
+@enduml

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="AutomationSession_2025-08-09T21-21-04-349Z-l7r1ii" tests="3" failures="0" errors="0" time="7.102" timestamp="2025-08-09T21:21:04.349Z">
+  <properties>
+    <property name="instruction" value="go to google com and do screenshot" />
+    <property name="success_rate" value="100.0%" />
+    <property name="avg_step_time" value="32ms" />
+  </properties>
+  <testcase classname="Step_navigate" name="Navigate to Google homepage" time="0.033" />
+  <testcase classname="Step_navigate" name="Navigate to Google" time="0.031" />
+  <testcase classname="Step_screenshot" name="Take a screenshot of the current page" time="0.032" />
+</testsuite>

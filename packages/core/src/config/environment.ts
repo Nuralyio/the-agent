@@ -1,9 +1,10 @@
 import dotenv from 'dotenv';
+import path from 'path';
 import { AIConfig } from '../ai/ai-engine';
 import { BrowserType } from '../types';
 
-// Load environment variables from .env file
-dotenv.config();
+// Load environment variables from .env file in the project root
+dotenv.config({ path: path.join(__dirname, '../../../../.env') });
 
 export interface EnvironmentConfig {
   // AI Provider Settings
