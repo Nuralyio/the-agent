@@ -12,9 +12,9 @@ import {
 } from '../types';
 import { ExecutionLogger } from '../utils/execution-logger';
 import { executionStream, ExecutionStream } from '../streaming/execution-stream';
-import { ActionPlanner } from './action-planner';
-import { ContextualStepAnalyzer } from './contextual-analyzer';
-import { StepContextManager, StepExecutionResult } from './step-context';
+import { ActionPlanner } from './planning/action-planner';
+import { ContextualStepAnalyzer } from './analysis/contextual-analyzer';
+import { StepContextManager, StepExecutionResult } from './analysis/step-context';
 
 /**
  * Core ActionEngine implementation that orchestrates task execution
@@ -47,11 +47,12 @@ export class ActionEngine implements IActionEngine {
   /**
    * Main entry point - execute a natural language instruction
    */
-  async executeTask(instruction: string, options?: ExecutionOptions): Promise<TaskResult> {
-    console.log(`🤖 Processing instruction: "${instruction}"`);
+  async executeTask(objective: string, context?: TaskContext): Promise<TaskResult> {
+    const startTime = Date.now();
+    console.log(`🤖 Processing instruction: "${objective}"`);
 
     // Initialize execution logger
-    const logger = new ExecutionLogger(instruction);
+    const logger = new ExecutionLogger(objective);
     console.log(`📝 Execution logging started: ${logger.getSessionId()}`);
 
     // Start streaming session
@@ -59,12 +60,12 @@ export class ActionEngine implements IActionEngine {
 
     try {
       // Check if instruction contains navigation and handle it specially
-      if (this.instructionContainsNavigation(instruction)) {
-        return await this.executeNavigationAwareTask(instruction, logger, executionStream);
+      if (this.instructionContainsNavigation(objective)) {
+        return await this.executeNavigationAwareTask(objective, logger, executionStream);
       }
 
       // 1. Parse the instruction into actionable steps
-      const actionPlan = await this.parseInstruction(instruction);
+      const actionPlan = await this.parseInstruction(objective);
       console.log(`📋 Generated ${actionPlan.steps.length} steps`);
 
       // Stream the plan creation with total step count and step details
@@ -99,7 +100,8 @@ export class ActionEngine implements IActionEngine {
         success: false,
         steps: [],
         error: error instanceof Error ? error.message : 'Unknown error',
-        screenshots: []
+        screenshots: [],
+        duration: Date.now() - startTime
       };
     }
   }
@@ -116,13 +118,24 @@ export class ActionEngine implements IActionEngine {
       console.log('🔍 No active page available for context, proceeding with navigation planning');
     }
 
-    // Create context from page state (or empty context if no page)
+    // Create context from page state (or empty context if no page)  
     const context: TaskContext = {
+      id: 'task-' + Date.now(),
+      objective: instruction,
+      constraints: [],
+      variables: {},
+      history: [],
+      currentState: pageState || {
+        url: '',
+        title: '',
+        content: '',
+        screenshot: Buffer.alloc(0),
+        timestamp: Date.now(),
+        viewport: { width: 1280, height: 720 },
+        elements: []
+      },
       url: pageState?.url || '',
-      pageTitle: pageState?.title || '',
-      currentStep: 0,
-      totalSteps: 0,
-      variables: {}
+      pageTitle: pageState?.title || ''
     };
 
     // Use the AI-powered planner to generate steps with current page content
@@ -364,7 +377,8 @@ export class ActionEngine implements IActionEngine {
       success,
       steps: executedSteps,
       screenshots,
-      extractedData: currentPlan.context.extractedData
+      extractedData: currentPlan.context.extractedData,
+      duration: 0 // TODO: Add proper timing
     };
   }
 
@@ -575,16 +589,20 @@ Focus on finding elements that match the intent: "${step.description}"
 Respond with ONLY a JSON object with the refined step.`;
 
       const refinedPlan = await this.actionPlanner.createActionPlan(refinementPrompt, {
+        id: crypto.randomUUID(),
+        objective: 'Refine selector',
+        constraints: [],
+        variables: {},
+        history: [],
+        currentState: pageState,
         url: pageState.url,
-        pageTitle: pageState.title,
-        currentStep: 0,
-        totalSteps: 1,
-        variables: {}
+        pageTitle: pageState.title
       }, pageState);
 
       if (refinedPlan.steps.length > 0) {
         const refinedStep = refinedPlan.steps[0]!;
         const result: ActionStep = {
+          id: step.id || 'ai-refined-' + Date.now(),
           type: step.type,
           description: step.description
         };
@@ -841,8 +859,9 @@ Respond with ONLY a JSON object with the refined step.`;
       title: await page.evaluate(() => document.title),
       content,
       screenshot,
-      timestamp: new Date(),
-      viewport: { width: 1280, height: 720 } // Default, should get from actual viewport
+      timestamp: Date.now(),
+      viewport: { width: 1280, height: 720 }, // Default, should get from actual viewport
+      elements: [] // TODO: Implement element extraction
     };
   }
 
@@ -868,11 +887,14 @@ Respond with ONLY a JSON object with the refined step.`;
 
       // Use the action planner to refine the step with current page content
       const refinedPlan = await this.actionPlanner.createActionPlan(refinementPrompt, {
+        id: crypto.randomUUID(),
+        objective: 'Refine action step',
+        constraints: [],
+        variables: {},
+        history: [],
+        currentState: pageState,
         url: pageState.url,
-        pageTitle: pageState.title,
-        currentStep: 0,
-        totalSteps: 1,
-        variables: {}
+        pageTitle: pageState.title
       }, pageState);
 
       // Return the first step from the refined plan, or original step if refinement fails
@@ -880,6 +902,7 @@ Respond with ONLY a JSON object with the refined step.`;
         const refinedStep = refinedPlan.steps[0]!;
         // Preserve the original step type and description, but use refined selector
         const result: ActionStep = {
+          id: crypto.randomUUID(),
           type: step.type,
           description: step.description
         };
@@ -946,16 +969,20 @@ Respond with ONLY a JSON object with the refined step.`;
       const contextualPrompt = this.createContextualPrompt(step, stepContext, pageState);
 
       const refinedPlan = await this.actionPlanner.createActionPlan(contextualPrompt, {
+        id: crypto.randomUUID(),
+        objective: 'Contextual step refinement',
+        constraints: [],
+        variables: {},
+        history: [],
+        currentState: pageState,
         url: pageState.url,
-        pageTitle: pageState.title,
-        currentStep: stepContext.currentStepIndex,
-        totalSteps: stepContext.totalSteps,
-        variables: {}
+        pageTitle: pageState.title
       }, pageState);
 
       if (refinedPlan.steps.length > 0) {
         const refinedStep = refinedPlan.steps[0]!;
         const result: ActionStep = {
+          id: crypto.randomUUID(),
           type: step.type,
           description: step.description
         };
@@ -1048,18 +1075,21 @@ Respond with ONLY a JSON object containing the refined step.`;
     // 1. First, parse just to identify the navigation part
     const initialPageState = await this.captureState();
     const initialPlan = await this.actionPlanner.createActionPlan(instruction, {
+      id: crypto.randomUUID(),
+      objective: instruction,
+      constraints: [],
+      variables: {},
+      history: [],
+      currentState: initialPageState,
       url: initialPageState.url,
-      pageTitle: initialPageState.title,
-      currentStep: 0,
-      totalSteps: 0,
-      variables: {}
+      pageTitle: initialPageState.title
     }, initialPageState);
 
     // Stream the initial plan creation
     executionStream.streamPlanCreated(initialPlan.steps.length, initialPlan.steps);
 
     // 2. Find the first NAVIGATE step
-    const navigateStepIndex = initialPlan.steps.findIndex(step => step.type === ActionType.NAVIGATE);
+    const navigateStepIndex = initialPlan.steps.findIndex((step: ActionStep) => step.type === ActionType.NAVIGATE);
 
     if (navigateStepIndex === -1) {
       // No navigation step found, proceed normally
@@ -1079,9 +1109,13 @@ Respond with ONLY a JSON object containing the refined step.`;
 
     // Execute navigation
     const navigationPlan: ActionPlan = {
+      id: crypto.randomUUID(),
+      objective: 'Navigate to target page',
       steps: navigationSteps,
-      context: initialPlan.context,
-      expectedOutcome: 'Navigate to target page'
+      estimatedDuration: navigationSteps.length * 1000, // Rough estimate
+      dependencies: [],
+      priority: 1,
+      context: initialPlan.context
     };
 
     console.log(`🚀 Executing ${navigationSteps.length} navigation step(s)`);
@@ -1103,11 +1137,14 @@ Respond with ONLY a JSON object containing the refined step.`;
       console.log(`🔄 Re-planning remaining instruction: "${remainingInstruction}"`);
 
       const remainingPlan = await this.actionPlanner.createActionPlan(remainingInstruction, {
+        id: crypto.randomUUID(),
+        objective: remainingInstruction,
+        constraints: [],
+        variables: {},
+        history: [],
+        currentState: newPageState,
         url: newPageState.url,
-        pageTitle: newPageState.title,
-        currentStep: 0,
-        totalSteps: 0,
-        variables: {}
+        pageTitle: newPageState.title
       }, newPageState);
 
       console.log(`📋 Generated ${remainingPlan.steps.length} additional steps for remaining actions`);
@@ -1122,7 +1159,8 @@ Respond with ONLY a JSON object containing the refined step.`;
       const finalResult: TaskResult = {
         success: navResult.success && remainingResult.success,
         steps: [...navResult.steps, ...remainingResult.steps],
-        screenshots: [...(navResult.screenshots || []), ...(remainingResult.screenshots || [])]
+        screenshots: [...(navResult.screenshots || []), ...(remainingResult.screenshots || [])],
+        duration: (navResult.duration || 0) + (remainingResult.duration || 0)
       };
 
       // Add error only if there is one

@@ -1,5 +1,5 @@
-import { PageInstance, ElementHandle, ScreenshotOptions, WaitOptions } from '../types';
-import { PuppeteerElementHandle } from './puppeteer-element';
+import { PageInstance, ElementHandle, ScreenshotOptions, WaitOptions } from '../../types';
+import { PuppeteerElementHandle } from './element';
 import type { Page } from 'puppeteer';
 
 /**
@@ -54,13 +54,6 @@ export class PuppeteerPageInstance implements PageInstance {
   }
 
   /**
-   * Evaluate JavaScript in the page
-   */
-  async evaluate<T>(fn: () => T): Promise<T> {
-    return await this.page.evaluate(fn);
-  }
-
-  /**
    * Wait for selector and return element handle
    */
   async waitForSelector(selector: string, options?: WaitOptions): Promise<ElementHandle> {
@@ -102,8 +95,46 @@ export class PuppeteerPageInstance implements PageInstance {
   /**
    * Get current URL
    */
-  getUrl(): string {
+  async getUrl(): Promise<string> {
     return this.page.url();
+  }
+
+  /**
+   * Find element by selector
+   */
+  async findElement(selector: string): Promise<ElementHandle | null> {
+    try {
+      const element = await this.page.$(selector);
+      return element ? new PuppeteerElementHandle(element) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Find elements by selector
+   */
+  async findElements(selector: string): Promise<ElementHandle[]> {
+    const elements = await this.page.$$(selector);
+    return elements.map(element => new PuppeteerElementHandle(element));
+  }
+
+  /**
+   * Wait for element to appear and return it
+   */
+  async waitForElement(selector: string, timeout?: number): Promise<ElementHandle> {
+    const element = await this.page.waitForSelector(selector, { timeout });
+    if (!element) {
+      throw new Error(`Element with selector "${selector}" not found`);
+    }
+    return new PuppeteerElementHandle(element);
+  }
+
+  /**
+   * Execute JavaScript on the page
+   */
+  async evaluate<T>(fn: () => T): Promise<T> {
+    return this.page.evaluate(fn);
   }
 
   /**

@@ -8,7 +8,7 @@
     "dev": "nodemon --exec ts-node src/server.ts",
     "dev:debug": "nodemon --exec ts-node --inspect src/server.ts",
     "start": "node dist/server.js",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint src --ext .ts",

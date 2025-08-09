@@ -1,5 +1,6 @@
-import { AIEngine } from '../ai/ai-engine';
+import { AIEngine } from '../../ai/ai-engine';
 import { ActionPlan, ActionStep, ActionType, PageState, TaskContext } from '../types';
+import * as crypto from 'crypto';
 
 interface ParsedInstruction {
   steps: ActionStep[];
@@ -23,18 +24,24 @@ export class ActionPlanner {
     try {
       // Use provided pageState or create a minimal one
       const currentPageState: PageState = pageState || {
-        url: context.url,
-        title: context.pageTitle,
+        url: context.url || 'about:blank',
+        title: context.pageTitle || 'Unknown Page',
         content: '',
         screenshot: Buffer.from(''),
-        timestamp: new Date(),
-        viewport: { width: 1920, height: 1080 }
+        timestamp: Date.now(),
+        viewport: { width: 1920, height: 1080 },
+        elements: []
       };
 
       const parsedInstruction = await this.parseInstructionWithAI(instruction, currentPageState);
 
       return {
+        id: crypto.randomUUID(),
+        objective: instruction,
         steps: parsedInstruction.steps,
+        estimatedDuration: parsedInstruction.steps.length * 1000, // Rough estimate
+        dependencies: [],
+        priority: 1,
         context: {
           url: context.url,
           pageTitle: context.pageTitle,
@@ -42,7 +49,9 @@ export class ActionPlanner {
           totalSteps: parsedInstruction.steps.length,
           variables: {}
         },
-        expectedOutcome: parsedInstruction.reasoning
+        metadata: {
+          reasoning: parsedInstruction.reasoning
+        }
       };
     } catch (error) {
       console.error('Failed to create action plan:', error);
@@ -55,7 +64,7 @@ export class ActionPlanner {
    */
   private async parseInstructionWithAI(instruction: string, pageState: PageState): Promise<ParsedInstruction> {
     // Extract relevant content from page for better selector identification
-    const pageContent = this.extractRelevantPageContent(pageState.content);
+    const pageContent = this.extractRelevantPageContent(pageState.content || '');
 
     const systemPrompt = `You are a browser automation expert. Your job is to convert natural language instructions into a sequence of browser automation actions.
 
@@ -302,6 +311,7 @@ Convert this to browser automation steps. Respond with ONLY valid JSON, no other
         }
 
         const actionStep: ActionStep = {
+          id: crypto.randomUUID(),
           type: mappedType,
           description: description
         };
@@ -354,12 +364,20 @@ Please analyze the situation and provide an updated action plan that should work
       const adaptedInstruction = await this.parseAIResponse(response.content);
 
       return {
+        id: crypto.randomUUID(),
+        objective: currentPlan.objective,
         steps: adaptedInstruction.steps,
+        estimatedDuration: adaptedInstruction.steps.length * 1000,
+        dependencies: currentPlan.dependencies || [],
+        priority: currentPlan.priority || 1,
         context: {
           ...currentPlan.context,
           totalSteps: adaptedInstruction.steps.length
         },
-        expectedOutcome: adaptedInstruction.reasoning
+        metadata: {
+          reasoning: adaptedInstruction.reasoning,
+          adaptedFrom: currentPlan.id
+        }
       };
     } catch (error) {
       console.error('Failed to adapt plan:', error);

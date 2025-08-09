@@ -1,6 +1,6 @@
 import { BrowserAdapter, BrowserRequirements, BrowserType } from '../types';
-import { PlaywrightAdapter } from './playwright-adapter';
-import { PuppeteerAdapter } from './puppeteer-adapter';
+import { PlaywrightAdapter } from './playwright/adapter';
+import { PuppeteerAdapter } from './puppeteer/adapter';
 
 /**
  * Browser adapter registry for managing multiple browser engines
@@ -175,7 +175,7 @@ export class BrowserAdapterRegistry {
         // Prefer Puppeteer for speed (Chrome-only)
         if (adapter.name === 'puppeteer') score += 30;
         break;
-      case 'robust':
+      case 'thorough':
         // Prefer Playwright for robustness
         if (adapter.name === 'playwright') score += 30;
         break;
@@ -187,7 +187,7 @@ export class BrowserAdapterRegistry {
     }
 
     // Feature support (simplified scoring)
-    if (requirements.features.length > 0) {
+    if (requirements.features && requirements.features.length > 0) {
       // Playwright generally has more features
       if (adapter.name === 'playwright') score += requirements.features.length * 5;
       if (adapter.name === 'puppeteer') score += requirements.features.length * 3;
@@ -203,9 +203,9 @@ export class BrowserAdapterRegistry {
     try {
       switch (adapter.name) {
         case 'playwright':
-          return await PlaywrightAdapter.isAvailable();
+          return await adapter.isAvailable();
         case 'puppeteer':
-          return await PuppeteerAdapter.isAvailable();
+          return await adapter.isAvailable();
         default:
           return true; // Assume custom adapters are available
       }

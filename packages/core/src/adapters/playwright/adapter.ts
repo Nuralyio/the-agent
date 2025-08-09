@@ -1,6 +1,6 @@
 import * as playwright from 'playwright';
 import { BrowserAdapter, BrowserInstance, BrowserType, LaunchOptions } from '../types';
-import { PlaywrightBrowserInstance } from './playwright-instance';
+import { PlaywrightBrowserInstance } from './instance';
 
 /**
  * Playwright browser adapter implementation
@@ -8,7 +8,37 @@ import { PlaywrightBrowserInstance } from './playwright-instance';
  */
 export class PlaywrightAdapter implements BrowserAdapter {
   public readonly name = 'playwright';
+  public readonly type = BrowserType.CHROMIUM; // Default type
   public readonly version = '1.x';
+
+  /**
+   * Check if Playwright is available
+   */
+  async isAvailable(): Promise<boolean> {
+    try {
+      return !!playwright.chromium;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Get default launch options
+   */
+  getDefaultOptions(): LaunchOptions {
+    return {
+      headless: true,
+      timeout: 30000,
+      args: []
+    };
+  }
+
+  /**
+   * Get supported browser types
+   */
+  getSupportedBrowsers(): BrowserType[] {
+    return [BrowserType.CHROMIUM, BrowserType.FIREFOX, BrowserType.WEBKIT];
+  }
 
   /**
    * Launch a browser instance using Playwright
@@ -26,34 +56,20 @@ export class PlaywrightAdapter implements BrowserAdapter {
     }
 
     if (options.proxy) {
-      launchOptions.proxy = {
-        server: options.proxy.server,
-        username: options.proxy.username,
-        password: options.proxy.password,
-        bypass: options.proxy.bypass?.join(',')
-      };
+      if (typeof options.proxy === 'string') {
+        launchOptions.proxy = { server: options.proxy };
+      } else {
+        launchOptions.proxy = {
+          server: options.proxy.server,
+          username: options.proxy.username,
+          password: options.proxy.password,
+          bypass: options.proxy.bypass?.join(',')
+        };
+      }
     }
 
     const browser = await browserType.launch(launchOptions);
     return new PlaywrightBrowserInstance(browser, options);
-  }
-
-  /**
-   * Get supported browser types
-   */
-  getSupportedBrowsers(): BrowserType[] {
-    return [BrowserType.CHROMIUM, BrowserType.FIREFOX, BrowserType.WEBKIT];
-  }
-
-  /**
-   * Get default launch options
-   */
-  getDefaultOptions(): LaunchOptions {
-    return {
-      headless: true,
-      viewport: { width: 1280, height: 720 },
-      args: ['--no-sandbox', '--disable-dev-shm-usage']
-    };
   }
 
   /**
@@ -66,7 +82,7 @@ export class PlaywrightAdapter implements BrowserAdapter {
     }
 
     // Check for browser type in args
-    const browserArg = options.args.find(arg =>
+    const browserArg = options.args.find((arg: string) =>
       arg.includes('firefox') || arg.includes('webkit') || arg.includes('chromium')
     );
 

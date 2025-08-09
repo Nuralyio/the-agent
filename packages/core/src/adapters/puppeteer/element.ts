@@ -1,4 +1,4 @@
-import { ElementHandle } from '../types';
+import { ElementHandle } from '../../types';
 import type { ElementHandle as PuppeteerElementHandleType } from 'puppeteer';
 
 /**
@@ -100,5 +100,12 @@ export class PuppeteerElementHandle implements ElementHandle {
    */
   async focus(): Promise<void> {
     await this.element.focus();
+  }
+
+  /**
+   * Scroll the element into view
+   */
+  async scroll(): Promise<void> {
+    await this.element.evaluate(el => el.scrollIntoView());
   }
 }

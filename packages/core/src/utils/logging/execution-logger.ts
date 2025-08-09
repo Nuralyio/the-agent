@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { StepExecutionResult } from '../engine/analysis/step-context';
-import { ActionStep } from '../types';
+import { StepExecutionResult } from '../../engine/analysis/step-context';
+import { ActionStep } from '../../engine/types';
 
 /**
  * Execution log entry for JSON format
@@ -299,7 +299,7 @@ export class ExecutionLogger {
     try {
       // Import format converter dynamically to avoid circular dependency
       const { ExecutionFormatConverter } = require('./execution-format-converter');
-      const { ExecutionVisualizer } = require('./execution-visualizer');
+      const { ExecutionVisualizer } = require('../reporting/execution-visualizer');
 
       // Generate HTML report
       const reportFileName = `execution-report-${this.sessionLog.sessionId}.html`;
