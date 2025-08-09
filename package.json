@@ -1,38 +1,31 @@
 {
-  "name": "browser-automation-framework",
+  "name": "theagent-workspace",
   "version": "1.0.0",
-  "description": "AI-powered browser automation framework with multi-adapter support (Playwright, Puppeteer, Selenium)",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "description": "AI-powered browser automation framework workspace",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
-    "build": "tsc",
-    "dev": "nodemon --exec ts-node src/index.ts",
-    "dev:all": "node scripts/dev.js",
-    "dev:concurrent": "concurrently \"npm run serve:visualization\" \"cd agent-ui && npm run dev\" \"npm run test:server\" --names \"server,ui,test\" --prefix name --kill-others",
-    "start": "node dist/index.js",
-    "test": "ts-node src/tests/integration/test-runner.ts",
-    "test:server": "node test-server/server.js",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:unit": "jest",
-    "lint": "eslint . --ext .ts,.js",
-    "lint:fix": "eslint . --ext .ts,.js --fix",
-    "lint:check": "eslint . --ext .ts,.js --max-warnings 0",
+    "build": "npm run build --workspaces",
+    "dev": "node tools/scripts/dev.js",
+    "dev:core": "npm run dev -w packages/core",
+    "dev:api": "npm run dev -w packages/api-server",
+    "dev:ui": "npm run dev -w packages/web-ui",
+    "dev:cli": "npm run dev -w packages/cli",
+    "test": "npm run test --workspaces",
+    "test:unit": "npm run test:unit --workspaces",
+    "test:integration": "npm run test:integration -w packages/core",
+    "lint": "npm run lint --workspaces",
+    "lint:fix": "npm run lint:fix --workspaces",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist",
-    "prebuild": "npm run clean && npm run lint:check && npm run typecheck",
-    "precommit": "npm run lint:fix && npm run format && npm run typecheck",
-    "ci:test": "npm test -- --headless all",
-    "ci:validate": "npm run lint:check && npm run typecheck && npm run ci:test",
-    "example:simple": "ts-node src/examples/simple-example.ts",
-    "example:advanced": "ts-node src/examples/advanced-example.ts",
-    "example:ai": "ts-node src/examples/ai-example.ts",
-    "example:visualization": "ts-node src/examples/visualization-example.ts",
-    "serve:visualization": "ts-node src/visualization/server-start.ts",
-    "install:browsers": "npx playwright install",
-    "postinstall": "npm run install:browsers"
+    "typecheck": "npm run typecheck --workspaces",
+    "clean": "npm run clean --workspaces && rm -rf node_modules/.cache",
+    "install:browsers": "npm run install:browsers -w packages/core",
+    "example:simple": "npm run example:simple -w apps/examples",
+    "example:advanced": "npm run example:advanced -w apps/examples"
   },
   "keywords": [
     "browser-automation",
@@ -43,22 +36,13 @@
     "web-scraping",
     "typescript",
     "cross-browser",
-    "testing"
+    "testing",
+    "monorepo"
   ],
   "author": "Browser Automation Framework Team",
   "license": "MIT",
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
   "devDependencies": {
     "@eslint/js": "^9.32.0",
-    "@types/cors": "^2.8.13",
-    "@types/express": "^4.17.17",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^24.2.0",
-    "@types/uuid": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
     "concurrently": "^9.2.0",
@@ -66,26 +50,10 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "husky": "^9.1.7",
-    "jest": "^30.0.5",
     "lint-staged": "^15.3.0",
-    "nodemon": "^3.1.10",
     "prettier": "^3.6.2",
-    "ts-jest": "^29.4.1",
-    "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.39.0"
-  },
-  "dependencies": {
-    "@langchain/ollama": "^0.2.3",
-    "axios": "^1.11.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.18.2",
-    "langchain": "^0.3.30",
-    "openai": "^4.62.1",
-    "playwright": "^1.54.2",
-    "puppeteer": "^24.16.0",
-    "uuid": "^9.0.1"
   },
   "lint-staged": {
     "*.{ts,js}": [
@@ -99,7 +67,7 @@
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged",
-      "pre-push": "npm run lint:check && npm run typecheck && npm run test"
+      "pre-push": "npm run lint && npm run typecheck && npm run test"
     }
   }
 }
