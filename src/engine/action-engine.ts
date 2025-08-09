@@ -398,9 +398,9 @@ export class ActionEngine implements IActionEngine {
    * Execute a step with retry mechanism and progressive refinement
    */
   private async executeStepWithRetry(
-    step: ActionStep, 
-    stepContext: any, 
-    pageState: PageState | undefined, 
+    step: ActionStep,
+    stepContext: any,
+    pageState: PageState | undefined,
     maxRetries: number = 3
   ): Promise<any> {
     let lastError: any = null;
@@ -409,13 +409,13 @@ export class ActionEngine implements IActionEngine {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         console.log(`🔄 Attempt ${attempt}/${maxRetries}: ${currentStep.description}`);
-        
+
         if (currentStep.target?.selector) {
           console.log(`   🎯 Using selector: ${currentStep.target.selector}`);
         }
 
         const result = await this.executeStep(currentStep);
-        
+
         if (result.success) {
           if (attempt > 1) {
             console.log(`   ✅ Step succeeded on attempt ${attempt} after refinement`);
@@ -433,11 +433,11 @@ export class ActionEngine implements IActionEngine {
       // If this wasn't the last attempt, try to refine the step
       if (attempt < maxRetries) {
         console.log(`   🔧 Refining step for retry ${attempt + 1}...`);
-        
+
         try {
           // Progressive refinement strategies
           const refinedStep = await this.progressivelyRefineStep(currentStep, stepContext, pageState, attempt);
-          
+
           if (refinedStep.target?.selector !== currentStep.target?.selector) {
             console.log(`   🎯 Refined selector: "${currentStep.target?.selector}" → "${refinedStep.target?.selector}"`);
             currentStep = refinedStep;
@@ -481,9 +481,9 @@ export class ActionEngine implements IActionEngine {
       try {
         const successfulSelectors = this.stepContextManager.getSuccessfulSelectors();
         return await this.contextualAnalyzer.improveStepWithContext(
-          step, 
-          stepContext, 
-          successfulSelectors, 
+          step,
+          stepContext,
+          successfulSelectors,
           pageState.content || ''
         );
       } catch (error) {
@@ -536,7 +536,7 @@ export class ActionEngine implements IActionEngine {
 
     if (alternativeSelector !== originalSelector) {
       console.log(`   🔄 Trying alternative selector pattern: ${alternativeSelector}`);
-      
+
       return {
         ...step,
         target: {

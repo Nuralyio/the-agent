@@ -153,7 +153,7 @@ export class DynamicPlanningTest {
 
     const actionTypes = result.steps.map(step => step.step.type);
     console.log(`🎯 Contextual decision resulted in actions: ${actionTypes.join(', ')}`);
-    
+
     // Should include navigation
     assert(actionTypes.includes('navigate'), "Should include navigation action");
   }
@@ -175,7 +175,7 @@ export class DynamicPlanningTest {
 
     // The key is that the system attempts the actions
     assert(result.steps.length >= 1, "Should generate at least one action step");
-    
+
     const actionTypes = result.steps.map(step => step.step.type);
     assert(actionTypes.includes('navigate'), "Should include navigation action");
   }

@@ -1,4 +1,4 @@
-import { spawn, ChildProcess } from 'child_process';
+import { ChildProcess, spawn } from 'child_process';
 import { promisify } from 'util';
 
 const sleep = promisify(setTimeout);

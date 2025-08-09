@@ -1,10 +1,12 @@
 # Test Server
 
-This directory contains a local test server that provides stable test pages for browser automation tests, replacing external dependencies like httpbin.org.
+This directory contains a local test server that provides stable test pages for
+browser automation tests, replacing external dependencies like httpbin.org.
 
 ## Purpose
 
 The test server provides:
+
 - **Stability**: No external network dependencies
 - **Reliability**: Consistent responses and uptime
 - **Performance**: Fast local responses without network latency
@@ -13,6 +15,7 @@ The test server provides:
 ## Available Test Pages
 
 ### 1. HTML Test Page (`/html`)
+
 - **URL**: `http://localhost:3005/html`
 - **Purpose**: Basic HTML content for navigation and screenshot tests
 - **Features**:
@@ -21,6 +24,7 @@ The test server provides:
   - Consistent content for reliable screenshots
 
 ### 2. Pizza Order Form (`/forms/post`)
+
 - **URL**: `http://localhost:3005/forms/post`
 - **Purpose**: Complex form testing with all input types
 - **Features**:
@@ -32,6 +36,7 @@ The test server provides:
   - Form submission handling
 
 ### 3. Contact Form (`/contact`)
+
 - **URL**: `http://localhost:3005/contact`
 - **Purpose**: Simple form testing
 - **Features**:
@@ -40,6 +45,7 @@ The test server provides:
   - Submission handling
 
 ### 4. Health Check (`/health`)
+
 - **URL**: `http://localhost:3005/health`
 - **Purpose**: Server status monitoring
 - **Returns**: JSON status response
@@ -47,13 +53,16 @@ The test server provides:
 ## Usage
 
 ### Automatic Management
-The test server is automatically started and stopped by the test runner. When you run tests, the server:
+
+The test server is automatically started and stopped by the test runner. When
+you run tests, the server:
 
 1. Starts automatically before tests begin
 2. Serves test pages during test execution
 3. Stops automatically after tests complete
 
 ### Manual Management
+
 You can also run the test server manually for development:
 
 ```bash
@@ -67,7 +76,9 @@ node test-server/server.js
 ```
 
 ### URL Replacement
-The test framework automatically replaces httpbin.org URLs with local test server URLs:
+
+The test framework automatically replaces httpbin.org URLs with local test
+server URLs:
 
 - `https://httpbin.org/html` → `http://localhost:3005/html`
 - `https://httpbin.org/forms/post` → `http://localhost:3005/forms/post`
@@ -81,6 +92,7 @@ The test server can be configured with environment variables:
 ## Benefits Over External Services
 
 ### Before (httpbin.org)
+
 - ❌ Network dependency
 - ❌ Potential downtime
 - ❌ Rate limiting
@@ -88,6 +100,7 @@ The test server can be configured with environment variables:
 - ❌ CI/CD failures due to connectivity
 
 ### After (Local Test Server)
+
 - ✅ No network dependency
 - ✅ 100% uptime during tests
 - ✅ No rate limiting
@@ -106,8 +119,8 @@ const testServer = getTestServer();
 
 // Replace external URLs with local ones
 const localInstruction = replaceHttpbinUrls(
-  "Navigate to https://httpbin.org/forms/post",
-  testServer
+  'Navigate to https://httpbin.org/forms/post',
+  testServer,
 );
 // Result: "Navigate to http://localhost:3005/forms/post"
 ```
