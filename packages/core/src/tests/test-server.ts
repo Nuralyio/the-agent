@@ -27,7 +27,7 @@ export class TestServer {
     const env = { ...process.env, TEST_SERVER_PORT: this.port.toString() };
 
     // Start the server process
-    this.serverProcess = spawn('node', ['test-server/server.js'], {
+    this.serverProcess = spawn('node', ['../../tools/test-server/server.js'], {
       cwd: process.cwd(),
       env,
       stdio: ['pipe', 'pipe', 'pipe']
