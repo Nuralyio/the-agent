@@ -17,7 +17,7 @@ and controlling browser automation tasks in real-time.
 ## 🏗️ Architecture
 
 ```
-visualization-ui/
+agent-ui/
 ├── app/
 │   ├── components/          # React components
 │   │   ├── ChatInterface.tsx
@@ -50,7 +50,7 @@ visualization-ui/
 1. **Install dependencies:**
 
    ```bash
-   cd visualization-ui
+   cd agent-ui
    npm install
    ```
 
