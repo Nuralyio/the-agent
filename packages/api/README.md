@@ -1,17 +1,45 @@
-# @theagent/api-server
+# @theagent/api
 
-HTTP API server for the browser automation framework. Provides REST API
-endpoints and WebSocket connections for real-time automation visualization and
-control.
+A structured Express.js API server for browser automation framework with real-time execution streaming.
+
+## 📁 Project Structure
+
+```
+src/
+├── app.ts                    # Main application class
+├── server.ts                 # Server startup script
+├── index.ts                  # Package exports
+├── controllers/              # Request handlers
+│   ├── automation.controller.ts
+│   ├── execution.controller.ts
+│   └── health.controller.ts
+├── routes/                   # Express routes
+│   ├── index.ts
+│   ├── automation.routes.ts
+│   ├── execution.routes.ts
+│   └── health.routes.ts
+├── services/                 # Business logic
+│   ├── index.ts
+│   ├── config.service.ts
+│   └── automation.service.ts
+├── middleware/               # Express middleware
+│   └── index.ts
+├── types/                    # TypeScript interfaces
+│   └── index.ts
+└── utils/                    # Utility functions
+    └── app.utils.ts
+```
 
 ## Features
 
 - 🌐 **REST API**: Complete HTTP API for automation control
-- 🔌 **WebSocket Support**: Real-time execution streaming
+- � **Real-time Streaming**: Server-Sent Events for live updates
 - 📊 **Visualization**: Live automation monitoring and screenshots
 - 🎯 **Session Management**: Multiple automation sessions
 - 📝 **Logging**: Comprehensive execution logging
 - 🔒 **CORS Support**: Cross-origin resource sharing
+- 🏗️ **Modular Architecture**: Clean separation of concerns
+- 🤖 **AI Integration**: Automatic AI provider configuration
 
 ## Installation
 

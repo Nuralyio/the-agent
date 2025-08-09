@@ -1,5 +1,5 @@
 import { loadEnvironmentConfig } from '@theagent/core/dist/config/environment';
-import { AutomationApiServer } from './api-server';
+import { AutomationApiServer } from './app';
 
 /**
  * Main server startup script
