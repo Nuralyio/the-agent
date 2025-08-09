@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="AutomationSession_2025-08-09T21-20-34-833Z-nr0dqe" tests="1" failures="0" errors="0" time="5.955" timestamp="2025-08-09T21:20:34.833Z">
-  <properties>
-    <property name="instruction" value="go to google.com" />
-    <property name="success_rate" value="100.0%" />
-    <property name="avg_step_time" value="30ms" />
-  </properties>
-  <testcase classname="Step_navigate" name="Navigate to Google website" time="0.030" />
-</testsuite>

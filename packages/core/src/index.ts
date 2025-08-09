@@ -11,7 +11,7 @@ import {
   LaunchOptions,
   TaskResult
 } from './types';
-import { executionStream } from './visualization/execution-stream';
+import { executionStream } from './streaming/execution-stream';
 
 /**
  * Main Browser Automation Framework class
@@ -293,5 +293,8 @@ export class BrowserAutomation {
 export { BrowserAdapterRegistry } from './adapters/adapter-registry';
 export { PlaywrightAdapter } from './adapters/playwright-adapter';
 export { PuppeteerAdapter } from './adapters/puppeteer-adapter';
+export { ExecutionStream, executionStream } from './streaming/execution-stream';
+export { AIEngine } from './ai/ai-engine';
+export { ActionEngine } from './engine/action-engine';
 export * from './types';
 

@@ -11,7 +11,7 @@ import {
   TaskResult
 } from '../types';
 import { ExecutionLogger } from '../utils/execution-logger';
-import { executionStream, ExecutionStream } from '../visualization/execution-stream';
+import { executionStream, ExecutionStream } from '../streaming/execution-stream';
 import { ActionPlanner } from './action-planner';
 import { ContextualStepAnalyzer } from './contextual-analyzer';
 import { StepContextManager, StepExecutionResult } from './step-context';

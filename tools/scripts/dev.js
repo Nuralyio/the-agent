@@ -10,7 +10,7 @@ const path = require('path');
 console.log('🚀 Starting TheAgent development environment...\n');
 
 // Start the API server (visualization server)
-const apiServerProcess = spawn('npm', ['run', 'dev', '-w', 'packages/api-server'], {
+const apiServerProcess = spawn('npm', ['run', 'dev', '-w', 'packages/api'], {
   cwd: path.resolve(__dirname, '..', '..'),
   stdio: 'pipe'
 });

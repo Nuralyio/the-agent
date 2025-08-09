@@ -4,8 +4,7 @@
   "description": "AI-powered browser automation framework workspace",
   "private": true,
   "workspaces": [
-    "packages/*",
-    "apps/*"
+    "packages/*"
   ],
   "scripts": {
     "build": "npm run build --workspaces",
@@ -23,9 +22,7 @@
     "format:check": "prettier --check .",
     "typecheck": "npm run typecheck --workspaces",
     "clean": "npm run clean --workspaces && rm -rf node_modules/.cache",
-    "install:browsers": "npm run install:browsers -w packages/core",
-    "example:simple": "npm run example:simple -w apps/examples",
-    "example:advanced": "npm run example:advanced -w apps/examples"
+    "install:browsers": "npm run install:browsers -w packages/core"
   },
   "keywords": [
     "browser-automation",
