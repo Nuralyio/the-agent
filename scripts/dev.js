@@ -17,7 +17,7 @@ const backendProcess = spawn('npm', ['run', 'serve:visualization'], {
 
 // Start the frontend dev server
 const frontendProcess = spawn('npm', ['run', 'dev'], {
-  cwd: path.resolve(__dirname, '..', 'visualization-ui'),
+  cwd: path.resolve(__dirname, '..', 'agent-ui'),
   stdio: 'pipe'
 });
 
