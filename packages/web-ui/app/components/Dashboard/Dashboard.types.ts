@@ -20,6 +20,7 @@ export interface ExecutionStep {
 export interface TabItem {
   id: string;
   label: string;
+  icon?: React.ComponentType<any>;
 }
 
 export interface AutomationSettings {

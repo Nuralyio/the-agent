@@ -1,4 +1,5 @@
 import React from 'react';
+import { List20Regular } from '@fluentui/react-icons';
 import type { ExecutionStep } from '../../Dashboard.types';
 import { styles } from '../../Dashboard.styles';
 import { formatTime } from '../../utils/formatting';
@@ -15,7 +16,10 @@ export const ExecutionPlan: React.FC<ExecutionPlanProps> = ({
   return (
     <div style={styles.executionPlanSection}>
       <div style={styles.executionPlanHeader}>
-        <h3 style={styles.executionPlanTitle}>📋 Execution Plan</h3>
+        <h3 style={styles.executionPlanTitle}>
+          <List20Regular style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+          Execution Plan
+        </h3>
       </div>
       <div style={styles.executionPlanContent}>
         {currentPlan.length > 0 ? (
@@ -64,7 +68,7 @@ export const ExecutionPlan: React.FC<ExecutionPlanProps> = ({
           </div>
         ) : (
           <div style={styles.planEmptyState}>
-            <div style={{ fontSize: '32px', marginBottom: '12px' }}>📋</div>
+            <List20Regular style={{ fontSize: '32px', marginBottom: '12px', color: '#6b7280' }} />
             <div style={{ fontSize: '14px', marginBottom: '8px' }}>No execution plan yet</div>
             <div style={{ fontSize: '12px' }}>Start an automation task to see the execution plan here</div>
           </div>

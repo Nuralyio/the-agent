@@ -66,5 +66,8 @@
       "pre-commit": "lint-staged",
       "pre-push": "npm run lint && npm run typecheck && npm run test"
     }
+  },
+  "dependencies": {
+    "@fluentui/react-icons": "^2.0.307"
   }
 }

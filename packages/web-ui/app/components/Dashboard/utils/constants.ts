@@ -1,3 +1,10 @@
+import { 
+  Image20Regular, 
+  Status20Regular, 
+  Document20Regular, 
+  CheckmarkCircle20Regular 
+} from '@fluentui/react-icons';
+
 export const DEFAULT_ENGINE = 'playwright';
 export const DEFAULT_TIMEOUT = 30;
 export const DEFAULT_BROWSER_MODE = 'headed';
@@ -5,10 +12,10 @@ export const DEFAULT_VIEWPORT_SIZE = '1920x1080';
 export const DEFAULT_USER_AGENT = 'default';
 
 export const DEFAULT_TABS = [
-  { id: 'preview', label: 'Preview Screenshot' },
-  { id: 'status', label: 'Status' },
-  { id: 'logs', label: 'Logs' },
-  { id: 'results', label: 'Results' },
+  { id: 'preview', label: 'Preview Screenshot', icon: Image20Regular },
+  { id: 'status', label: 'Status', icon: Status20Regular },
+  { id: 'logs', label: 'Logs', icon: Document20Regular },
+  { id: 'results', label: 'Results', icon: CheckmarkCircle20Regular },
 ];
 
 export const INITIAL_CHAT_MESSAGES = [

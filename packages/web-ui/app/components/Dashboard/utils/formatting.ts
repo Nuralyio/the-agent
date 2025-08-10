@@ -1,3 +1,11 @@
+import React from 'react';
+import { 
+  CheckmarkCircle20Regular, 
+  Clock20Regular, 
+  ErrorCircle20Regular, 
+  Circle20Regular 
+} from '@fluentui/react-icons';
+
 export const formatTime = (date: Date): string => {
   return date.toLocaleTimeString('en-US', {
     hour: '2-digit',
@@ -6,11 +14,11 @@ export const formatTime = (date: Date): string => {
   });
 };
 
-export const getStepIcon = (status: string, stepIndex: number): string => {
-  if (status === 'completed') return '✅';
-  if (status === 'running' || stepIndex === stepIndex) return '🔄';
-  if (status === 'error') return '❌';
-  return '⭕';
+export const getStepIcon = (status: string, stepIndex: number) => {
+  if (status === 'completed') return React.createElement(CheckmarkCircle20Regular);
+  if (status === 'running' || stepIndex === stepIndex) return React.createElement(Clock20Regular);
+  if (status === 'error') return React.createElement(ErrorCircle20Regular);
+  return React.createElement(Circle20Regular);
 };
 
 export const getStepStatusText = (status: string, stepIndex: number): string => {

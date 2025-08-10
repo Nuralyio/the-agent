@@ -1,4 +1,5 @@
 import React from 'react';
+import { Person20Regular, Bot20Regular, Copy20Regular, List20Regular } from '@fluentui/react-icons';
 import type { ChatMessage } from '../../../Dashboard.types';
 import { styles } from '../../../Dashboard.styles';
 
@@ -17,7 +18,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onCopy, f
           ...(message.type === 'user' ? styles.avatarUser : styles.avatarSystem),
         }}
       >
-        {message.type === 'user' ? 'U' : '🤖'}
+        {message.type === 'user' ? (
+          <Person20Regular style={{ fontSize: '14px' }} />
+        ) : (
+          <Bot20Regular style={{ fontSize: '14px' }} />
+        )}
       </div>
       <div
         style={{
@@ -54,7 +59,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onCopy, f
               }}
               title='Copy message'
             >
-              📋
+              <Copy20Regular style={{ fontSize: '14px' }} />
             </button>
           )}
         </div>

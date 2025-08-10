@@ -28,6 +28,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
                 }}
                 onClick={() => onTabChange(tab.id)}
               >
+                {tab.icon && React.createElement(tab.icon, { style: { marginRight: '6px', fontSize: '16px' } })}
                 {tab.label}
               </button>
             </li>
@@ -48,6 +49,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
           }}
           onClick={() => onTabChange(tab.id)}
         >
+          {tab.icon && <tab.icon style={{ marginRight: '6px', fontSize: '16px' }} />}
           {tab.label}
         </button>
       ))}
