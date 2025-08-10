@@ -46,8 +46,13 @@ jobs:
       - name: Build all packages
         run: npm run build
 
-      - name: Run all tests
-        run: npm run test
+      - name: Run unit tests
+        run: npm run test:unit
+        env:
+          CI: true
+
+      - name: Run integration tests
+        run: npm run test:integration
         env:
           CI: true
           BROWSER_HEADLESS: true
@@ -59,12 +64,12 @@ jobs:
           OLLAMA_MODEL: ${{ vars.OLLAMA_MODEL }}
           OLLAMA_TEMPERATURE: ${{ vars.OLLAMA_TEMPERATURE }}
 
-      - name: Upload test artifacts
+      - name: Upload integration test artifacts
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-artifacts-chrome-playwright
+          name: integration-test-artifacts-${{ matrix.browser }}-${{ matrix.adapter }}
           path: |
-            execution-logs/
-            screenshots/
+            packages/core/execution-logs/
+            packages/core/screenshots/
           retention-days: 7

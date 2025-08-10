@@ -13,7 +13,7 @@
     "dev:api": "npm run dev -w packages/api",
     "dev:ui": "npm run dev -w packages/web-ui",
     "dev:cli": "npm run dev -w packages/cli",
-    "test": "npm run test --workspaces --if-present",
+    "test": "npm run test:unit && npm run test:integration",
     "test:unit": "npm run test:unit --workspaces --if-present",
     "test:integration": "npm run test -w packages/core",
     "lint": "npm run lint --workspaces",
