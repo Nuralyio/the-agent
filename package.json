@@ -15,7 +15,7 @@
     "dev:cli": "npm run dev -w packages/cli",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "npm run test:unit --workspaces --if-present",
-    "test:integration": "npm run test -w packages/core",
+    "test:integration": "npm run test:integration --workspace=packages/core",
     "lint": "npm run lint --workspaces",
     "lint:fix": "npm run lint:fix --workspaces",
     "format": "prettier --write .",
