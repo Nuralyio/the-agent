@@ -1,6 +1,6 @@
 import { BrowserInstance, PageInstance, LaunchOptions, BrowserType } from '../../types';
 import { PlaywrightPageInstance } from './page';
-import type { Browser } from 'playwright';
+import type { Browser, BrowserContextOptions } from 'playwright';
 
 /**
  * Playwright browser instance implementation
@@ -48,7 +48,7 @@ export class PlaywrightBrowserInstance implements BrowserInstance {
    * Create a new page instance
    */
   async createPage(url?: string): Promise<PageInstance> {
-    const contextOptions: any = {};
+    const contextOptions: BrowserContextOptions = {};
     
     if (this.options.viewport) {
       contextOptions.viewport = this.options.viewport;

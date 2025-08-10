@@ -1,6 +1,6 @@
 import { BrowserAdapter, BrowserType, LaunchOptions, BrowserInstance } from '../types';
 import { PuppeteerBrowserInstance } from './instance';
-import puppeteer from 'puppeteer';
+import puppeteer, { LaunchOptions as PuppeteerLaunchOptions } from 'puppeteer';
 
 /**
  * Puppeteer browser adapter implementation
@@ -44,7 +44,7 @@ export class PuppeteerAdapter implements BrowserAdapter {
    * Launch a browser instance using Puppeteer
    */
   async launch(options: LaunchOptions): Promise<BrowserInstance> {
-    const launchOptions: any = {
+    const launchOptions: PuppeteerLaunchOptions = {
       headless: options.headless ?? true,
       args: options.args ?? []
     };
