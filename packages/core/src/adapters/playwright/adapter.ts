@@ -46,7 +46,7 @@ export class PlaywrightAdapter implements BrowserAdapter {
   async launch(options: LaunchOptions): Promise<BrowserInstance> {
     const browserType = this.getBrowserType(options);
 
-    const launchOptions: any = {
+    const launchOptions: playwright.LaunchOptions = {
       headless: options.headless ?? true,
       args: options.args ?? []
     };

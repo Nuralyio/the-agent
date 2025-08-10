@@ -62,7 +62,7 @@ program
   .command('test')
   .description('Run automation tests')
   .option('-w, --watch', 'watch mode')
-  .action((options) => {
+  .action(() => {
     console.log(chalk.blue('🧪 Running tests...'));
     // TODO: Implement test runner
     console.log(chalk.green('✅ Tests completed'));

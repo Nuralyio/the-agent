@@ -67,7 +67,7 @@ export class PlaywrightPageInstance implements PageInstance {
 
     // Use locator instead of waitForSelector for better compatibility
     const locator = this.page.locator(selector);
-    const locatorOptions: any = {};
+    const locatorOptions: { timeout?: number; state?: 'attached' | 'detached' | 'visible' | 'hidden' } = {};
     if (options?.timeout) locatorOptions.timeout = options.timeout;
     if (options?.state) locatorOptions.state = options.state;
 

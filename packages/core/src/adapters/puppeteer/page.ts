@@ -1,6 +1,6 @@
 import { PageInstance, ElementHandle, ScreenshotOptions, WaitOptions } from '../../types';
 import { PuppeteerElementHandle } from './element';
-import type { Page } from 'puppeteer';
+import type { Page, ScreenshotOptions as PuppeteerScreenshotOptions } from 'puppeteer';
 
 /**
  * Puppeteer page instance implementation
@@ -33,9 +33,9 @@ export class PuppeteerPageInstance implements PageInstance {
    * Take a screenshot
    */
   async screenshot(options?: ScreenshotOptions): Promise<Buffer> {
-    const screenshotOptions: any = {};
+    const screenshotOptions: PuppeteerScreenshotOptions = {};
     
-    if (options?.path) screenshotOptions.path = options.path;
+    if (options?.path) screenshotOptions.path = options.path as `${string}.png` | `${string}.jpeg` | `${string}.webp`;
     if (options?.type) screenshotOptions.type = options.type;
     if (options?.quality) screenshotOptions.quality = options.quality;
     if (options?.fullPage) screenshotOptions.fullPage = options.fullPage;

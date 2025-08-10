@@ -1,4 +1,5 @@
 import { PageState } from '../types';
+import { ActionStep, ActionType } from '../engine/types';
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -185,7 +186,7 @@ export class AIEngine {
   /**
    * Parse instruction into browser automation steps using AI
    */
-  async parseInstructionToSteps(instruction: string, pageState: PageState): Promise<any[]> {
+  async parseInstructionToSteps(instruction: string, pageState: PageState): Promise<ActionStep[]> {
     const systemPrompt = `You are a browser automation expert. Your job is to convert natural language instructions into a sequence of browser automation actions.
 
 Available action types:
@@ -257,18 +258,20 @@ Return only the JSON array, no additional text.`;
   /**
    * Fallback parsing when AI fails
    */
-  private fallbackParsing(instruction: string): any[] {
-    const steps = [];
+  private fallbackParsing(instruction: string): ActionStep[] {
+    const steps: ActionStep[] = [];
     const lowerInstruction = instruction.toLowerCase();
 
     if (lowerInstruction.includes('screenshot') || lowerInstruction.includes('capture')) {
       steps.push({
-        type: 'EXTRACT',
+        id: 'fallback-screenshot',
+        type: ActionType.SCREENSHOT,
         description: 'Take screenshot'
       });
     } else {
       steps.push({
-        type: 'EXTRACT',
+        id: 'fallback-extract',
+        type: ActionType.EXTRACT,
         description: `Process instruction: ${instruction}`
       });
     }
@@ -317,7 +320,7 @@ ${query || 'Describe the key interactive elements, forms, buttons, and navigatio
     for (const [name, provider] of this.providers) {
       try {
         results[name] = await provider.healthCheck();
-      } catch (error) {
+      } catch {
         results[name] = false;
       }
     }

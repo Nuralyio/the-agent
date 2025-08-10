@@ -1,3 +1,5 @@
+import { ElementInfo } from '../../engine/types';
+
 /**
  * Element analysis prompts
  */
@@ -6,7 +8,7 @@ You are an expert at analyzing web page elements.
 Analyze the provided elements and determine the best action targets.
 `;
 
-export const generateElementAnalysisPrompt = (elements: any[], task: string): string => {
+export const generateElementAnalysisPrompt = (elements: ElementInfo[], task: string): string => {
   return `${ELEMENT_ANALYSIS_PROMPT}
 
 Task: ${task}
