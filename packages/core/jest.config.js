@@ -7,9 +7,7 @@ module.exports = {
     '**/?(*.)+(spec|test).{ts,js}'
   ],
   testPathIgnorePatterns: [
-    '<rootDir>/src/tests/integration/',
-    '<rootDir>/packages/core/src/tests/integration/',
-    '<rootDir>/packages/*/src/tests/integration/'
+    '<rootDir>/src/tests/integration/'
   ],
   transform: {
     '^.+\\.ts$': 'ts-jest'
@@ -18,14 +16,11 @@ module.exports = {
     'src/**/*.{ts,js}',
     '!src/**/*.d.ts',
     '!src/**/*.test.{ts,js}',
-    '!src/**/*.spec.{ts,js}'
+    '!src/**/*.spec.{ts,js}',
+    '!src/tests/integration/**'
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  setupFilesAfterEnv: ['<rootDir>/src/tests/setup.ts'],
-  moduleNameMapping: {
-    '^@/(.*)$': '<rootDir>/src/$1'
-  },
-  testTimeout: 30000, // 30 seconds for browser automation tests
+  testTimeout: 30000,
   verbose: true
 };
