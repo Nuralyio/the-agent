@@ -10,7 +10,7 @@
     "build": "npm run build --workspaces",
     "dev": "node tools/scripts/dev.js",
     "dev:core": "npm run dev -w packages/core",
-    "dev:api": "npm run dev -w packages/api-server",
+    "dev:api": "npm run dev -w packages/api",
     "dev:ui": "npm run dev -w packages/web-ui",
     "dev:cli": "npm run dev -w packages/cli",
     "test": "npm run test --workspaces",
