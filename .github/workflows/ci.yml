@@ -40,11 +40,11 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
-      - name: Run TypeScript check
-        run: npm run typecheck
-
       - name: Build all packages
         run: npm run build
+
+      - name: Run TypeScript check
+        run: npm run typecheck
 
       - name: Run unit tests
         run: npm run test:unit

@@ -36,11 +36,11 @@ jobs:
       - name: Linting
         run: npm run lint
 
-      - name: TypeScript compilation
-        run: npm run typecheck
-
       - name: Build packages
         run: npm run build
+
+      - name: TypeScript compilation
+        run: npm run typecheck
 
       - name: Install Playwright
         run: npm run install:browsers
