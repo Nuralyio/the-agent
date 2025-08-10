@@ -25,7 +25,7 @@ export const useEventStream = (
           const message: ChatMessage = {
             id: Date.now(),
             type: 'system',
-            text: `🚀 Starting: ${data.task}`,
+            text: `Starting: ${data.task}`,
             timestamp: new Date(),
           };
           addMessage(message);
@@ -47,7 +47,7 @@ export const useEventStream = (
           const planMessage: ChatMessage = {
             id: Date.now(),
             type: 'plan',
-            text: `📋 Execution Plan (${planSteps.length} steps)`,
+            text: `Execution Plan (${planSteps.length} steps)`,
             timestamp: new Date(),
             steps: planSteps,
           };
@@ -70,7 +70,7 @@ export const useEventStream = (
           const planMessage: ChatMessage = {
             id: Date.now(),
             type: 'plan',
-            text: `📋 Execution Plan (${planSteps.length} steps)`,
+            text: `Execution Plan (${planSteps.length} steps)`,
             timestamp: new Date(),
             steps: planSteps,
           };
@@ -164,7 +164,7 @@ export const useEventStream = (
           const completionMessage: ChatMessage = {
             id: Date.now(),
             type: 'system',
-            text: `✅ Automation completed successfully!`,
+            text: `Automation completed successfully!`,
             timestamp: new Date(),
           };
           addMessage(completionMessage);
@@ -173,7 +173,7 @@ export const useEventStream = (
           const errorMessage: ChatMessage = {
             id: Date.now(),
             type: 'system',
-            text: `❌ Error: ${data.error}`,
+            text: `Error: ${data.error}`,
             timestamp: new Date(),
           };
           addMessage(errorMessage);

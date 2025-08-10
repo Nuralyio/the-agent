@@ -1,4 +1,5 @@
 import React from 'react';
+import { Camera20Regular } from '@fluentui/react-icons';
 import type { ExecutionStep } from '../../../Dashboard.types';
 import { styles } from '../../../Dashboard.styles';
 
@@ -68,7 +69,7 @@ export const PreviewTab: React.FC<PreviewTabProps> = ({
         </div>
       ) : (
         <div style={styles.screenshotPlaceholder}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📷</div>
+          <Camera20Regular style={{ fontSize: '48px', marginBottom: '16px', color: '#6b7280' }} />
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '16px', marginBottom: '8px', color: '#9ca3af' }}>
               Browser screenshot will appear here

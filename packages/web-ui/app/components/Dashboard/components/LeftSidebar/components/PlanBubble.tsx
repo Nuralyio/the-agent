@@ -1,4 +1,5 @@
 import React from 'react';
+import { List20Regular, Camera20Regular } from '@fluentui/react-icons';
 import type { ChatMessage, ExecutionStep } from '../../../Dashboard.types';
 import { styles } from '../../../Dashboard.styles';
 import { getStepIcon } from '../../../utils/formatting';
@@ -13,7 +14,7 @@ export const PlanBubble: React.FC<PlanBubbleProps> = ({ message, selectedStepInd
   return (
     <div style={styles.planBubble}>
       <div style={styles.planHeader}>
-        <span>📋</span>
+        <List20Regular style={{ marginRight: '8px', fontSize: '16px' }} />
         <span style={styles.planTitle}>{message.text}</span>
       </div>
       <div style={styles.planSteps}>
@@ -47,12 +48,16 @@ export const PlanBubble: React.FC<PlanBubbleProps> = ({ message, selectedStepInd
               }
             }}
           >
-            <div style={styles.planStepIcon}>{getStepIcon(step.status, step.id)}</div>
+            <div style={styles.planStepIcon}>
+              <span style={{ fontSize: '16px' }}>
+                {getStepIcon(step.status, step.id)}
+              </span>
+            </div>
             <div style={styles.planStepContent}>
               <div style={styles.planStepTitle}>
                 {step.title}
                 {step.screenshot && (
-                  <span style={{ fontSize: '11px', marginLeft: '8px', color: '#9ca3af' }}>📷</span>
+                  <Camera20Regular style={{ fontSize: '11px', marginLeft: '8px', color: '#9ca3af' }} />
                 )}
               </div>
               <div style={styles.planStepDescription}>{step.description}</div>

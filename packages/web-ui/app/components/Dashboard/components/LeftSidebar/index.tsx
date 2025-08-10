@@ -1,4 +1,5 @@
 import React from 'react';
+import { Bot20Regular, Settings20Regular, Chat20Regular } from '@fluentui/react-icons';
 import type { ChatMessage, ExecutionStep } from '../../Dashboard.types';
 import { styles } from '../../Dashboard.styles';
 import { TabNavigation } from '../shared/TabNavigation';
@@ -22,8 +23,8 @@ interface LeftSidebarProps {
 }
 
 const sidebarTabs = [
-  { id: 'chat', label: '💬 Chat' },
-  { id: 'settings', label: '⚙️ Settings' },
+  { id: 'chat', label: 'Chat', icon: Chat20Regular },
+  { id: 'settings', label: 'Settings', icon: Settings20Regular },
 ];
 
 export const LeftSidebar: React.FC<LeftSidebarProps> = ({
@@ -45,7 +46,10 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     <div style={styles.leftSidebar}>
       {/* Sidebar Header */}
       <div style={styles.sidebarHeader}>
-        <h1 style={styles.title}>🤖 Browser Automation</h1>
+        <h1 style={styles.title}>
+          <Bot20Regular style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+          Browser Automation
+        </h1>
         <p style={styles.subtitle}>AI-powered web automation assistant</p>
       </div>
 

@@ -16,4 +16,7 @@ export default defineConfig({
       "~": path.resolve(__dirname, "app"),
     },
   },
+  ssr: {
+    noExternal: ["@fluentui/react-icons"],
+  },
 });

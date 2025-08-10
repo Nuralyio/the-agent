@@ -1,4 +1,5 @@
 import React from 'react';
+import { Lightbulb20Regular, Send20Regular, Clock20Regular } from '@fluentui/react-icons';
 import { styles } from '../../../Dashboard.styles';
 
 interface ChatInputProps {
@@ -58,8 +59,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       {/* Suggestion Bubbles */}
       {!taskDescription && (
         <div style={{ padding: '0 16px 12px 16px' }}>
-          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '8px' }}>
-            💡 Quick examples:
+          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '8px', display: 'flex', alignItems: 'center' }}>
+            <Lightbulb20Regular style={{ marginRight: '4px', fontSize: '14px' }} />
+            Quick examples:
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
             {EXAMPLE_PROMPTS.map((prompt, index) => (
@@ -108,7 +110,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             }
           }}
         >
-          {isLoading ? '⏳' : '↗'}
+          {isLoading ? <Clock20Regular /> : <Send20Regular />}
         </button>
       </div>
     </div>
