@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces",
+    "build": "npm run build -w packages/core && npm run build --workspaces --if-present",
     "dev": "concurrently --kill-others-on-fail --prefix=\"[{name}]\" --names=\"api,web-ui,test-server\" \"npm run dev -w packages/api\" \"npm run dev -w packages/web-ui\" \"node tools/test-server/server.js\"",
     "dev:core": "npm run dev -w packages/core",
     "dev:api": "npm run dev -w packages/api",
