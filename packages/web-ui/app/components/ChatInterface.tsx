@@ -2,11 +2,11 @@ import {
   Button,
   Caption1,
   Card,
-  CardBody,
   CardHeader,
   MessageBar,
   Spinner,
   Textarea,
+  TextareaOnChangeData,
   Title3,
 } from '@fluentui/react-components';
 import { Bot24Regular, Send24Regular, Stop24Regular } from '@fluentui/react-icons';
@@ -100,7 +100,7 @@ export function ChatInterface({ onExecuteTask, loading = false, error }: ChatInt
         <Caption1>Describe what you want to automate</Caption1>
       </CardHeader>
 
-      <CardBody style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {error && <MessageBar intent='error'>{error}</MessageBar>}
 
         {/* Quick Commands */}
@@ -180,7 +180,7 @@ export function ChatInterface({ onExecuteTask, loading = false, error }: ChatInt
         <div style={{ display: 'flex', gap: '8px' }}>
           <Textarea
             value={inputValue}
-            onChange={(_, data) => setInputValue(data.value)}
+            onChange={(_: React.ChangeEvent<HTMLTextAreaElement>, data: TextareaOnChangeData) => setInputValue(data.value)}
             onKeyDown={handleKeyPress}
             placeholder='Describe what you want to automate...'
             rows={2}
@@ -197,7 +197,7 @@ export function ChatInterface({ onExecuteTask, loading = false, error }: ChatInt
             {loading ? 'Stop' : 'Send'}
           </Button>
         </div>
-      </CardBody>
+      </div>
     </Card>
   );
 }

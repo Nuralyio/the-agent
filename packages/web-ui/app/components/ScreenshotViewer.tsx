@@ -1,4 +1,4 @@
-import { Button, Caption1, Card, CardBody, CardHeader, Spinner, Title3 } from '@fluentui/react-components';
+import { Button, Caption1, Card, CardHeader, Spinner, Title3 } from '@fluentui/react-components';
 import { ArrowClockwise24Regular, Camera24Regular, ZoomIn24Regular, ZoomOut24Regular } from '@fluentui/react-icons';
 import { useEffect, useState } from 'react';
 
@@ -65,7 +65,7 @@ export function ScreenshotViewer({ screenshot, loading = false, title }: Screens
         </div>
       </CardHeader>
 
-      <CardBody style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
             <Spinner size='large' />
@@ -124,7 +124,7 @@ export function ScreenshotViewer({ screenshot, loading = false, title }: Screens
             <Caption1>Screenshots will appear here during automation execution</Caption1>
           </div>
         )}
-      </CardBody>
+      </div>
     </Card>
   );
 }
