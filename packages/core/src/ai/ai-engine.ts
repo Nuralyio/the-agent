@@ -200,7 +200,7 @@ Available action types:
 Page Context:
 - Current URL: ${pageState.url}
 - Page Title: ${pageState.title}
-- Viewport: ${pageState.viewport.width}x${pageState.viewport.height}
+- Viewport: ${pageState.viewport?.width || 1280}x${pageState.viewport?.height || 720}
 
 Respond with a JSON array of action steps. Each step should have:
 {
@@ -282,7 +282,7 @@ Return only the JSON array, no additional text.`;
   async analyzePageContent(pageState: PageState, query?: string): Promise<string> {
     const provider = this.getDefaultProvider();
 
-    if (provider.visionCapabilities.supportsImages && provider.generateWithVision) {
+    if (provider.visionCapabilities.supportsImages && provider.generateWithVision && pageState.screenshot) {
       const prompt = query || 'Analyze this webpage and describe what you see. Focus on interactive elements, forms, buttons, and navigation.';
       const response = await provider.generateWithVision(prompt, [pageState.screenshot]);
       return response.content;
@@ -292,7 +292,7 @@ Return only the JSON array, no additional text.`;
 
 URL: ${pageState.url}
 Title: ${pageState.title}
-Content Preview: ${pageState.content.substring(0, 2000)}...
+Content Preview: ${pageState.content?.substring(0, 2000) || 'No content available'}...
 
 ${query || 'Describe the key interactive elements, forms, buttons, and navigation options available on this page.'}`;
 

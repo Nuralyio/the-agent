@@ -1,15 +1,32 @@
-import { BrowserInstance, PageInstance, LaunchOptions } from '../types';
-import { PuppeteerPageInstance } from './puppeteer-page';
+import { BrowserInstance, PageInstance, LaunchOptions, BrowserType } from '../../types';
+import { PuppeteerPageInstance } from './page';
 import type { Browser } from 'puppeteer';
 
 /**
  * Puppeteer browser instance implementation
  */
 export class PuppeteerBrowserInstance implements BrowserInstance {
+  public readonly type = BrowserType.CHROMIUM;
+
   constructor(
     private browser: Browser,
     private options: LaunchOptions
   ) {}
+
+  /**
+   * Create a new page (alias for createPage)
+   */
+  async newPage(): Promise<PageInstance> {
+    return this.createPage();
+  }
+
+  /**
+   * Get all pages
+   */
+  async pages(): Promise<PageInstance[]> {
+    const pages = await this.browser.pages();
+    return pages.map(page => new PuppeteerPageInstance(page));
+  }
 
   /**
    * Create a new page instance

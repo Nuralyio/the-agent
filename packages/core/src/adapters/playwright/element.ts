@@ -1,4 +1,4 @@
-import { ElementHandle } from '../types';
+import { ElementHandle } from '../../types';
 import type { Locator } from 'playwright';
 
 /**
@@ -104,5 +104,12 @@ export class PlaywrightElementHandle implements ElementHandle {
    */
   async selectOption(values: string | string[]): Promise<void> {
     await this.locator.selectOption(values);
+  }
+
+  /**
+   * Scroll the element into view
+   */
+  async scroll(): Promise<void> {
+    await this.locator.scrollIntoViewIfNeeded();
   }
 }

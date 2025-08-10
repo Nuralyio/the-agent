@@ -1,6 +1,6 @@
 import type { BrowserContext, Page } from 'playwright';
-import { ElementHandle, PageInstance, ScreenshotOptions, WaitOptions } from '../types';
-import { PlaywrightElementHandle } from './playwright-element';
+import { ElementHandle, PageInstance, ScreenshotOptions, WaitOptions } from '../../types';
+import { PlaywrightElementHandle } from './element';
 
 /**
  * Playwright implementation of PageInstance
@@ -47,39 +47,13 @@ export class PlaywrightPageInstance implements PageInstance {
 
     if (options?.fullPage !== undefined) screenshotOptions.fullPage = options.fullPage;
     if (options?.path) screenshotOptions.path = options.path;
-    if (options?.type) screenshotOptions.type = options.type;
+    if (options?.type && (options.type === 'png' || options.type === 'jpeg')) {
+      screenshotOptions.type = options.type;
+    }
     if (options?.quality !== undefined) screenshotOptions.quality = options.quality;
 
     const result = await this.page.screenshot(screenshotOptions);
     return Buffer.from(result);
-  }
-
-  /**
-   * Find element by selector
-   */
-  async findElement(selector: string): Promise<ElementHandle | null> {
-    try {
-      const locator = this.page.locator(selector);
-      await locator.waitFor({ timeout: 5000, state: 'attached' });
-      return new PlaywrightElementHandle(locator);
-    } catch {
-      return null;
-    }
-  }
-
-  /**
-   * Find all elements by selector
-   */
-  async findElements(selector: string): Promise<ElementHandle[]> {
-    const locator = this.page.locator(selector);
-    const count = await locator.count();
-    const elements: ElementHandle[] = [];
-
-    for (let i = 0; i < count; i++) {
-      elements.push(new PlaywrightElementHandle(locator.nth(i)));
-    }
-
-    return elements;
   }
 
   /**
@@ -100,6 +74,42 @@ export class PlaywrightPageInstance implements PageInstance {
     await locator.waitFor(locatorOptions);
 
     return new PlaywrightElementHandle(locator);
+  }
+
+  /**
+   * Find element by selector
+   */
+  async findElement(selector: string): Promise<ElementHandle | null> {
+    try {
+      const locator = this.page.locator(selector).first();
+      const element = await locator.elementHandle();
+      return element ? new PlaywrightElementHandle(locator) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Find elements by selector
+   */
+  async findElements(selector: string): Promise<ElementHandle[]> {
+    const locators = this.page.locator(selector);
+    const count = await locators.count();
+    const elements: ElementHandle[] = [];
+
+    for (let i = 0; i < count; i++) {
+      elements.push(new PlaywrightElementHandle(locators.nth(i)));
+    }
+
+    return elements;
+  }
+
+  /**
+   * Wait for element to appear and return it
+   */
+  async waitForElement(selector: string, timeout?: number): Promise<ElementHandle> {
+    const options = timeout ? { timeout } : {};
+    return this.waitForSelector(selector, options);
   }
 
   /**

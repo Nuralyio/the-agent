@@ -1,6 +1,6 @@
 import { BrowserAdapterRegistry } from './adapters/adapter-registry';
 import { AIEngine } from './ai/ai-engine';
-import { BrowserManagerImpl } from './core/browser-manager';
+import { BrowserManagerImpl } from './managers/browser-manager';
 import { ActionEngine } from './engine/action-engine';
 import {
   AIConfig,
@@ -76,14 +76,14 @@ export class BrowserAutomation {
     console.log('📄 Initial page created successfully');
 
     // Initialize AI engine if configuration is provided
-    if (this.aiConfig) {
+    if (this.aiConfig && this.aiConfig.model) {
       console.log('🤖 Initializing AI engine with config:', this.aiConfig);
       this.aiEngine = new AIEngine();
-      this.aiEngine.addProvider('ollama', this.aiConfig);
+      this.aiEngine.addProvider('ollama', this.aiConfig as Required<AIConfig>);
       this.actionEngine = new ActionEngine(this.browserManager, this.aiEngine);
       console.log('✅ ActionEngine initialized successfully');
     } else {
-      console.log('⚠️  No AI configuration found, ActionEngine will not be available');
+      console.log('⚠️  No AI configuration found or model not specified, ActionEngine will not be available');
     }
   }
 
@@ -122,7 +122,8 @@ export class BrowserAutomation {
       success: true,
       steps: [],
       extractedData: null,
-      screenshots: []
+      screenshots: [],
+      duration: 0
     };
 
     try {
@@ -291,8 +292,8 @@ export class BrowserAutomation {
 
 // Export main class and types
 export { BrowserAdapterRegistry } from './adapters/adapter-registry';
-export { PlaywrightAdapter } from './adapters/playwright-adapter';
-export { PuppeteerAdapter } from './adapters/puppeteer-adapter';
+export { PlaywrightAdapter } from './adapters/playwright/adapter';
+export { PuppeteerAdapter } from './adapters/puppeteer/adapter';
 export { ExecutionStream, executionStream } from './streaming/execution-stream';
 export { AIEngine } from './ai/ai-engine';
 export { ActionEngine } from './engine/action-engine';

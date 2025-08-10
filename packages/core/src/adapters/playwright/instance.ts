@@ -1,15 +1,48 @@
-import { BrowserInstance, PageInstance, LaunchOptions } from '../types';
-import { PlaywrightPageInstance } from './playwright-page';
+import { BrowserInstance, PageInstance, LaunchOptions, BrowserType } from '../../types';
+import { PlaywrightPageInstance } from './page';
 import type { Browser } from 'playwright';
 
 /**
  * Playwright browser instance implementation
  */
 export class PlaywrightBrowserInstance implements BrowserInstance {
+  public readonly type = BrowserType.CHROMIUM;
+
   constructor(
     private browser: Browser,
     private options: LaunchOptions
   ) {}
+
+  /**
+   * Create a new page instance
+   */
+  async newPage(): Promise<PageInstance> {
+    return this.createPage();
+  }
+
+  /**
+   * Get all pages
+   */
+  async pages(): Promise<PageInstance[]> {
+    const contexts = this.browser.contexts();
+    const allPages: PageInstance[] = [];
+    
+    for (const context of contexts) {
+      const pages = context.pages();
+      for (const page of pages) {
+        allPages.push(new PlaywrightPageInstance(page, context));
+      }
+    }
+    
+    return allPages;
+  }
+
+  /**
+   * Check if browser is connected
+   */
+  isConnected(): boolean {
+    return this.browser.isConnected();
+  }
 
   /**
    * Create a new page instance
@@ -53,13 +86,6 @@ export class PlaywrightBrowserInstance implements BrowserInstance {
    */
   version(): string {
     return this.browser.version();
-  }
-
-  /**
-   * Check if browser is connected
-   */
-  isConnected(): boolean {
-    return this.browser.isConnected();
   }
 
   /**
