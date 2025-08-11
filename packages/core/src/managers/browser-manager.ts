@@ -148,7 +148,9 @@ export class BrowserManagerImpl implements BrowserManager {
    * Check if browser is ready
    */
   isReady(): boolean {
-    return this.currentBrowser !== null && this.currentBrowser.isConnected();
+    return this.currentBrowser !== null && 
+           this.currentBrowser.isConnected() && 
+           this.currentPage !== null;
   }
 
   /**
