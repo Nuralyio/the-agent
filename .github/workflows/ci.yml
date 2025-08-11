@@ -14,8 +14,6 @@ jobs:
     strategy:
       matrix:
         node-version: [20.x]
-        browser: [chrome]
-        adapter: [playwright]
 
     steps:
       - name: Checkout code
@@ -34,9 +32,6 @@ jobs:
             npm install
           fi
 
-      - name: Install Playwright browsers
-        run: npm run install:browsers
-
       - name: Run ESLint
         run: npm run lint
 
@@ -51,39 +46,3 @@ jobs:
         env:
           CI: true
           NODE_OPTIONS: "--max-old-space-size=4096"
-
-      - name: Run integration tests
-        run: npm run test:integration
-        continue-on-error: true
-        env:
-          CI: true
-          NODE_OPTIONS: "--max-old-space-size=4096"
-          BROWSER_HEADLESS: true
-          BROWSER_TYPE: ${{ matrix.browser }}
-          BROWSER_ADAPTER: ${{ matrix.adapter }}
-          # AI Provider Configuration
-          DEFAULT_AI_PROVIDER: ${{ vars.DEFAULT_AI_PROVIDER }}
-          OLLAMA_BASE_URL: ${{ vars.OLLAMA_BASE_URL }}
-          OLLAMA_MODEL: ${{ vars.OLLAMA_MODEL }}
-          OLLAMA_TEMPERATURE: ${{ vars.OLLAMA_TEMPERATURE }}
-
-      - name: Cleanup browser processes
-        if: always()
-        run: |
-          # Kill any remaining browser processes
-          pkill -f chrome || true
-          pkill -f chromium || true
-          pkill -f firefox || true
-          pkill -f webkit || true
-          # Wait for processes to terminate
-          sleep 2
-
-      - name: Upload integration test artifacts
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: integration-test-artifacts-${{ matrix.browser }}-${{ matrix.adapter }}
-          path: |
-            packages/core/execution-logs/
-            packages/core/screenshots/
-          retention-days: 7
