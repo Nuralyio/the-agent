@@ -27,7 +27,7 @@ real-time visualization and monitoring capabilities.
   control
 - 🔄 **WebSocket Integration**: Live automation streaming and status updates
 - 🛠️ **CLI Interface**: Command-line tools for scripting and automation
-- 🧪 **Comprehensive Testing**: Unit and integration test coverage
+- 🧪 **Unit Testing**: Comprehensive unit test coverage with CI/CD integration
 - 📦 **Monorepo Architecture**: Well-organized, modular codebase
 
 ## 🏗️ Architecture
@@ -43,6 +43,8 @@ This project is organized as a TypeScript monorepo with the following packages:
 - **`@theagent/web-ui`** - Modern Remix-based dashboard for monitoring and
   control
 - **`@theagent/cli`** - Command-line interface for automation scripting
+- **`@theagent/mcp-server`** - Model Context Protocol server for AI assistant
+  integration
 
 ### 🔧 Development Tools
 
@@ -161,13 +163,13 @@ curl -X POST http://localhost:3002/api/execute \
 ### Running Tests
 
 ```bash
-# Run all tests (unit + integration)
-npm test
-
-# Run unit tests only
+# Run unit tests (recommended for CI/CD)
 npm run test:unit
 
-# Run integration tests
+# Run all tests (unit + integration locally)
+npm test
+
+# Run integration tests (local development only)
 npm run test:integration
 
 # Test specific package
@@ -183,9 +185,9 @@ npm run test:coverage
 ### Test Structure
 
 - **Unit Tests**: Located in `src/**/*.test.ts` files
-- **Integration Tests**: Located in `src/tests/integration/`
+- **Integration Tests**: Located in `src/tests/integration/` (local development only)
 - **Test Environment**: Node.js with Jest and ts-jest
-- **Timeout**: 30 seconds for browser automation tests
+- **CI/CD**: Only unit tests run in GitHub Actions for reliability
 
 ## 🔨 Building
 
@@ -212,7 +214,7 @@ npm run clean
 | [`CHANGELOG.md`](./CHANGELOG.md)       | Version history and release notes               | All users    |
 | [`LICENSE`](./LICENSE)                 | MIT license terms                               | All users    |
 
-### Development Documentation
+### Framework Documentation
 
 | File                                             | Purpose                                        | Audience     |
 | ------------------------------------------------ | ---------------------------------------------- | ------------ |
@@ -221,22 +223,41 @@ npm run clean
 
 ### Package Documentation
 
-| Package    | README                                                     | Purpose                                 |
-| ---------- | ---------------------------------------------------------- | --------------------------------------- |
-| **Core**   | [`packages/core/README.md`](./packages/core/README.md)     | Browser automation framework API        |
-| **API**    | [`packages/api/README.md`](./packages/api/README.md)       | HTTP server and WebSocket documentation |
-| **Web UI** | [`packages/web-ui/README.md`](./packages/web-ui/README.md) | Dashboard setup and customization       |
-| **CLI**    | [`packages/cli/README.md`](./packages/cli/README.md)       | Command-line interface usage            |
+| Package        | README                                                             | Purpose                                     |
+| -------------- | ------------------------------------------------------------------ | ------------------------------------------- |
+| **Core**       | [`packages/core/README.md`](./packages/core/README.md)             | Browser automation framework API            |
+| **API Server** | [`packages/api/README.md`](./packages/api/README.md)               | HTTP server and WebSocket documentation     |
+| **Web UI**     | [`packages/web-ui/README.md`](./packages/web-ui/README.md)         | Dashboard setup and customization           |
+| **CLI**        | [`packages/cli/README.md`](./packages/cli/README.md)               | Command-line interface usage                |
+| **MCP Server** | [`packages/mcp-server/README.md`](./packages/mcp-server/README.md) | Model Context Protocol server integration   |
 
-### Development Docs
+### Development Tools Documentation
 
-| File                                                                                         | Purpose                         |
-| -------------------------------------------------------------------------------------------- | ------------------------------- |
-| [`tools/test-server/README.md`](./tools/test-server/README.md)                               | Test server setup and endpoints |
-| [`docs/API_SERVER_FOLDER_CLEANUP.md`](./docs/API_SERVER_FOLDER_CLEANUP.md)                   | API restructuring notes         |
-| [`docs/AUTOMATION_API_SERVER_RENAME.md`](./docs/AUTOMATION_API_SERVER_RENAME.md)             | Naming convention updates       |
-| [`docs/VISUALIZATION_ARCHITECTURE_CLEANUP.md`](./docs/VISUALIZATION_ARCHITECTURE_CLEANUP.md) | UI architecture changes         |
-| [`docs/WORKFLOW_UPDATES.md`](./docs/WORKFLOW_UPDATES.md)                                     | CI/CD workflow improvements     |
+| Tool               | README                                                             | Purpose                                     |
+| ------------------ | ------------------------------------------------------------------ | ------------------------------------------- |
+| **Test Server**    | [`tools/test-server/README.md`](./tools/test-server/README.md)     | Local test server for development          |
+
+### Quick Documentation Guide
+
+#### 📖 **Getting Started**
+- Start with the main [README.md](./README.md) for setup and basic usage
+- Check [CONTRIBUTING.md](./CONTRIBUTING.md) if you want to contribute
+- Review package-specific READMEs for detailed API documentation
+
+#### 🔧 **Development**
+- [Core Package](./packages/core/README.md) - Main automation framework
+- [API Server](./packages/api/README.md) - REST API and WebSocket server
+- [Web UI](./packages/web-ui/README.md) - React dashboard interface
+- [CLI Tool](./packages/cli/README.md) - Command-line interface
+- [MCP Server](./packages/mcp-server/README.md) - Model Context Protocol integration
+
+#### 🛠️ **Tools & Utilities**
+- [Test Server](./tools/test-server/README.md) - Development testing environment
+- [GitHub Workflows](./.github/WORKFLOWS.md) - CI/CD configuration and testing strategy
+
+#### 📋 **Project Management**
+- [CHANGELOG.md](./CHANGELOG.md) - Version history and release notes
+- [mainprompt.md](./mainprompt.md) - Project specifications and architecture
 
 ## 📁 Project Structure
 
@@ -250,18 +271,15 @@ npm run clean
 │   │   └── README.md   # API server documentation
 │   ├── web-ui/         # React dashboard
 │   │   └── README.md   # Web UI setup guide
-│   └── cli/            # Command-line interface
-│       └── README.md   # CLI usage guide
+│   ├── cli/            # Command-line interface
+│   │   └── README.md   # CLI usage guide
+│   └── mcp-server/     # Model Context Protocol server
+│       └── README.md   # MCP server documentation
 ├── tools/
 │   ├── test-server/    # Development test server
 │   │   └── README.md   # Test server documentation
 │   ├── scripts/        # Build and dev scripts
 │   └── config/         # Shared configurations
-├── docs/               # Additional documentation
-│   ├── API_SERVER_FOLDER_CLEANUP.md
-│   ├── AUTOMATION_API_SERVER_RENAME.md
-│   ├── VISUALIZATION_ARCHITECTURE_CLEANUP.md
-│   └── WORKFLOW_UPDATES.md
 ├── logs/               # Execution logs
 ├── mainprompt.md       # Project specifications
 ├── CONTRIBUTING.md     # Contribution guidelines
@@ -434,8 +452,6 @@ possible!
 
 <div align="center">
   <a href="https://nuraly.co">
-    <img src="./docs/nuraly-logo.png" alt="Nuraly" width="200"/>
-    <br/>
     <strong>Nuraly</strong>
   </a>
   <br/>
