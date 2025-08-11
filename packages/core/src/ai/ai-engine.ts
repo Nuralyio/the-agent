@@ -1,5 +1,6 @@
 import { PageState } from '../types';
 import { ActionStep, ActionType } from '../engine/types';
+import { PromptTemplate } from '../prompt-template';
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -81,9 +82,11 @@ export interface AIProvider {
 export class AIEngine {
   private providers: Map<string, AIProvider> = new Map();
   private defaultProvider?: AIProvider;
+  private promptTemplate: PromptTemplate;
 
   constructor() {
     // Initialize with available providers
+    this.promptTemplate = new PromptTemplate();
   }
 
   /**
@@ -165,9 +168,10 @@ export class AIEngine {
     }
 
     // Fallback to regular text generation with enhanced prompting
+    const structuredJsonPrompt = this.promptTemplate.render('structured-json', {});
     const enhancedSystemPrompt = systemPrompt
-      ? `${systemPrompt}\n\nCRITICAL: You MUST respond with ONLY valid JSON. No markdown, no comments, no explanations.`
-      : 'CRITICAL: You MUST respond with ONLY valid JSON. No markdown, no comments, no explanations.';
+      ? `${systemPrompt}\n\n${structuredJsonPrompt}`
+      : structuredJsonPrompt;
 
     return this.generateText(prompt, enhancedSystemPrompt);
   }
@@ -187,50 +191,12 @@ export class AIEngine {
    * Parse instruction into browser automation steps using AI
    */
   async parseInstructionToSteps(instruction: string, pageState: PageState): Promise<ActionStep[]> {
-    const systemPrompt = `You are a browser automation expert. Your job is to convert natural language instructions into a sequence of browser automation actions.
-
-Available action types:
-- NAVIGATE: Navigate to a URL
-- CLICK: Click on an element (provide CSS selector)
-- TYPE: Type text into an input field (provide CSS selector and text)
-- SCROLL: Scroll the page
-- WAIT: Wait for a specified time or condition
-- EXTRACT: Extract data from the page
-- VERIFY: Verify page content
-
-Page Context:
-- Current URL: ${pageState.url}
-- Page Title: ${pageState.title}
-- Viewport: ${pageState.viewport?.width || 1280}x${pageState.viewport?.height || 720}
-
-Respond with a JSON array of action steps. Each step should have:
-{
-  "type": "ACTION_TYPE",
-  "description": "Human-readable description",
-  "target": { "selector": "css-selector", "description": "element description" },
-  "value": "text to type or URL to navigate to",
-  "condition": { "type": "timeout", "value": 2000 }
-}
-
-Example:
-[
-  {
-    "type": "NAVIGATE",
-    "description": "Navigate to Google",
-    "value": "https://google.com"
-  },
-  {
-    "type": "TYPE",
-    "description": "Type search query",
-    "target": { "selector": "input[name='q']", "description": "search input" },
-    "value": "browser automation"
-  },
-  {
-    "type": "CLICK",
-    "description": "Click search button",
-    "target": { "selector": "input[type='submit']", "description": "search button" }
-  }
-]`;
+    const systemPrompt = this.promptTemplate.render('instruction-parsing', {
+      pageUrl: pageState.url,
+      pageTitle: pageState.title,
+      viewportWidth: pageState.viewport?.width || 1280,
+      viewportHeight: pageState.viewport?.height || 720
+    });
 
     const prompt = `Convert this instruction into browser automation steps: "${instruction}"
 

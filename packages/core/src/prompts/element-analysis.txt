@@ -1,0 +1,29 @@
+You are an expert at analyzing web page elements.
+
+Your task is to analyze the provided page elements and determine the best targets for automation actions based on the given task.
+
+Task: {task}
+
+Elements to analyze:
+{elements}
+
+Consider the following factors:
+1. Element visibility and accessibility
+2. Element type and suitability for the intended action
+3. Semantic meaning and context of elements
+4. Reliability of selectors
+5. User interaction patterns
+
+Provide recommendations for:
+- Best elements to target for each action
+- Alternative selectors if primary targets fail
+- Potential issues or challenges with element interaction
+- Optimization suggestions for better automation reliability
+
+Always prioritize:
+- Stable and unique selectors
+- Elements that are clearly visible and interactive
+- Semantic elements over generic containers
+- Elements with proper accessibility attributes
+
+Please analyze and recommend the best elements to interact with.

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { OutputFixingParser, StructuredOutputParser } from 'langchain/output_parsers';
 import { z } from 'zod';
 import { AIConfig, AIMessage, AIProvider, AIResponse, VisionCapabilities } from '../ai-engine';
+import { PromptTemplate } from '../../prompt-template';
 
 // Define the schema for structured browser actions
 const BrowserActionSchema = z.object({
@@ -69,6 +70,7 @@ export class OllamaProvider implements AIProvider {
   readonly name = 'ollama';
   readonly config: AIConfig;
   readonly visionCapabilities: VisionCapabilities;
+  private promptTemplate: PromptTemplate;
 
   constructor(config: AIConfig) {
     this.config = {
@@ -79,6 +81,8 @@ export class OllamaProvider implements AIProvider {
       ...config,
       model: config.model || 'llama2'
     };
+
+    this.promptTemplate = new PromptTemplate();
 
     // Check if model supports vision (llava models)
     const isVisionModel = this.config.model.toLowerCase().includes('llava');
@@ -362,10 +366,11 @@ export class OllamaProvider implements AIProvider {
             }
           };
         } catch (fixError) {
-          // Fallback to enhanced prompting
+          // Fallback to enhanced prompting using template
+          const structuredJsonPrompt = this.promptTemplate.render('structured-json', {});
           const enhancedSystemPromptFallback = systemPrompt
-            ? `${systemPrompt}\n\nCRITICAL: You MUST respond with ONLY valid JSON. No markdown formatting, no code blocks, no comments, no explanations. Only raw JSON that can be parsed directly.`
-            : 'CRITICAL: You MUST respond with ONLY valid JSON. No markdown formatting, no code blocks, no comments, no explanations. Only raw JSON that can be parsed directly.';
+            ? `${systemPrompt}\n\n${structuredJsonPrompt}`
+            : structuredJsonPrompt;
 
           const enhancedPromptFallback = `${prompt}\n\nRemember: Respond with ONLY valid JSON. Example format: {"action": "click", "selector": "#button", "reasoning": "Need to click the submit button"}`;
 
@@ -373,10 +378,11 @@ export class OllamaProvider implements AIProvider {
         }
       }
     } catch (error) {
-      // Fallback to the original method
+      // Fallback to the original method using template
+      const structuredJsonPrompt = this.promptTemplate.render('structured-json', {});
       const enhancedSystemPrompt = systemPrompt
-        ? `${systemPrompt}\n\nCRITICAL: You MUST respond with ONLY valid JSON. No markdown formatting, no code blocks, no comments, no explanations. Only raw JSON that can be parsed directly.`
-        : 'CRITICAL: You MUST respond with ONLY valid JSON. No markdown formatting, no code blocks, no comments, no explanations. Only raw JSON that can be parsed directly.';
+        ? `${systemPrompt}\n\n${structuredJsonPrompt}`
+        : structuredJsonPrompt;
 
       const enhancedPrompt = `${prompt}\n\nRemember: Respond with ONLY valid JSON. Example format: {"action": "click", "selector": "#button", "reasoning": "Need to click the submit button"}`;
 
