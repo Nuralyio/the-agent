@@ -238,8 +238,33 @@ export class ActionEngine implements IActionEngine {
         // Execute step with retry mechanism and progressive refinement
         const stepResult = await this.executeStepWithRetry(currentPlan.steps[i]!, stepContext, pageStateBefore, 3);
 
-        // Capture page state after step execution
-        const pageStateAfter = await this.captureState();
+        // Capture page state after step execution (handle navigation gracefully)
+        let pageStateAfter: PageState;
+        try {
+          pageStateAfter = await this.captureState();
+        } catch (error) {
+          // If context was destroyed due to navigation, wait and try again
+          if (error instanceof Error && error.message.includes('Execution context was destroyed')) {
+            console.log('🔄 Page navigated during step execution, waiting for new page...');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            try {
+              pageStateAfter = await this.captureState();
+            } catch (retryError) {
+              console.warn('⚠️ Could not capture page state after navigation, using minimal state');
+              pageStateAfter = {
+                url: 'unknown',
+                title: 'Navigation in progress',
+                content: '',
+                screenshot: Buffer.alloc(0),
+                timestamp: Date.now(),
+                viewport: { width: 1280, height: 720 },
+                elements: []
+              };
+            }
+          } else {
+            throw error;
+          }
+        }
 
         // Create detailed step execution result
         const stepExecutionResult: StepExecutionResult = {
@@ -318,23 +343,32 @@ export class ActionEngine implements IActionEngine {
           const remainingSteps = currentPlan.steps.slice(i + 1);
 
           if (remainingSteps.length > 0) {
+            // Use AI adaptation to handle the extracted data and remaining steps
             const adaptedPlan = await this.actionPlanner.adaptPlan({
               ...currentPlan,
               steps: remainingSteps
             }, updatedPageState);
+            const adaptedSteps = adaptedPlan.steps;
 
             // Update the current plan with adapted steps
             currentPlan.steps = [
               ...currentPlan.steps.slice(0, i + 1),
-              ...adaptedPlan.steps
+              ...adaptedSteps
             ];
-            console.log(`🔄 Adapted plan: ${adaptedPlan.steps.length} remaining steps updated`);
+            console.log(`🔄 Adapted plan: ${adaptedSteps.length} remaining steps updated`);
           }
 
           if (!stepResult.canContinue) {
             console.warn(`❌ Step ${i + 1} failed critically, stopping execution`);
             break;
           }
+        }
+
+        // If step succeeded and extracted data, let AI handle the injection in subsequent steps
+        if (stepResult.success && stepResult.data) {
+          console.log(`� Extracted data available for AI-powered step adaptation`);
+          // Store the extracted data in the plan context for future AI adaptations
+          currentPlan.context.extractedData = stepResult.data;
         }
       } catch (error) {
         console.error(`❌ Step ${i + 1} failed:`, error);
@@ -786,14 +820,52 @@ Respond with ONLY a JSON object with the refined step.`;
     const page = await this.browserManager.getCurrentPage();
     if (!page) throw new Error('No active page');
 
-    // Extract data based on step configuration
+    // Try the specific selector first if provided
     if (step.target?.selector) {
-      const element = await page.waitForSelector(step.target.selector);
-      const text = await element?.getText();
-      return { success: true, data: text };
+      try {
+        const element = await page.waitForSelector(step.target.selector, { timeout: 5000 });
+        if (element) {
+          const text = await element.getText();
+          if (text?.trim()) {
+            console.log(`✅ Extracted text using selector "${step.target.selector}": "${text.trim()}"`);
+            return { success: true, data: text.trim() };
+          }
+        }
+      } catch (error) {
+        console.log(`⚠️ Primary selector failed, trying generic extraction...`);
+      }
     }
 
-    return { success: true, data: null };
+    // Fallback: Extract from common content elements
+    const contentSelectors = ['p', 'div', 'span', '.info', '.note', '.help'];
+    
+    for (const selector of contentSelectors) {
+      try {
+        const elements = await page.findElements(selector);
+        for (const element of elements) {
+          const text = await element.getText();
+          if (text?.trim() && text.length > 5) {
+            console.log(`✅ Found text content with selector "${selector}": "${text.trim()}"`);
+            return { success: true, data: text.trim() };
+          }
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+
+    // Last resort: extract all page text
+    try {
+      const allText = await page.evaluate(() => document.body.innerText || '');
+      if (allText?.trim()) {
+        console.log(`✅ Extracted page content (${allText.length} chars)`);
+        return { success: true, data: allText.trim() };
+      }
+    } catch (error) {
+      console.error('Failed to extract page content:', error);
+    }
+
+    return { success: false, data: null, error: 'Could not extract any text content' };
   }
 
   private async executeScroll(step: ActionStep): Promise<any> {
@@ -863,75 +935,6 @@ Respond with ONLY a JSON object with the refined step.`;
       viewport: { width: 1280, height: 720 }, // Default, should get from actual viewport
       elements: [] // TODO: Implement element extraction
     };
-  }
-
-  /**
-   * Refine a step with current page content for better selector identification
-   */
-  private async refineStepWithPageContent(step: ActionStep, pageState: PageState): Promise<ActionStep> {
-    try {
-      // Create a refined instruction based on the step and current page
-      const refinementPrompt = `Given the current page content, refine this automation step to use the best possible selector.
-
-Current step:
-- Type: ${step.type}
-- Description: ${step.description}
-- Current selector: ${step.target?.selector || 'none'}
-
-Current page URL: ${pageState.url}
-Current page title: ${pageState.title}
-
-Instruction: "Find and use the best CSS selector for: ${step.description}"
-
-Respond with ONLY a JSON object with the refined step.`;
-
-      // Use the action planner to refine the step with current page content
-      const refinedPlan = await this.actionPlanner.createActionPlan(refinementPrompt, {
-        id: crypto.randomUUID(),
-        objective: 'Refine action step',
-        constraints: [],
-        variables: {},
-        history: [],
-        currentState: pageState,
-        url: pageState.url,
-        pageTitle: pageState.title
-      }, pageState);
-
-      // Return the first step from the refined plan, or original step if refinement fails
-      if (refinedPlan.steps.length > 0) {
-        const refinedStep = refinedPlan.steps[0]!;
-        // Preserve the original step type and description, but use refined selector
-        const result: ActionStep = {
-          id: crypto.randomUUID(),
-          type: step.type,
-          description: step.description
-        };
-
-        // Only assign target if it exists
-        const targetToUse = refinedStep.target || step.target;
-        if (targetToUse) {
-          result.target = targetToUse;
-        }
-
-        // Only assign value if it exists
-        const valueToUse = refinedStep.value || step.value;
-        if (valueToUse) {
-          result.value = valueToUse;
-        }
-
-        // Only assign condition if it exists
-        if (step.condition) {
-          result.condition = step.condition;
-        }
-
-        return result;
-      }
-
-      return step;
-    } catch (error) {
-      console.warn('Failed to refine step, using original:', error);
-      return step;
-    }
   }
 
   /**
