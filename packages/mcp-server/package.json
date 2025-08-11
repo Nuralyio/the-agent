@@ -1,0 +1,46 @@
+{
+  "name": "@theagent/mcp-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol server for browser automation framework",
+  "main": "dist/index.js",
+  "bin": {
+    "theagent-mcp": "dist/server.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "nodemon --exec ts-node src/server.ts",
+    "start": "node dist/server.js",
+    "test": "jest --passWithNoTests",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "browser-automation",
+    "ai-tools"
+  ],
+  "author": "Browser Automation Framework Team",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.2.0",
+    "jest": "^30.0.5",
+    "nodemon": "^3.1.10",
+    "ts-jest": "^29.4.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "@theagent/core": "^1.0.0",
+    "dotenv": "^16.4.5"
+  }
+}
