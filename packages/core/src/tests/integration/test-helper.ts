@@ -8,6 +8,7 @@ import {
 import { ActionEngine } from '../../engine/action-engine';
 import { BrowserAutomation } from '../../index';
 import { getTestServer, replaceHttpbinUrls, TestServer } from '../test-server';
+import { addGlobalCleanupTask } from '../setup';
 
 export interface TestContext {
   automation: BrowserAutomation;
@@ -65,7 +66,18 @@ export async function setupTestContext(): Promise<TestContext> {
   // Get test server instance (will be started by test runner)
   const testServer = getTestServer();
 
-  return { automation, actionEngine, aiEngine, testServer };
+  const context = { automation, actionEngine, aiEngine, testServer };
+  
+  // Register global cleanup for this context
+  addGlobalCleanupTask(async () => {
+    try {
+      await teardownTestContext(context);
+    } catch (error) {
+      console.warn('Global cleanup failed for context:', error);
+    }
+  });
+
+  return context;
 }
 
 /**
@@ -73,7 +85,22 @@ export async function setupTestContext(): Promise<TestContext> {
  */
 export async function teardownTestContext(context: TestContext): Promise<void> {
   console.log('🧹 Cleaning up test context...');
-  await context.automation.close();
+  
+  try {
+    // Close browser automation first
+    await context.automation.close();
+    
+    // Wait for browser processes to fully terminate
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Force any remaining cleanup
+    if (context.automation && typeof (context.automation as any).forceCleanup === 'function') {
+      await (context.automation as any).forceCleanup();
+    }
+  } catch (error) {
+    console.warn('Error during test context cleanup:', error);
+  }
+  
   // Note: Test server is managed globally and will be stopped by test runner
 }
 
