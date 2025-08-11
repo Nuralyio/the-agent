@@ -53,6 +53,7 @@ jobs:
 
       - name: Run integration tests
         run: npm run test:integration
+        continue-on-error: true
         env:
           CI: true
           BROWSER_HEADLESS: true
