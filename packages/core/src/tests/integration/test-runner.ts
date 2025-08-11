@@ -2,6 +2,7 @@ import { DynamicPlanningTest } from './dynamic-planning.test';
 import { FormFillingTest } from './form-filling.test';
 import { InteractionTest } from './interaction.test';
 import { NavigationTest } from './navigation.test';
+import { OrangeHRMLoginTest } from './orangehrm-login.test';
 import { ScreenshotTest } from './screenshot.test';
 import { getTestServer } from '../test-server';
 
@@ -40,6 +41,11 @@ export class TestRunner {
       {
         name: 'Dynamic Planning Tests',
         instance: new DynamicPlanningTest(),
+        enabled: true
+      },
+      {
+        name: 'OrangeHRM Login Tests',
+        instance: new OrangeHRMLoginTest(),
         enabled: true
       }
     ];

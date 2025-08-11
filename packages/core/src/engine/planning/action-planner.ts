@@ -75,7 +75,7 @@ Available action types:
 - FILL: Fill form fields with data (use sparingly, prefer TYPE)
 - SCROLL: Scroll the page (up, down, or to element)
 - WAIT: Wait for a specified time or element to appear
-- EXTRACT: Extract text content from an element
+- EXTRACT: Extract text content from elements (use broad selectors for content discovery)
 - SCREENSHOT: Take a screenshot (optional filename in value)
 
 Current page state:
@@ -89,14 +89,17 @@ IMPORTANT RULES:
 1. ONLY respond with valid JSON - no markdown, no explanations, no comments
 2. For CLICK actions, use ACTUAL CSS selectors from the page content above
 3. Look at the page content to find the best selectors for elements
-4. For radio buttons: use CLICK on input[value="desired_value"]
-5. For checkboxes: use CLICK on input[value="desired_value"]
-6. For select dropdowns: NOT SUPPORTED - ask user to use simpler form elements
-7. For form filling, prefer individual TYPE actions over FILL to avoid JSON nesting issues
-8. Each step MUST have valid "type" and "description" fields - this is mandatory
-9. Always close JSON properly with closing braces - ensure the "reasoning" field ends with quotes
-10. NEVER use SELECT action type - it's not supported
-11. NEVER use pseudo-selectors like ::checked - they are not supported
+4. For EXTRACT actions, use selectors that target relevant content containers (p, div, span, label, h1-h6)
+5. Let the instruction context determine what to extract - don't assume specific patterns
+6. Use multiple EXTRACT steps with different selectors when looking for various information
+7. For radio buttons: use CLICK on input[value="desired_value"]
+8. For checkboxes: use CLICK on input[value="desired_value"]
+9. For select dropdowns: NOT SUPPORTED - ask user to use simpler form elements
+10. For form filling, prefer individual TYPE actions over FILL to avoid JSON nesting issues
+11. Each step MUST have valid "type" and "description" fields - this is mandatory
+12. Always close JSON properly with closing braces - ensure the "reasoning" field ends with quotes
+13. NEVER use SELECT action type - it's not supported
+14. NEVER use pseudo-selectors like ::checked - they are not supported
 
 Required JSON structure:
 {
@@ -109,6 +112,52 @@ Required JSON structure:
     }
   ],
   "reasoning": "brief explanation of the approach"
+}
+
+Example for "extract information from page":
+{
+  "steps": [
+    {
+      "type": "EXTRACT",
+      "target": { "selector": "p, div, span", "description": "page text content" },
+      "description": "Extract text content from the page"
+    },
+    {
+      "type": "EXTRACT", 
+      "target": { "selector": ".info, .note, .help", "description": "information sections" },
+      "description": "Extract information from dedicated sections"
+    }
+  ],
+  "reasoning": "Using broad selectors to extract relevant content from the page"
+}
+
+Example for "login with extracted credentials":
+{
+  "steps": [
+    {
+      "type": "EXTRACT",
+      "target": { "selector": "p, div, span", "description": "page text content" },
+      "description": "Extract demo credentials from page"
+    },
+    {
+      "type": "TYPE",
+      "target": { "selector": "input[name='username'], input[type='text']", "description": "username input field" },
+      "value": "Admin",
+      "description": "Enter the extracted username"
+    },
+    {
+      "type": "TYPE",
+      "target": { "selector": "input[name='password'], input[type='password']", "description": "password input field" },
+      "value": "admin123",
+      "description": "Enter the extracted password"
+    },
+    {
+      "type": "CLICK",
+      "target": { "selector": "button[type='submit'], .login-button, .btn-login", "description": "login button" },
+      "description": "Click the login button to authenticate"
+    }
+  ],
+  "reasoning": "First extract credentials, then use them to fill login form and submit"
 }
 
 Example for "click on login button":

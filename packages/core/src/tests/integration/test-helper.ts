@@ -8,7 +8,6 @@ import {
 import { ActionEngine } from '../../engine/action-engine';
 import { BrowserAutomation } from '../../index';
 import { getTestServer, replaceHttpbinUrls, TestServer } from '../test-server';
-import { addGlobalCleanupTask } from '../setup';
 
 export interface TestContext {
   automation: BrowserAutomation;
@@ -27,10 +26,19 @@ export async function setupTestContext(): Promise<TestContext> {
   const envConfig = loadEnvironmentConfig();
   logConfigurationStatus(envConfig);
 
+  // Create AI configuration
+  const aiConfig = {
+    provider: 'ollama',
+    baseUrl: envConfig.ollama.baseUrl,
+    model: envConfig.ollama.model,
+    temperature: envConfig.ollama.temperature
+  };
+
   const automation = new BrowserAutomation({
     adapter: envConfig.browser.adapter as any,
     headless: envConfig.browser.headless,
-    browserType: envConfig.browser.type
+    browserType: envConfig.browser.type,
+    ai: aiConfig
   });
 
   // Setup AI Engine with configured providers
@@ -67,15 +75,6 @@ export async function setupTestContext(): Promise<TestContext> {
   const testServer = getTestServer();
 
   const context = { automation, actionEngine, aiEngine, testServer };
-  
-  // Register global cleanup for this context
-  addGlobalCleanupTask(async () => {
-    try {
-      await teardownTestContext(context);
-    } catch (error) {
-      console.warn('Global cleanup failed for context:', error);
-    }
-  });
 
   return context;
 }
