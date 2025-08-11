@@ -1,8 +1,8 @@
 import * as crypto from 'crypto';
 import { AIEngine } from '../../ai/ai-engine';
+import { PromptTemplate } from '../../prompt-template';
 import { ActionPlanInput } from '../../types/action-schemas';
 import { ActionPlan, ActionStep, ActionType, PageState, TaskContext } from '../types';
-import { PromptTemplate } from '../../prompt-template';
 
 interface ParsedInstruction {
   steps: ActionStep[];
