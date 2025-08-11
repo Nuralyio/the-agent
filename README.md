@@ -10,6 +10,10 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-green)](https://nodejs.org/)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 
+## 🚧 Project Status
+
+**The Agent is in active development (Alpha)**
+
 A comprehensive, AI-powered browser automation framework that understands
 natural language instructions and executes web automation tasks intelligently.
 the agent provides multi-adapter support for different browser engines with
