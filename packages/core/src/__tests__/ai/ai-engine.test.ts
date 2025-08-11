@@ -1,7 +1,6 @@
-import { AIEngine, AIProvider, AIConfig, AIResponse, AIMessage } from '../../ai/ai-engine';
+import { AIConfig, AIEngine, AIProvider, AIResponse } from '../../ai/ai-engine';
 import { OllamaProvider } from '../../ai/providers';
 import { PageState } from '../../types';
-import { ActionStep, ActionType } from '../../engine/types';
 
 // Mock the OllamaProvider
 jest.mock('../../ai/providers');
@@ -12,7 +11,7 @@ describe('AIEngine', () => {
 
   beforeEach(() => {
     aiEngine = new AIEngine();
-    
+
     mockProvider = {
       name: 'test-provider',
       config: {
@@ -44,14 +43,14 @@ describe('AIEngine', () => {
   describe('registerProvider', () => {
     it('should register a provider', () => {
       aiEngine.registerProvider(mockProvider);
-      
+
       const retrievedProvider = aiEngine.getProvider('test-provider');
       expect(retrievedProvider).toBe(mockProvider);
     });
 
     it('should set first provider as default', () => {
       aiEngine.registerProvider(mockProvider);
-      
+
       const defaultProvider = aiEngine.getDefaultProvider();
       expect(defaultProvider).toBe(mockProvider);
     });
@@ -64,7 +63,7 @@ describe('AIEngine', () => {
 
       aiEngine.registerProvider(mockProvider);
       aiEngine.registerProvider(secondProvider);
-      
+
       const defaultProvider = aiEngine.getDefaultProvider();
       expect(defaultProvider).toBe(mockProvider);
     });
@@ -73,7 +72,7 @@ describe('AIEngine', () => {
   describe('addProvider', () => {
     it('should create and register Ollama provider', () => {
       const config: AIConfig = {
-        model: 'llama2',
+        model: 'llama3.2',
         baseUrl: 'http://localhost:11434'
       };
 
@@ -105,9 +104,9 @@ describe('AIEngine', () => {
         name: 'second-provider'
       };
       aiEngine.registerProvider(secondProvider);
-      
+
       aiEngine.setDefaultProvider('second-provider');
-      
+
       const defaultProvider = aiEngine.getDefaultProvider();
       expect(defaultProvider).toBe(secondProvider);
     });
@@ -122,7 +121,7 @@ describe('AIEngine', () => {
   describe('getDefaultProvider', () => {
     it('should return default provider when available', () => {
       aiEngine.registerProvider(mockProvider);
-      
+
       const result = aiEngine.getDefaultProvider();
       expect(result).toBe(mockProvider);
     });
@@ -221,9 +220,10 @@ describe('AIEngine', () => {
 
       const result = await aiEngine.generateStructuredJSON(prompt);
 
+      // Expect the call to include the full structured JSON template
       expect(mockProvider.generateText).toHaveBeenCalledWith(
         prompt,
-        'CRITICAL: You MUST respond with ONLY valid JSON. No markdown, no comments, no explanations.'
+        expect.stringContaining('CRITICAL: You MUST respond with ONLY valid JSON. No markdown formatting, no code blocks, no comments, no explanations.')
       );
       expect(result).toBe(expectedResponse);
     });
@@ -331,7 +331,7 @@ describe('AIEngine', () => {
   describe('getProvider', () => {
     it('should return provider when exists', () => {
       aiEngine.registerProvider(mockProvider);
-      
+
       const result = aiEngine.getProvider('test-provider');
       expect(result).toBe(mockProvider);
     });

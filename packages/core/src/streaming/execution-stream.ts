@@ -28,6 +28,7 @@ export class ExecutionStream extends EventEmitter {
   private clients: Map<string, StreamClient> = new Map();
   private currentSessionId: string | null = null;
   private executionHistory: ExecutionEvent[] = [];
+  private cleanupInterval?: NodeJS.Timeout;
 
   constructor() {
     super();
@@ -259,7 +260,7 @@ export class ExecutionStream extends EventEmitter {
 
   private setupCleanupInterval(): void {
     // Clean up dead connections every 30 seconds
-    setInterval(() => {
+    this.cleanupInterval = setInterval(() => {
       const now = new Date();
       const timeout = 60000; // 1 minute timeout
 
@@ -270,6 +271,18 @@ export class ExecutionStream extends EventEmitter {
         }
       });
     }, 30000);
+  }
+
+  /**
+   * Cleanup resources - mainly for testing
+   */
+  cleanup(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = undefined;
+    }
+    this.clients.clear();
+    this.removeAllListeners();
   }
 }
 
