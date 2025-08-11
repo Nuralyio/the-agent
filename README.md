@@ -70,7 +70,7 @@ This project is organized as a TypeScript monorepo with the following packages:
 ```bash
 # Clone the repository
 git clone https://github.com/Nuralyio/the-agent.git
-cd the agent
+cd the-agent
 
 # Install dependencies for all packages
 npm install
@@ -189,7 +189,8 @@ npm run test:coverage
 ### Test Structure
 
 - **Unit Tests**: Located in `src/**/*.test.ts` files
-- **Integration Tests**: Located in `src/tests/integration/` (local development only)
+- **Integration Tests**: Located in `src/tests/integration/` (local development
+  only)
 - **Test Environment**: Node.js with Jest and ts-jest
 - **CI/CD**: Only unit tests run in GitHub Actions for reliability
 
@@ -227,39 +228,45 @@ npm run clean
 
 ### Package Documentation
 
-| Package        | README                                                             | Purpose                                     |
-| -------------- | ------------------------------------------------------------------ | ------------------------------------------- |
-| **Core**       | [`packages/core/README.md`](./packages/core/README.md)             | Browser automation framework API            |
-| **API Server** | [`packages/api/README.md`](./packages/api/README.md)               | HTTP server and WebSocket documentation     |
-| **Web UI**     | [`packages/web-ui/README.md`](./packages/web-ui/README.md)         | Dashboard setup and customization           |
-| **CLI**        | [`packages/cli/README.md`](./packages/cli/README.md)               | Command-line interface usage                |
-| **MCP Server** | [`packages/mcp-server/README.md`](./packages/mcp-server/README.md) | Model Context Protocol server integration   |
+| Package        | README                                                             | Purpose                                   |
+| -------------- | ------------------------------------------------------------------ | ----------------------------------------- |
+| **Core**       | [`packages/core/README.md`](./packages/core/README.md)             | Browser automation framework API          |
+| **API Server** | [`packages/api/README.md`](./packages/api/README.md)               | HTTP server and WebSocket documentation   |
+| **Web UI**     | [`packages/web-ui/README.md`](./packages/web-ui/README.md)         | Dashboard setup and customization         |
+| **CLI**        | [`packages/cli/README.md`](./packages/cli/README.md)               | Command-line interface usage              |
+| **MCP Server** | [`packages/mcp-server/README.md`](./packages/mcp-server/README.md) | Model Context Protocol server integration |
 
 ### Development Tools Documentation
 
-| Tool               | README                                                             | Purpose                                     |
-| ------------------ | ------------------------------------------------------------------ | ------------------------------------------- |
-| **Test Server**    | [`tools/test-server/README.md`](./tools/test-server/README.md)     | Local test server for development          |
+| Tool            | README                                                         | Purpose                           |
+| --------------- | -------------------------------------------------------------- | --------------------------------- |
+| **Test Server** | [`tools/test-server/README.md`](./tools/test-server/README.md) | Local test server for development |
 
 ### Quick Documentation Guide
 
 #### 📖 **Getting Started**
+
 - Start with the main [README.md](./README.md) for setup and basic usage
 - Check [CONTRIBUTING.md](./CONTRIBUTING.md) if you want to contribute
 - Review package-specific READMEs for detailed API documentation
 
 #### 🔧 **Development**
+
 - [Core Package](./packages/core/README.md) - Main automation framework
 - [API Server](./packages/api/README.md) - REST API and WebSocket server
 - [Web UI](./packages/web-ui/README.md) - React dashboard interface
 - [CLI Tool](./packages/cli/README.md) - Command-line interface
-- [MCP Server](./packages/mcp-server/README.md) - Model Context Protocol integration
+- [MCP Server](./packages/mcp-server/README.md) - Model Context Protocol
+  integration
 
 #### 🛠️ **Tools & Utilities**
+
 - [Test Server](./tools/test-server/README.md) - Development testing environment
-- [GitHub Workflows](./.github/WORKFLOWS.md) - CI/CD configuration and testing strategy
+- [GitHub Workflows](./.github/WORKFLOWS.md) - CI/CD configuration and testing
+  strategy
 
 #### 📋 **Project Management**
+
 - [CHANGELOG.md](./CHANGELOG.md) - Version history and release notes
 - [mainprompt.md](./mainprompt.md) - Project specifications and architecture
 
@@ -444,8 +451,7 @@ details.
 ### Maintainers
 
 - **Project Lead**: [@maintainer](https://github.com/maintainer)
-- **Core Team**:
-  [@team](https://github.com/orgs/Nuralyio/teams/the-agent-core)
+- **Core Team**: [@team](https://github.com/orgs/Nuralyio/teams/the-agent-core)
 
 ## 💝 Sponsors
 
@@ -464,8 +470,8 @@ possible!
 
 ### 🤝 Become a Sponsor
 
-Support the development of the agent and help us build the future of
-AI-powered browser automation!
+Support the development of the agent and help us build the future of AI-powered
+browser automation!
 
 **Why Sponsor?**
 
