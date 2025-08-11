@@ -7,7 +7,12 @@ module.exports = {
     '**/?(*.)+(spec|test).{ts,js}'
   ],
   transform: {
-    '^.+\\.ts$': 'ts-jest'
+    '^.+\\.ts$': ['ts-jest', {
+      tsconfig: {
+        types: ['jest', 'node']
+      }
+    }],
+    '^.+\\.js$': 'babel-jest'
   },
   collectCoverageFrom: [
     'src/**/*.{ts,js}',
@@ -17,12 +22,11 @@ module.exports = {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  testTimeout: 10000, // 10 seconds for MCP server tests
+  testTimeout: 10000,
   verbose: true,
-  // Force Jest to exit cleanly
   forceExit: true,
-  // Detect open handles in development
   detectOpenHandles: process.env.NODE_ENV !== 'production',
-  // Run tests in a single worker to avoid resource conflicts
-  maxWorkers: 1
+  maxWorkers: 1,
+  moduleFileExtensions: ['ts', 'js', 'json'],
+  extensionsToTreatAsEsm: []
 };
