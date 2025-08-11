@@ -50,7 +50,7 @@ export class OrangeHRMLoginTest {
     })));
 
     // Check if navigation was to the correct URL (URL is in step.value field)
-    const orangeHRMNavStep = navSteps.find(step => 
+    const orangeHRMNavStep = navSteps.find(step =>
       (step.step.value && step.step.value.includes('opensource-demo.orangehrmlive.com')) ||
       (step.step.description && step.step.description.toLowerCase().includes('orangehrm')) ||
       (step.description && step.description.toLowerCase().includes('orangehrm'))
@@ -59,7 +59,7 @@ export class OrangeHRMLoginTest {
 
     // Verify that the test included some form of element identification
     // This could be through wait, screenshot, or extract actions
-    const identificationSteps = result.steps.filter(step => 
+    const identificationSteps = result.steps.filter(step =>
       ['wait', 'screenshot', 'extract', 'type', 'click'].includes(step.step.type)
     );
     assert(identificationSteps.length >= 1, "Should contain steps that identify or interact with page elements");
@@ -88,7 +88,7 @@ export class OrangeHRMLoginTest {
     assert(navSteps.length >= 1, "Should contain navigation step");
 
     // Verify field interaction or identification steps
-    const fieldSteps = result.steps.filter(step => 
+    const fieldSteps = result.steps.filter(step =>
       ['wait', 'click', 'type', 'extract'].includes(step.step.type)
     );
     assert(fieldSteps.length >= 1, "Should contain steps that interact with or identify form fields");
@@ -96,7 +96,7 @@ export class OrangeHRMLoginTest {
     // Verify screenshot step if requested
     const screenshotSteps = result.steps.filter(step => step.step.type === 'screenshot');
     // Screenshot step is optional as AI might optimize the plan
-    
+
     console.log(`✅ Successfully extracted specific login fields with ${result.steps.length} steps`);
   }
 
@@ -121,7 +121,7 @@ export class OrangeHRMLoginTest {
     assert(navSteps.length >= 1, "Should contain navigation step");
 
     // Verify some form of analysis or examination
-    const analysisSteps = result.steps.filter(step => 
+    const analysisSteps = result.steps.filter(step =>
       ['wait', 'extract', 'screenshot', 'type', 'click'].includes(step.step.type)
     );
     assert(analysisSteps.length >= 1, "Should contain steps that examine or analyze form elements");
@@ -148,7 +148,7 @@ export class OrangeHRMLoginTest {
 
       // This test should either succeed or fail gracefully
       console.log(`🔄 Error handling test result: ${result.success ? 'Success' : 'Handled gracefully'}`);
-      
+
       // If it fails, it should still have attempted navigation
       if (!result.success) {
         const navSteps = result.steps.filter(step => step.step.type === 'navigate');

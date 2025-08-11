@@ -26,7 +26,7 @@ module.exports = {
   moduleNameMapping: {
     '^@/(.*)$': '<rootDir>/src/$1'
   },
-  testTimeout: 30000, // 30 seconds for browser automation tests
+  testTimeout: 10000, // 30 seconds for browser automation tests
   verbose: true,
   // Force Jest to exit after tests complete
   forceExit: true,
