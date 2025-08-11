@@ -2,8 +2,8 @@ import { ChatOllama } from '@langchain/ollama';
 import axios from 'axios';
 import { OutputFixingParser, StructuredOutputParser } from 'langchain/output_parsers';
 import { z } from 'zod';
-import { AIConfig, AIMessage, AIProvider, AIResponse, VisionCapabilities } from '../ai-engine';
 import { PromptTemplate } from '../../prompt-template';
+import { AIConfig, AIMessage, AIProvider, AIResponse, VisionCapabilities } from '../ai-engine';
 
 // Define the schema for structured browser actions
 const BrowserActionSchema = z.object({

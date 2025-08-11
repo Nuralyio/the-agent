@@ -1,6 +1,6 @@
-import { PageState } from '../types';
 import { ActionStep, ActionType } from '../engine/types';
 import { PromptTemplate } from '../prompt-template';
+import { PageState } from '../types';
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';
