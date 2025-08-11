@@ -76,7 +76,6 @@ export class PlaywrightAdapter implements BrowserAdapter {
    * Get Playwright browser type based on options
    */
   private getBrowserType(options: LaunchOptions) {
-    // Default to chromium if no browser type specified
     if (!options.args) {
       return playwright.chromium;
     }

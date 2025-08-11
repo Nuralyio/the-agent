@@ -124,7 +124,6 @@ export class AutomationAPI {
   }
 }
 
-// Default instance
 export const automationAPI = new AutomationAPI({
   baseUrl: 'http://localhost:3002',
 });
