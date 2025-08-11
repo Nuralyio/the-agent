@@ -27,3 +27,33 @@ export const testConfig = {
   timeout: 10000,
   screenshot: process.env.SCREENSHOT_TESTS === 'true'
 };
+
+// Global cleanup for better Jest exit handling
+let globalCleanupTasks: (() => Promise<void>)[] = [];
+
+export function addGlobalCleanupTask(task: () => Promise<void>) {
+  globalCleanupTasks.push(task);
+}
+
+// Global teardown
+afterAll(async () => {
+  // Run all cleanup tasks
+  for (const cleanup of globalCleanupTasks) {
+    try {
+      await cleanup();
+    } catch (error) {
+      console.warn('Cleanup task failed:', error);
+    }
+  }
+  
+  // Clear the array
+  globalCleanupTasks = [];
+  
+  // Force garbage collection if available
+  if (global.gc) {
+    global.gc();
+  }
+  
+  // Wait a moment for final cleanup
+  await new Promise(resolve => setTimeout(resolve, 100));
+});

@@ -6,9 +6,6 @@ module.exports = {
     '**/__tests__/**/*.{ts,js}',
     '**/?(*.)+(spec|test).{ts,js}'
   ],
-  testPathIgnorePatterns: [
-    '<rootDir>/src/tests/integration/'
-  ],
   transform: {
     '^.+\\.ts$': 'ts-jest'
   },
@@ -16,17 +13,16 @@ module.exports = {
     'src/**/*.{ts,js}',
     '!src/**/*.d.ts',
     '!src/**/*.test.{ts,js}',
-    '!src/**/*.spec.{ts,js}',
-    '!src/tests/integration/**'
+    '!src/**/*.spec.{ts,js}'
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  testTimeout: 30000,
+  testTimeout: 10000, // 10 seconds for MCP server tests
   verbose: true,
   // Force Jest to exit cleanly
   forceExit: true,
   // Detect open handles in development
   detectOpenHandles: process.env.NODE_ENV !== 'production',
-  // Run tests serially to avoid resource conflicts
+  // Run tests in a single worker to avoid resource conflicts
   maxWorkers: 1
 };

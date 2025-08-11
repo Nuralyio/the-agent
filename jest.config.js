@@ -27,5 +27,11 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/src/$1'
   },
   testTimeout: 30000, // 30 seconds for browser automation tests
-  verbose: true
+  verbose: true,
+  // Force Jest to exit after tests complete
+  forceExit: true,
+  // Detect open handles for debugging
+  detectOpenHandles: true,
+  // Maximum number of worker processes
+  maxWorkers: 1
 };
