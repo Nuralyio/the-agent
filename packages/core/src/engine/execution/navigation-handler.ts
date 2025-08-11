@@ -1,65 +1,39 @@
-import { ActionPlan, ActionStep, ActionType, PageState, TaskResult, TaskContext } from '../../types';
-import { ExecutionLogger } from '../../utils/execution-logger';
-import { ExecutionStream } from '../../streaming/execution-stream';
-import { ActionPlanner } from '../planning/action-planner';
 import { AIEngine } from '../../ai/ai-engine';
+import { PromptTemplate } from '../../prompt-template';
+import { ExecutionStream } from '../../streaming/execution-stream';
+import { ActionPlan, ActionStep, ActionType, PageState, TaskResult } from '../../types';
+import { ExecutionLogger } from '../../utils/execution-logger';
+import { ActionPlanner } from '../planning/action-planner';
 
 /**
  * Handles navigation-aware task execution and planning
  */
 export class NavigationHandler {
+  private promptTemplate: PromptTemplate;
+
   constructor(
     private actionPlanner: ActionPlanner,
     private aiEngine: AIEngine
-  ) {}
+  ) {
+    this.promptTemplate = new PromptTemplate();
+  }
 
   /**
    * Use AI to intelligently detect if instruction requires navigation
    */
   async instructionContainsNavigation(instruction: string): Promise<boolean> {
     try {
-      const navigationDetectionPrompt = `
-You are an expert web automation analyst. Analyze this instruction to determine if it requires web navigation.
-
-Instruction: "${instruction}"
-
-ANALYSIS CRITERIA:
-1. Navigation Required IF:
-   - Mentions visiting, opening, or going to a website/URL
-   - Contains URLs (http/https) or domain names (.com, .org, etc.)
-   - Requires loading a new web page as part of the task
-   - Uses navigation verbs: "navigate", "browse", "visit", "go to", "open", "access"
-   - Mentions specific websites by name
-
-2. Navigation NOT Required IF:
-   - Only interacts with current page elements (click, type, extract, scroll)
-   - Performs actions on already loaded content
-   - Fills forms or clicks buttons on existing page
-   - Takes screenshots or extracts data from current page
-
-EXAMPLES:
-✅ Navigation Required:
-- "Navigate to google.com" 
-- "Go to https://example.com and find contact info"
-- "Visit stackoverflow.com and search for javascript"
-- "Open the OrangeHRM demo site"
-
-❌ Navigation NOT Required:
-- "Click the login button"
-- "Fill out the form on the current page"
-- "Extract text from the page"
-- "Scroll down and take a screenshot"
-
-Respond with ONLY "true" if navigation is required, or "false" if not.
-Be conservative - if unsure, prefer "false".`;
+      const navigationDetectionPrompt = this.promptTemplate.render('navigation-detection', {
+        instruction: instruction
+      });
 
       const response = await this.aiEngine.generateText(navigationDetectionPrompt);
       const result = response.content.trim().toLowerCase();
-      
+
       // Parse AI response - handle various formats
       const isTrue = result === 'true' || result === 'true.' || result.includes('true');
       const isFalse = result === 'false' || result === 'false.' || result.includes('false');
-      
+
       if (isTrue && !isFalse) {
         console.log('🤖 AI detected navigation required in instruction');
         return true;
@@ -83,46 +57,46 @@ Be conservative - if unsure, prefer "false".`;
    */
   private fallbackNavigationDetection(instruction: string): boolean {
     const normalizedInstruction = instruction.toLowerCase().trim();
-    
+
     // 1. Explicit URL patterns (highest confidence)
     const urlPatterns = [
       /https?:\/\/[^\s,;]+/i,           // http/https URLs
       /www\.[^\s,;]+\.[a-z]{2,}/i,     // www.domain.com
       /[a-z0-9-]+\.[a-z]{2,}\/[^\s]*/i // domain.com/path
     ];
-    
+
     for (const pattern of urlPatterns) {
       if (pattern.test(instruction)) {
         console.log('🔧 Fallback: Found explicit URL - navigation required');
         return true;
       }
     }
-    
+
     // 2. Domain patterns with context
     const domainPattern = /\b[a-zA-Z0-9-]+\.(com|org|net|io|co|edu|gov|app|dev|tech|ai|us|uk|ca|de|fr)\b/i;
     const domainMatch = instruction.match(domainPattern);
-    
+
     if (domainMatch) {
       // Check if domain appears in navigational context
       const domain = domainMatch[0];
       const domainIndex = instruction.indexOf(domain);
       const contextBefore = instruction.substring(Math.max(0, domainIndex - 20), domainIndex).toLowerCase();
       const contextAfter = instruction.substring(domainIndex + domain.length, domainIndex + domain.length + 20).toLowerCase();
-      
+
       const navigationContext = /\b(navigate|go|visit|open|browse|head|access|load|check|find|search)\b/;
-      
+
       if (navigationContext.test(contextBefore) || navigationContext.test(contextAfter)) {
         console.log(`🔧 Fallback: Found domain "${domain}" in navigation context`);
         return true;
       }
     }
-    
+
     // 3. Strong navigation verbs with target indicators
     const strongNavigationPatterns = [
       /\b(navigate to|go to|visit|browse to|head to|access|open)\s+(?:the\s+)?(?:https?:\/\/|www\.|[a-zA-Z0-9\-]+\.[a-z]{2,}|(?:company|main|external|remote)\s+(?:site|website|page|portal|platform|dashboard)|(?:admin|management)\s+(?:dashboard|console|portal))/i,
       /\b(check out|look at|load up|pull up)\s+(?:the\s+)?(?:https?:\/\/|www\.|[a-zA-Z0-9\-]+\.[a-z]{2,}|(?:external|remote)\s+dashboard)/i
     ];
-    
+
     for (const pattern of strongNavigationPatterns) {
       if (pattern.test(instruction)) {
         // Additional check: make sure it's not local UI elements
@@ -133,7 +107,7 @@ Be conservative - if unsure, prefer "false".`;
         }
       }
     }
-    
+
     // 4. Known website/service names (even without explicit domains)
     const knownSites = [
       'google', 'youtube', 'facebook', 'twitter', 'linkedin', 'github',
@@ -141,19 +115,19 @@ Be conservative - if unsure, prefer "false".`;
       'orangehrm', 'salesforce', 'jira', 'confluence', 'slack',
       'gmail', 'outlook', 'zoom', 'teams', 'discord'
     ];
-    
+
     const sitePattern = new RegExp(`\\b(${knownSites.join('|')})\\b`, 'i');
     if (sitePattern.test(instruction)) {
       // Check if mentioned in navigation context
       const navigationVerbs = /\b(go|visit|open|check|access|navigate|browse|head)\b/i;
       const prepositions = /\b(to|on|at|into)\b/i;
-      
+
       if (navigationVerbs.test(instruction) || prepositions.test(instruction)) {
         console.log('🔧 Fallback: Found known website in navigation context');
         return true;
       }
     }
-    
+
     // 5. Negative patterns - strong indicators of non-navigation
     const nonNavigationPatterns = [
       /\b(click|type|fill|enter|select|choose|scroll|extract|copy|paste|submit)\b/i,
@@ -163,14 +137,14 @@ Be conservative - if unsure, prefer "false".`;
       /\b(file|print|save|export|import)\s+(dialog|modal|window)\b/i,
       /\b(go to|visit|open)\s+(?:the\s+)?(next|previous|first|last|top|bottom)\b/i
     ];
-    
+
     const hasNonNavigation = nonNavigationPatterns.some(pattern => pattern.test(instruction));
-    
+
     if (hasNonNavigation && !domainMatch && !urlPatterns.some(p => p.test(instruction))) {
       console.log('🔧 Fallback: Strong non-navigation indicators found');
       return false;
     }
-    
+
     // 6. Default to false for unclear cases (conservative approach)
     console.log('🔧 Fallback: No clear navigation pattern detected - defaulting to false');
     return false;

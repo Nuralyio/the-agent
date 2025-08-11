@@ -1,6 +1,7 @@
-import { AIEngine } from '../../ai/ai-engine';
-import { ActionPlan, ActionStep, ActionType, PageState, TaskContext } from '../types';
 import * as crypto from 'crypto';
+import { AIEngine } from '../../ai/ai-engine';
+import { ActionPlanInput } from '../../types/action-schemas';
+import { ActionPlan, ActionStep, ActionType, PageState, TaskContext } from '../types';
 
 interface ParsedInstruction {
   steps: ActionStep[];
@@ -123,7 +124,7 @@ Example for "extract information from page":
       "description": "Extract text content from the page"
     },
     {
-      "type": "EXTRACT", 
+      "type": "EXTRACT",
       "target": { "selector": ".info, .note, .help", "description": "information sections" },
       "description": "Extract information from dedicated sections"
     }
@@ -246,6 +247,92 @@ Example for "take a screenshot":
 
     const prompt = `Instruction: "${instruction}"
 
+Convert this to browser automation steps.`;
+
+    const userPrompt = `Instruction: "${instruction}"
+
+Convert this to browser automation steps following the expected format.`;
+
+    try {
+      console.log(`🔄 Using structured output for better reliability`);
+
+      // Use the existing generateStructuredJSON method
+      const response = await this.aiEngine.generateStructuredJSON(userPrompt, systemPrompt);
+
+      console.log(`✅ Successfully got structured response`);
+
+      // Parse the JSON content from the response
+      const parsed = JSON.parse(response.content);
+
+      // Convert to our internal format
+      return this.convertToInternalFormat(parsed);
+
+    } catch (error) {
+      console.error('❌ Structured output failed, falling back to text parsing:', error);
+
+      // Fallback to the old method if structured output fails
+      return this.parseInstructionWithTextFallback(instruction, systemPrompt);
+    }
+  }
+
+  /**
+   * Convert AI response to internal format
+   */
+  private convertToInternalFormat(response: ActionPlanInput): ParsedInstruction {
+    const steps: ActionStep[] = response.steps.map(step => {
+      // Map action types to our internal format
+      const mappedType = this.mapActionType(step.type);
+
+      const actionStep: ActionStep = {
+        id: crypto.randomUUID(),
+        type: mappedType,
+        description: step.description
+      };
+
+      if (step.target) {
+        actionStep.target = {
+          selector: step.target.selector,
+          description: step.target.description
+        };
+      }
+
+      if (step.value !== undefined && step.value !== null) {
+        actionStep.value = step.value;
+      }
+
+      return actionStep;
+    });
+
+    return {
+      steps,
+      reasoning: response.reasoning
+    };
+  }
+
+  /**
+   * Map schema action types to internal action types
+   */
+  private mapActionType(type: string): ActionType {
+    const typeMap: Record<string, ActionType> = {
+      'NAVIGATE': ActionType.NAVIGATE,
+      'CLICK': ActionType.CLICK,
+      'TYPE': ActionType.TYPE,
+      'FILL': ActionType.FILL,
+      'SCROLL': ActionType.SCROLL,
+      'WAIT': ActionType.WAIT,
+      'EXTRACT': ActionType.EXTRACT,
+      'SCREENSHOT': ActionType.SCREENSHOT
+    };
+
+    return typeMap[type] || ActionType.EXTRACT;
+  }
+
+  /**
+   * Fallback method using text generation when structured output fails
+   */
+  private async parseInstructionWithTextFallback(instruction: string, systemPrompt: string): Promise<ParsedInstruction> {
+    const userPrompt = `Instruction: "${instruction}"
+
 Convert this to browser automation steps. Respond with ONLY valid JSON, no other text.`;
 
     const maxRetries = 3;
@@ -253,9 +340,9 @@ Convert this to browser automation steps. Respond with ONLY valid JSON, no other
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`🔄 Attempt ${attempt}/${maxRetries} to get valid JSON from LLM`);
+        console.log(`🔄 Fallback attempt ${attempt}/${maxRetries} to get valid JSON from LLM`);
 
-        const response = await this.aiEngine.generateText(prompt, systemPrompt);
+        const response = await this.aiEngine.generateText(userPrompt, systemPrompt);
 
         console.log(`📊 Response stats: ${response.content.length} chars`);
 
@@ -266,10 +353,10 @@ Convert this to browser automation steps. Respond with ONLY valid JSON, no other
 
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        console.warn(`⚠️ Attempt ${attempt} failed: ${lastError.message}`);
+        console.warn(`⚠️ Fallback attempt ${attempt} failed: ${lastError.message}`);
 
         if (attempt === maxRetries) {
-          console.error(`❌ All ${maxRetries} attempts failed to get valid JSON`);
+          console.error(`❌ All ${maxRetries} fallback attempts failed to get valid JSON`);
           break;
         }
 
@@ -291,15 +378,42 @@ Convert this to browser automation steps. Respond with ONLY valid JSON, no other
     try {
       console.log(`🔍 Parsing AI response: ${trimmed.length} chars`);
 
+      // Try to fix common JSON issues before parsing
+      let jsonString = trimmed;
+
+      // Handle incomplete reasoning field by ensuring it ends properly
+      if (jsonString.includes('"reasoning":') && !jsonString.endsWith('}')) {
+        const reasoningMatch = jsonString.match(/"reasoning":\s*"([^"]*)"?$/);
+        if (reasoningMatch && !reasoningMatch[1].endsWith('"')) {
+          // Fix incomplete reasoning field
+          jsonString = jsonString.replace(/"reasoning":\s*"([^"]*)"?$/, '"reasoning": "$1"}');
+        } else if (jsonString.includes('"reasoning":') && !jsonString.includes('}', jsonString.lastIndexOf('"reasoning":'))) {
+          // Add missing closing brace
+          jsonString += '}';
+        }
+      }
+
       // Parse JSON directly - let it detect all formatting issues
       let parsed;
       try {
-        parsed = JSON.parse(trimmed);
+        parsed = JSON.parse(jsonString);
       } catch (parseError) {
         const errorMsg = parseError instanceof Error ? parseError.message : 'Unknown parse error';
         console.error('❌ JSON parse error:', errorMsg);
         console.error('📝 Response preview:', trimmed.substring(0, 200) + '...');
-        throw new Error(`JSON parsing failed: ${errorMsg}`);
+
+        // Try one more fix for malformed JSON at the end
+        if (errorMsg.includes('Expected') && errorMsg.includes('after property value')) {
+          const fixedJson = jsonString.replace(/,\s*$/, '').replace(/([^}])$/, '$1}');
+          try {
+            parsed = JSON.parse(fixedJson);
+            console.log('✅ Fixed malformed JSON on second attempt');
+          } catch (secondError) {
+            throw new Error(`JSON parsing failed: ${errorMsg}`);
+          }
+        } else {
+          throw new Error(`JSON parsing failed: ${errorMsg}`);
+        }
       }
 
       // Validate structure
@@ -398,6 +512,38 @@ Convert this to browser automation steps. Respond with ONLY valid JSON, no other
    */
   async adaptPlan(currentPlan: ActionPlan, currentState: PageState): Promise<ActionPlan> {
     try {
+      const systemPrompt = `You are a browser automation expert. Your job is to fix or improve an existing action plan based on the current page state.
+
+Available action types:
+- NAVIGATE: Navigate to a URL
+- CLICK: Click on an element (buttons, radio buttons, checkboxes, links)
+- TYPE: Type text into input fields, textareas, and time inputs
+- FILL: Fill form fields with data (use sparingly, prefer TYPE)
+- SCROLL: Scroll the page (up, down, or to element)
+- WAIT: Wait for a specified time or element to appear
+- EXTRACT: Extract text content from elements (use broad selectors for content discovery)
+- SCREENSHOT: Take a screenshot (optional filename in value)
+
+IMPORTANT RULES:
+1. ONLY respond with valid JSON - no markdown, no explanations, no comments
+2. For CLICK actions, use ACTUAL CSS selectors from the page content
+3. Each step MUST have valid "type" and "description" fields - this is mandatory
+4. Always close JSON properly with closing braces - ensure the "reasoning" field ends with quotes
+5. NEVER use SELECT action type - it's not supported
+
+Required JSON structure:
+{
+  "steps": [
+    {
+      "type": "ACTION_TYPE",
+      "target": { "selector": "css-selector", "description": "human description" },
+      "value": "value if needed",
+      "description": "what this step does - REQUIRED FOR ALL STEPS"
+    }
+  ],
+  "reasoning": "brief explanation of the fixes made"
+}`;
+
       const adaptPrompt = `The current action plan failed or needs adjustment.
 
 Current plan:
@@ -407,9 +553,9 @@ Current page state:
 - URL: ${currentState.url}
 - Title: ${currentState.title}
 
-Please analyze the situation and provide an updated action plan that should work better with the current page state.`;
+Please analyze the situation and provide an updated action plan that should work better with the current page state. Respond with ONLY valid JSON, no other text.`;
 
-      const response = await this.aiEngine.generateText(adaptPrompt);
+      const response = await this.aiEngine.generateText(adaptPrompt, systemPrompt);
       const adaptedInstruction = await this.parseAIResponse(response.content);
 
       return {

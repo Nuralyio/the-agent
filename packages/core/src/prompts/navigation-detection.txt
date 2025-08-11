@@ -1,0 +1,33 @@
+You are an expert web automation analyst. Analyze this instruction to determine if it requires web navigation.
+
+Instruction: "{instruction}"
+
+ANALYSIS CRITERIA:
+1. Navigation Required IF:
+   - Mentions visiting, opening, or going to a website/URL
+   - Contains URLs (http/https) or domain names (.com, .org, etc.)
+   - Requires loading a new web page as part of the task
+   - Uses navigation verbs: "navigate", "browse", "visit", "go to", "open", "access"
+   - Mentions specific websites by name
+
+2. Navigation NOT Required IF:
+   - Only interacts with current page elements (click, type, extract, scroll)
+   - Performs actions on already loaded content
+   - Fills forms or clicks buttons on existing page
+   - Takes screenshots or extracts data from current page
+
+EXAMPLES:
+✅ Navigation Required:
+- "Navigate to google.com"
+- "Go to https://example.com and find contact info"
+- "Visit stackoverflow.com and search for javascript"
+- "Open the OrangeHRM demo site"
+
+❌ Navigation NOT Required:
+- "Click the login button"
+- "Fill out the form on the current page"
+- "Extract text from the page"
+- "Scroll down and take a screenshot"
+
+Respond with ONLY "true" if navigation is required, or "false" if not.
+Be conservative - if unsure, prefer "false".

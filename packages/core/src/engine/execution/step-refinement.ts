@@ -1,17 +1,22 @@
-import { ActionStep, ActionType, PageState, TaskContext } from '../../types';
-import { ActionPlanner } from '../planning/action-planner';
+import { PromptTemplate } from '../../prompt-template';
+import { ActionStep, ActionType, PageState } from '../../types';
 import { ContextualStepAnalyzer } from '../analysis/contextual-analyzer';
 import { StepContextManager } from '../analysis/step-context';
+import { ActionPlanner } from '../planning/action-planner';
 
 /**
  * Handles step refinement and retry logic with progressive strategies
  */
 export class StepRefinementManager {
+  private promptTemplate: PromptTemplate;
+
   constructor(
     private actionPlanner: ActionPlanner,
     private stepContextManager: StepContextManager,
     private contextualAnalyzer?: ContextualStepAnalyzer
-  ) {}
+  ) {
+    this.promptTemplate = new PromptTemplate();
+  }
 
   /**
    * Execute a step with retry mechanism and progressive refinement
@@ -178,21 +183,13 @@ export class StepRefinementManager {
     pageState: PageState
   ): Promise<ActionStep> {
     try {
-      const refinementPrompt = `
-SELECTOR REFINEMENT WITH ERROR CONTEXT
-
-Failed step: ${step.description}
-Failed selector: ${step.target?.selector}
-Step type: ${step.type}
-
-Current page URL: ${pageState.url}
-Current page title: ${pageState.title}
-
-The selector failed to find elements after multiple attempts. Analyze the page content and provide a better selector.
-
-Focus on finding elements that match the intent: "${step.description}"
-
-Respond with ONLY a JSON object with the refined step.`;
+      const refinementPrompt = this.promptTemplate.render('step-refinement', {
+        stepDescription: step.description,
+        failedSelector: step.target?.selector || 'none',
+        stepType: step.type,
+        pageUrl: pageState.url,
+        pageTitle: pageState.title
+      });
 
       const refinedPlan = await this.actionPlanner.createActionPlan(refinementPrompt, {
         id: crypto.randomUUID(),
@@ -320,25 +317,17 @@ Respond with ONLY a JSON object with the refined step.`;
     const recentSteps = stepContext.previousSteps.slice(-2);
     const successfulSelectors = this.stepContextManager.getSuccessfulSelectors();
 
-    return `
-CONTEXT-AWARE STEP REFINEMENT
+    const recentStepsText = recentSteps.map((s: any, i: number) =>
+      `${i + 1}. ${s.step.type}: ${s.step.description} → ${s.success ? 'SUCCESS' : 'FAILED'} (selector: ${s.selectorUsed || s.step.target?.selector})`
+    ).join('\n') || 'No recent steps';
 
-Previous steps (recent):
-${recentSteps.map((s: any, i: number) => `${i + 1}. ${s.step.type}: ${s.step.description} → ${s.success ? 'SUCCESS' : 'FAILED'} (selector: ${s.selectorUsed || s.step.target?.selector})`).join('\n')}
-
-Successful selectors used before:
-${successfulSelectors.join(', ') || 'None yet'}
-
-Current step to refine:
-- Type: ${step.type}
-- Description: ${step.description}
-- Current selector: ${step.target?.selector || 'none'}
-
-Current page: ${pageState.url}
-
-Based on previous successful actions and patterns, provide the BEST CSS selector for this step.
-Prefer selectors that have worked before or follow similar successful patterns.
-
-Respond with ONLY a JSON object containing the refined step.`;
+    return this.promptTemplate.render('context-aware-refinement', {
+      recentSteps: recentStepsText,
+      successfulSelectors: successfulSelectors.join(', ') || 'None yet',
+      stepType: step.type,
+      stepDescription: step.description,
+      currentSelector: step.target?.selector || 'none',
+      pageUrl: pageState.url
+    });
   }
 }

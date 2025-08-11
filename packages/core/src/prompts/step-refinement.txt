@@ -1,0 +1,14 @@
+SELECTOR REFINEMENT WITH ERROR CONTEXT
+
+Failed step: {stepDescription}
+Failed selector: {failedSelector}
+Step type: {stepType}
+
+Current page URL: {pageUrl}
+Current page title: {pageTitle}
+
+The selector failed to find elements after multiple attempts. Analyze the page content and provide a better selector.
+
+Focus on finding elements that match the intent: "{stepDescription}"
+
+Respond with ONLY a JSON object with the refined step.
