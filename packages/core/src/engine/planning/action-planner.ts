@@ -2,6 +2,7 @@ import * as crypto from 'crypto';
 import { AIEngine } from '../../ai/ai-engine';
 import { ActionPlanInput } from '../../types/action-schemas';
 import { ActionPlan, ActionStep, ActionType, PageState, TaskContext } from '../types';
+import { PromptTemplate } from '../../prompt-template';
 
 interface ParsedInstruction {
   steps: ActionStep[];
@@ -13,9 +14,11 @@ interface ParsedInstruction {
  */
 export class ActionPlanner {
   private aiEngine: AIEngine;
+  private promptTemplate: PromptTemplate;
 
   constructor(aiEngine: AIEngine) {
     this.aiEngine = aiEngine;
+    this.promptTemplate = new PromptTemplate();
   }
 
   /**
@@ -67,187 +70,12 @@ export class ActionPlanner {
     // Extract relevant content from page for better selector identification
     const pageContent = this.extractRelevantPageContent(pageState.content || '');
 
-    const systemPrompt = `You are a browser automation expert. Your job is to convert natural language instructions into a sequence of browser automation actions.
+    const systemPrompt = this.promptTemplate.render('action-planning', {
+      pageUrl: pageState.url,
+      pageTitle: pageState.title,
+      pageContent: pageContent
+    });
 
-Available action types:
-- NAVIGATE: Navigate to a URL
-- CLICK: Click on an element (buttons, radio buttons, checkboxes, links)
-- TYPE: Type text into input fields, textareas, and time inputs
-- FILL: Fill form fields with data (use sparingly, prefer TYPE)
-- SCROLL: Scroll the page (up, down, or to element)
-- WAIT: Wait for a specified time or element to appear
-- EXTRACT: Extract text content from elements (use broad selectors for content discovery)
-- SCREENSHOT: Take a screenshot (optional filename in value)
-
-Current page state:
-- URL: ${pageState.url}
-- Title: ${pageState.title}
-
-Current page content (for selector identification):
-${pageContent}
-
-IMPORTANT RULES:
-1. ONLY respond with valid JSON - no markdown, no explanations, no comments
-2. For CLICK actions, use ACTUAL CSS selectors from the page content above
-3. Look at the page content to find the best selectors for elements
-4. For EXTRACT actions, use selectors that target relevant content containers (p, div, span, label, h1-h6)
-5. Let the instruction context determine what to extract - don't assume specific patterns
-6. Use multiple EXTRACT steps with different selectors when looking for various information
-7. For radio buttons: use CLICK on input[value="desired_value"]
-8. For checkboxes: use CLICK on input[value="desired_value"]
-9. For select dropdowns: NOT SUPPORTED - ask user to use simpler form elements
-10. For form filling, prefer individual TYPE actions over FILL to avoid JSON nesting issues
-11. Each step MUST have valid "type" and "description" fields - this is mandatory
-12. Always close JSON properly with closing braces - ensure the "reasoning" field ends with quotes
-13. NEVER use SELECT action type - it's not supported
-14. NEVER use pseudo-selectors like ::checked - they are not supported
-
-Required JSON structure:
-{
-  "steps": [
-    {
-      "type": "ACTION_TYPE",
-      "target": { "selector": "css-selector", "description": "human description" },
-      "value": "value if needed",
-      "description": "what this step does - REQUIRED FOR ALL STEPS"
-    }
-  ],
-  "reasoning": "brief explanation of the approach"
-}
-
-Example for "extract information from page":
-{
-  "steps": [
-    {
-      "type": "EXTRACT",
-      "target": { "selector": "p, div, span", "description": "page text content" },
-      "description": "Extract text content from the page"
-    },
-    {
-      "type": "EXTRACT",
-      "target": { "selector": ".info, .note, .help", "description": "information sections" },
-      "description": "Extract information from dedicated sections"
-    }
-  ],
-  "reasoning": "Using broad selectors to extract relevant content from the page"
-}
-
-Example for "login with extracted credentials":
-{
-  "steps": [
-    {
-      "type": "EXTRACT",
-      "target": { "selector": "p, div, span", "description": "page text content" },
-      "description": "Extract demo credentials from page"
-    },
-    {
-      "type": "TYPE",
-      "target": { "selector": "input[name='username'], input[type='text']", "description": "username input field" },
-      "value": "Admin",
-      "description": "Enter the extracted username"
-    },
-    {
-      "type": "TYPE",
-      "target": { "selector": "input[name='password'], input[type='password']", "description": "password input field" },
-      "value": "admin123",
-      "description": "Enter the extracted password"
-    },
-    {
-      "type": "CLICK",
-      "target": { "selector": "button[type='submit'], .login-button, .btn-login", "description": "login button" },
-      "description": "Click the login button to authenticate"
-    }
-  ],
-  "reasoning": "First extract credentials, then use them to fill login form and submit"
-}
-
-Example for "click on login button":
-{
-  "steps": [
-    {
-      "type": "CLICK",
-      "target": { "selector": "button[type='submit']", "description": "login button" },
-      "description": "Click the login button"
-    }
-  ],
-  "reasoning": "Looking for submit button which is commonly used for login"
-}
-
-Example for "fill out contact form":
-{
-  "steps": [
-    {
-      "type": "TYPE",
-      "target": { "selector": "input[name='name']", "description": "name input field" },
-      "value": "John Doe",
-      "description": "Fill the name field"
-    },
-    {
-      "type": "TYPE",
-      "target": { "selector": "input[name='email']", "description": "email input field" },
-      "value": "john@example.com",
-      "description": "Fill the email field"
-    }
-  ],
-  "reasoning": "Breaking down form filling into individual TYPE actions for each field"
-}
-
-Example for "select radio button for medium size":
-{
-  "steps": [
-    {
-      "type": "CLICK",
-      "target": { "selector": "input[value='medium']", "description": "medium size radio button" },
-      "description": "Select medium size option"
-    }
-  ],
-  "reasoning": "Click on the radio button with value 'medium'"
-}
-
-Example for "select checkboxes for bacon and cheese":
-{
-  "steps": [
-    {
-      "type": "CLICK",
-      "target": { "selector": "input[value='bacon']", "description": "bacon checkbox" },
-      "description": "Select bacon topping"
-    },
-    {
-      "type": "CLICK",
-      "target": { "selector": "input[value='cheese']", "description": "cheese checkbox" },
-      "description": "Select cheese topping"
-    }
-  ],
-  "reasoning": "Click on each checkbox to select toppings"
-}
-
-Example for "navigate to aymen.co":
-{
-  "steps": [
-    {
-      "type": "NAVIGATE",
-      "value": "https://aymen.co",
-      "description": "Navigate to aymen.co website"
-    }
-  ],
-  "reasoning": "Direct navigation to the specified domain"
-}
-
-Example for "take a screenshot":
-{
-  "steps": [
-    {
-      "type": "SCREENSHOT",
-      "value": "",
-      "description": "Take a screenshot of the current page"
-    }
-  ],
-  "reasoning": "Capturing current page state"
-}`;
-
-    const prompt = `Instruction: "${instruction}"
-
-Convert this to browser automation steps.`;
 
     const userPrompt = `Instruction: "${instruction}"
 
@@ -512,37 +340,7 @@ Convert this to browser automation steps. Respond with ONLY valid JSON, no other
    */
   async adaptPlan(currentPlan: ActionPlan, currentState: PageState): Promise<ActionPlan> {
     try {
-      const systemPrompt = `You are a browser automation expert. Your job is to fix or improve an existing action plan based on the current page state.
-
-Available action types:
-- NAVIGATE: Navigate to a URL
-- CLICK: Click on an element (buttons, radio buttons, checkboxes, links)
-- TYPE: Type text into input fields, textareas, and time inputs
-- FILL: Fill form fields with data (use sparingly, prefer TYPE)
-- SCROLL: Scroll the page (up, down, or to element)
-- WAIT: Wait for a specified time or element to appear
-- EXTRACT: Extract text content from elements (use broad selectors for content discovery)
-- SCREENSHOT: Take a screenshot (optional filename in value)
-
-IMPORTANT RULES:
-1. ONLY respond with valid JSON - no markdown, no explanations, no comments
-2. For CLICK actions, use ACTUAL CSS selectors from the page content
-3. Each step MUST have valid "type" and "description" fields - this is mandatory
-4. Always close JSON properly with closing braces - ensure the "reasoning" field ends with quotes
-5. NEVER use SELECT action type - it's not supported
-
-Required JSON structure:
-{
-  "steps": [
-    {
-      "type": "ACTION_TYPE",
-      "target": { "selector": "css-selector", "description": "human description" },
-      "value": "value if needed",
-      "description": "what this step does - REQUIRED FOR ALL STEPS"
-    }
-  ],
-  "reasoning": "brief explanation of the fixes made"
-}`;
+      const systemPrompt = this.promptTemplate.render('plan-adaptation', {});
 
       const adaptPrompt = `The current action plan failed or needs adjustment.
 

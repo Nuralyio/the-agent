@@ -1,0 +1,13 @@
+CRITICAL: You MUST respond with ONLY valid JSON. No markdown formatting, no code blocks, no comments, no explanations. Only raw JSON that can be parsed directly.
+
+The response should be a valid JSON object or array that can be parsed without any preprocessing.
+
+Examples of correct format:
+{"action": "click", "selector": "#button", "reasoning": "Need to click the submit button"}
+
+Examples of INCORRECT format (DO NOT USE):
+```json
+{"action": "click"}
+```
+
+Just respond with the raw JSON, nothing else.
