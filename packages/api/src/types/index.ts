@@ -20,6 +20,7 @@ export interface ExecutionStreamWithClients {
 export interface AutomationExecuteRequest {
     taskDescription: string;
     engine?: string;
+    aiProvider?: string;
     options?: Record<string, unknown>;
 }
 

@@ -88,7 +88,9 @@ export class BrowserAutomation {
         model: this.aiConfig.model || 'llama3.2'  // Default model if not specified
       };
       
-      this.aiEngine.addProvider('ollama', aiEngineConfig);
+      // Use the provider specified in the config, fallback to 'ollama'
+      const providerName = this.aiConfig.provider || 'ollama';
+      this.aiEngine.addProvider(providerName, aiEngineConfig);
       this.actionEngine = new ActionEngine(this.browserManager, this.aiEngine);
       console.log('✅ ActionEngine initialized successfully');
     } else {

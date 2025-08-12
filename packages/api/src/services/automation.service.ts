@@ -12,7 +12,7 @@ export class AutomationService {
     /**
      * Execute automation task and stream events
      */
-    async executeTask(taskDescription: string, engine: string = 'playwright', options: Record<string, unknown> = {}): Promise<void> {
+    async executeTask(taskDescription: string, engine: string = 'playwright', aiProvider?: string, options: Record<string, unknown> = {}): Promise<void> {
         const sessionId = uuidv4();
 
         // Configure automation with the specified engine
@@ -22,7 +22,7 @@ export class AutomationService {
             headless: false, // Show browser for UI
             viewport: { width: 1280, height: 720 },
             ...options,
-            ai: configService.getAIConfig() // Add AI configuration
+            ai: configService.getAIConfig(aiProvider) // Pass AI provider
         };
 
         // Create new automation instance with config

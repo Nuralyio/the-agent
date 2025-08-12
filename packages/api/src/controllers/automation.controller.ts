@@ -12,7 +12,7 @@ export class AutomationController {
      */
     static async executeTask(req: Request, res: Response): Promise<void> {
         try {
-            const { taskDescription, engine = 'playwright', options = {} }: AutomationExecuteRequest = req.body;
+            const { taskDescription, engine = 'playwright', aiProvider, options = {} }: AutomationExecuteRequest = req.body;
 
             if (!taskDescription) {
                 const response: ApiResponse = {
@@ -33,7 +33,7 @@ export class AutomationController {
             res.json(response);
 
             // Execute automation in background and stream events
-            automationService.executeTask(taskDescription, engine, options)
+            automationService.executeTask(taskDescription, engine, aiProvider, options)
                 .catch(error => {
                     console.error('Background automation execution error:', error);
                 });
