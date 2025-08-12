@@ -28,14 +28,15 @@ real-time visualization and monitoring capabilities.
 - Essential documentation and setup guides
 - Fundamental feature implementation
 
-#### 🚀 Planned for Beta
+## � Web Dashboard Preview
 
-- Performance optimizations for real-world usage
-- Advanced scheduling and workflow management
-- Multi-session automation support
-- Enhanced AI model integration
-- Comprehensive testing and reliability improvements
-- Production-ready documentation
+<div align="center">
+  <img src="./assets/webui.png" alt="The Agent Web Dashboard" width="800"/>
+  <br/>
+  <em>Real-time browser automation dashboard with hierarchical planning visualization</em>
+</div>
+
+
 
 ## ✨ Key Features
 
@@ -51,15 +52,6 @@ real-time visualization and monitoring capabilities.
 - 🛠️ **CLI Interface**: Command-line tools for scripting and automation
 - 🧪 **Unit Testing**: Comprehensive unit test coverage with CI/CD integration
 - 📦 **Monorepo Architecture**: Well-organized, modular codebase
-
-## � Web Dashboard Preview
-
-<div align="center">
-  <img src="./assets/webui.png" alt="The Agent Web Dashboard" width="800"/>
-  <br/>
-  <em>Real-time browser automation dashboard with hierarchical planning visualization</em>
-</div>
-
 
 - **Live Execution Monitoring** - Watch your automation tasks execute in
   real-time
