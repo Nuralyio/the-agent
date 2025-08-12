@@ -1,8 +1,7 @@
-import { ActionEngine } from '../../engine/action-engine';
 import { AIEngine, AIResponse } from '../../ai/ai-engine';
-import { BrowserManager } from '../../types';
+import { ActionEngine } from '../../engine/action-engine';
 import { ActionStep, ActionType, TaskContext } from '../../engine/types';
-import { PageInstance } from '../../types';
+import { BrowserManager, PageInstance } from '../../types';
 
 // Mock dependencies
 jest.mock('../../ai/ai-engine');
@@ -67,7 +66,7 @@ describe('ActionEngine', () => {
 
     // Mock AI engine with minimal required methods
     mockAIEngine = {
-      generateText: jest.fn().mockResolvedValue({ 
+      generateText: jest.fn().mockResolvedValue({
         content: JSON.stringify([
           {
             type: 'CLICK',
@@ -154,7 +153,7 @@ describe('ActionEngine', () => {
         content: 'invalid json'
       };
       mockAIEngine.generateText.mockResolvedValue(invalidResponse);
-      
+
       const result = await actionEngine.executeTask(objective);
 
       expect(result.success).toBe(false);
@@ -175,7 +174,7 @@ describe('ActionEngine', () => {
           timestamp: Date.now()
         }
       };
-      
+
       // Override with valid JSON response
       const mockResponse: AIResponse = {
         content: JSON.stringify({
@@ -191,7 +190,7 @@ describe('ActionEngine', () => {
         })
       };
       mockAIEngine.generateText.mockResolvedValue(mockResponse);
-      
+
       const result = await actionEngine.executeTask(objective, context);
 
       expect(result.success).toBe(true);
@@ -199,7 +198,7 @@ describe('ActionEngine', () => {
 
     it('should handle navigation-aware tasks', async () => {
       const navigationObjective = 'Navigate to https://example.com and click login';
-      
+
       // Override with valid JSON response for navigation
       const mockResponse: AIResponse = {
         content: JSON.stringify({
@@ -214,7 +213,7 @@ describe('ActionEngine', () => {
         })
       };
       mockAIEngine.generateText.mockResolvedValue(mockResponse);
-      
+
       const result = await actionEngine.executeTask(navigationObjective);
 
       expect(result.success).toBe(true);
@@ -224,7 +223,7 @@ describe('ActionEngine', () => {
   describe('parseInstruction', () => {
     it('should parse instruction using AI engine', async () => {
       const instruction = 'Click the submit button';
-      
+
       // Mock generateText to return properly formatted JSON with target.selector
       const mockResponse: AIResponse = {
         content: JSON.stringify({
@@ -251,7 +250,7 @@ describe('ActionEngine', () => {
 
     it('should handle parsing errors', async () => {
       const instruction = 'Invalid instruction';
-      
+
       // Mock generateText to return invalid JSON
       const invalidResponse: AIResponse = {
         content: 'invalid json'
@@ -269,7 +268,7 @@ describe('ActionEngine', () => {
         content: 'invalid json'
       };
       mockAIEngine.generateText.mockResolvedValue(invalidResponse);
-      
+
       const result = await actionEngine.executeTask('test task');
 
       expect(result.success).toBe(false);
@@ -279,7 +278,7 @@ describe('ActionEngine', () => {
     it('should handle AI engine failures', async () => {
       // Mock generateText to throw an error
       mockAIEngine.generateText.mockRejectedValue(new Error('AI error'));
-      
+
       const result = await actionEngine.executeTask('test task');
 
       expect(result.success).toBe(false);

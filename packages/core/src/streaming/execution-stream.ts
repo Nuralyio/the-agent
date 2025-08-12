@@ -32,7 +32,10 @@ export class ExecutionStream extends EventEmitter {
 
   constructor() {
     super();
-    this.setupCleanupInterval();
+    // Only setup cleanup interval in non-test environments
+    if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
+      this.setupCleanupInterval();
+    }
   }
 
   /**
