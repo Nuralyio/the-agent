@@ -114,7 +114,8 @@ npm run dev:ui      # Web UI only (port 3003)
 npm run dev:cli     # CLI development
 ```
 
-**Important**: For initial setup or after clean install, build the core package first before running development servers.
+**Important**: For initial setup or after clean install, build the core package
+first before running development servers.
 
 ### Access Points
 
@@ -249,34 +250,6 @@ npm run clean
 | Tool            | README                                                         | Purpose                           |
 | --------------- | -------------------------------------------------------------- | --------------------------------- |
 | **Test Server** | [`tools/test-server/README.md`](./tools/test-server/README.md) | Local test server for development |
-
-### Quick Documentation Guide
-
-#### 📖 **Getting Started**
-
-- Start with the main [README.md](./README.md) for setup and basic usage
-- Check [CONTRIBUTING.md](./CONTRIBUTING.md) if you want to contribute
-- Review package-specific READMEs for detailed API documentation
-
-#### 🔧 **Development**
-
-- [Core Package](./packages/core/README.md) - Main automation framework
-- [API Server](./packages/api/README.md) - REST API and WebSocket server
-- [Web UI](./packages/web-ui/README.md) - React dashboard interface
-- [CLI Tool](./packages/cli/README.md) - Command-line interface
-- [MCP Server](./packages/mcp-server/README.md) - Model Context Protocol
-  integration
-
-#### 🛠️ **Tools & Utilities**
-
-- [Test Server](./tools/test-server/README.md) - Development testing environment
-- [GitHub Workflows](./.github/WORKFLOWS.md) - CI/CD configuration and testing
-  strategy
-
-#### 📋 **Project Management**
-
-- [CHANGELOG.md](./CHANGELOG.md) - Version history and release notes
-- [mainprompt.md](./mainprompt.md) - Project specifications and architecture
 
 ## 📁 Project Structure
 
