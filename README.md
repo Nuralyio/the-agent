@@ -55,7 +55,7 @@ real-time visualization and monitoring capabilities.
 ## � Web Dashboard Preview
 
 <div align="center">
-  <img src="./assets/web-ui.png" alt="The Agent Web Dashboard" width="800"/>
+  <img src="./assets/webui.png" alt="The Agent Web Dashboard" width="800"/>
   <br/>
   <em>Real-time browser automation dashboard with hierarchical planning visualization</em>
 </div>
