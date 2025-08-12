@@ -38,6 +38,14 @@
   ],
   "author": "Browser Automation Framework Team",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Nuralyio/the-agent.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Nuralyio/the-agent/issues"
+  },
+  "homepage": "https://github.com/Nuralyio/the-agent#readme",
   "devDependencies": {
     "@eslint/js": "^9.32.0",
     "@typescript-eslint/eslint-plugin": "^8.39.0",

@@ -1,9 +1,9 @@
 # The agent - AI-Powered Browser Automation Framework
 
-[![CI Tests](https://github.com/Nuralyio/TheWebAgent/actions/workflows/ci.yml/badge.svg)](https://github.com/Nuralyio/TheWebAgent/actions/workflows/ci.yml)
-[![Test Coverage](https://github.com/Nuralyio/TheWebAgent/actions/workflows/test-coverage.yml/badge.svg)](https://github.com/Nuralyio/TheWebAgent/actions/workflows/test-coverage.yml)
-[![PR Validation](https://github.com/Nuralyio/TheWebAgent/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/Nuralyio/TheWebAgent/actions/workflows/pr-validation.yml)
-[![Release](https://github.com/Nuralyio/TheWebAgent/actions/workflows/release.yml/badge.svg)](https://github.com/Nuralyio/TheWebAgent/actions/workflows/release.yml)
+[![CI Tests](https://github.com/Nuralyio/the-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/Nuralyio/the-agent/actions/workflows/ci.yml)
+[![Test Coverage](https://github.com/Nuralyio/the-agent/actions/workflows/test-coverage.yml/badge.svg)](https://github.com/Nuralyio/the-agent/actions/workflows/test-coverage.yml)
+[![PR Validation](https://github.com/Nuralyio/the-agent/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/Nuralyio/the-agent/actions/workflows/pr-validation.yml)
+[![Release](https://github.com/Nuralyio/the-agent/actions/workflows/release.yml/badge.svg)](https://github.com/Nuralyio/the-agent/actions/workflows/release.yml)
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
@@ -69,7 +69,7 @@ This project is organized as a TypeScript monorepo with the following packages:
 
 ```bash
 # Clone the repository
-git clone https://github.com/Nuralyio/TheWebAgent.git
+git clone https://github.com/Nuralyio/the-agent.git
 cd the agent
 
 # Install dependencies for all packages
@@ -405,7 +405,7 @@ We welcome contributions! Please read our
 7. **Push**: Push to your fork and submit a pull request
 
 **First time contributing?** Look for
-[`good first issue`](https://github.com/Nuralyio/TheWebAgent/labels/good%20first%20issue)
+[`good first issue`](https://github.com/Nuralyio/the-agent/labels/good%20first%20issue)
 labels!
 
 ## License
@@ -427,17 +427,17 @@ details.
 ### 🐛 Issues & Support
 
 - **Bug Reports**:
-  [GitHub Issues](https://github.com/Nuralyio/TheWebAgent/issues/new?template=bug_report.md)
+  [GitHub Issues](https://github.com/Nuralyio/the-agent/issues/new?template=bug_report.md)
 - **Feature Requests**:
-  [GitHub Issues](https://github.com/Nuralyio/TheWebAgent/issues/new?template=feature_request.md)
+  [GitHub Issues](https://github.com/Nuralyio/the-agent/issues/new?template=feature_request.md)
 - **Questions**:
-  [GitHub Discussions](https://github.com/Nuralyio/TheWebAgent/discussions)
+  [GitHub Discussions](https://github.com/Nuralyio/the-agent/discussions)
 - **Security Issues**: Email security@the-agent.dev
 
 ### 🚀 Community
 
 - **Discussions**:
-  [GitHub Discussions](https://github.com/Nuralyio/TheWebAgent/discussions)
+  [GitHub Discussions](https://github.com/Nuralyio/the-agent/discussions)
 - **Contributing**: See [CONTRIBUTING.md](./CONTRIBUTING.md)
 - **Code of Conduct**: Be respectful and inclusive
 

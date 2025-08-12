@@ -1,0 +1,76 @@
+name: ❓ Question / Support
+description: Ask a question or get help with using The Agent
+title: "[Question]: "
+labels: ["question", "support"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your interest in The Agent! Please check our [documentation](https://github.com/Nuralyio/the-agent/blob/main/README.md) first.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Prerequisites
+      description: Please confirm the following before asking your question
+      options:
+        - label: I have searched existing issues and discussions
+          required: true
+        - label: I have read the [documentation](https://github.com/Nuralyio/the-agent/blob/main/README.md)
+          required: true
+        - label: This is not a bug report (use the bug report template instead)
+          required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know?
+      placeholder: "How do I...?"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Question Category
+      description: What area does your question relate to?
+      options:
+        - Getting Started / Installation
+        - Configuration / Setup
+        - Browser Automation
+        - AI Provider Integration
+        - API Usage
+        - CLI Usage
+        - Web UI Dashboard
+        - Testing
+        - Performance
+        - Deployment
+        - Contributing
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Provide any additional context that might help us answer your question
+      placeholder: "I'm trying to... but I'm having trouble with..."
+
+  - type: textarea
+    id: attempted
+    attributes:
+      label: What have you tried?
+      description: Let us know what you've already attempted
+      placeholder: "I tried... but..."
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment (if relevant)
+      description: Provide environment details if relevant to your question
+      value: |
+        - OS: [e.g. macOS 14.0, Windows 11, Ubuntu 22.04]
+        - Node.js version: [e.g. 18.17.0]
+        - The Agent version: [e.g. v0.1.0-alpha]

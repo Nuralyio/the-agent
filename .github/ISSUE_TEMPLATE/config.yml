@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "💬 GitHub Discussions"
+    url: "https://github.com/Nuralyio/the-agent/discussions"
+    about: "Ask questions and discuss ideas with the community"
+  - name: "📖 Documentation"
+    url: "https://github.com/Nuralyio/the-agent/blob/main/README.md"
+    about: "Read our comprehensive documentation"
+  - name: "🔒 Security Issues"
+    url: "https://github.com/Nuralyio/the-agent/blob/main/.github/SECURITY.md"
+    about: "Report security vulnerabilities privately"
