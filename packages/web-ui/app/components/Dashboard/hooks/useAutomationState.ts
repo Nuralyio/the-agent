@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import type { ChatMessage, ExecutionStep } from '../Dashboard.types';
+import { useState, useEffect } from 'react';
+import type { ChatMessage, ExecutionStep, HierarchicalPlan } from '../Dashboard.types';
 import { executeAutomationTask } from '../utils/api';
 
 interface UseAutomationProps {
@@ -23,9 +23,44 @@ export const useAutomationState = ({
   const [leftPanelTab, setLeftPanelTab] = useState('chat');
   const [currentStep, setCurrentStep] = useState(0);
   const [currentPlan, setCurrentPlan] = useState<ExecutionStep[]>([]);
+  const [currentHierarchicalPlan, setCurrentHierarchicalPlan] = useState<HierarchicalPlan | null>(null);
   const [currentScreenshot, setCurrentScreenshot] = useState<string | null>(null);
   const [selectedStepIndex, setSelectedStepIndex] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Effect to sync currentPlan and currentHierarchicalPlan from chatMessages
+  useEffect(() => {
+    // Find the latest plan or hierarchical plan in chat messages
+    const latestPlanMessage = [...chatMessages]
+      .reverse()
+      .find(msg => msg.type === 'plan' || msg.type === 'hierarchical_plan');
+
+    if (latestPlanMessage) {
+      if (latestPlanMessage.type === 'hierarchical_plan' && latestPlanMessage.hierarchicalPlan) {
+        // Set hierarchical plan if it's not already set
+        if (!currentHierarchicalPlan) {
+          setCurrentHierarchicalPlan(latestPlanMessage.hierarchicalPlan);
+        }
+        
+        // Set current plan to sub-plan overview if currentPlan is empty
+        if (currentPlan.length === 0) {
+          const subPlanSteps: ExecutionStep[] = latestPlanMessage.hierarchicalPlan.subPlans.map((subPlan, index) => ({
+            id: index,
+            title: `Sub-plan ${index + 1}: ${subPlan.objective}`,
+            description: `${subPlan.steps.length} steps • Priority: ${subPlan.priority} • Est: ${Math.round(subPlan.estimatedDuration / 1000)}s`,
+            status: subPlan.status,
+            timestamp: new Date()
+          }));
+          setCurrentPlan(subPlanSteps);
+        }
+      } else if (latestPlanMessage.type === 'plan' && latestPlanMessage.steps) {
+        // Set regular plan if currentPlan is empty
+        if (currentPlan.length === 0) {
+          setCurrentPlan(latestPlanMessage.steps);
+        }
+      }
+    }
+  }, [chatMessages, currentPlan.length, currentHierarchicalPlan]);
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -134,6 +169,8 @@ export const useAutomationState = ({
     setCurrentStep,
     currentPlan,
     setCurrentPlan,
+    currentHierarchicalPlan,
+    setCurrentHierarchicalPlan,
     currentScreenshot,
     setCurrentScreenshot,
     selectedStepIndex,

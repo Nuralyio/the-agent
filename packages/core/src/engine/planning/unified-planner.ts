@@ -65,6 +65,13 @@ export class UnifiedPlanner {
     const result = await this.executePlan(plan, executePlanFunction);
     
     console.log(`✅ UnifiedPlanner: Completed execution with ${plan.subPlans.length} sub-plans`);
+    
+    // Include the hierarchical plan in the result for frontend display
+    if (result && typeof result === 'object') {
+      result.hierarchicalPlan = plan;
+      console.log(`📋 UnifiedPlanner: Added hierarchical plan to result (${plan.subPlans.length} sub-plans)`);
+    }
+    
     return result;
   }
 

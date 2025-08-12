@@ -1,11 +1,12 @@
 export interface ChatMessage {
   id: number;
-  type: 'user' | 'system' | 'step' | 'plan';
+  type: 'user' | 'system' | 'step' | 'plan' | 'hierarchical_plan';
   text: string;
   timestamp: Date;
   description?: string;
   status?: string;
   steps?: ExecutionStep[];
+  hierarchicalPlan?: HierarchicalPlan;
 }
 
 export interface ExecutionStep {
@@ -15,6 +16,40 @@ export interface ExecutionStep {
   status: 'pending' | 'running' | 'completed' | 'error';
   timestamp?: Date;
   screenshot?: string;
+  subPlanId?: string;
+  stepIndex?: number;
+  // Action details
+  actionType?: string;
+  target?: {
+    selector?: string;
+    description?: string;
+    coordinates?: { x: number; y: number };
+  };
+  value?: string;
+}
+
+export interface SubPlan {
+  id: string;
+  objective: string;
+  description: string;
+  steps: ExecutionStep[];
+  estimatedDuration: number;
+  priority: number;
+  status: 'pending' | 'running' | 'completed' | 'error';
+  dependencies: string[];
+  preconditions?: string[];
+  expectedOutcome?: string;
+  context?: any;
+}
+
+export interface HierarchicalPlan {
+  id: string;
+  globalObjective: string;
+  subPlans: SubPlan[];
+  totalEstimatedDuration: number;
+  planningStrategy: 'sequential' | 'parallel' | 'conditional';
+  currentSubPlanIndex?: number;
+  metadata?: any;
 }
 
 export interface TabItem {

@@ -1,31 +1,30 @@
 import { AIEngine } from '../ai/ai-engine';
+import { executionStream } from '../streaming/execution-stream';
 import {
   ActionPlan,
   BrowserManager,
   ActionEngine as IActionEngine,
   PageState,
   TaskContext,
-  TaskResult,
-  HierarchicalPlan
+  TaskResult
 } from '../types';
 import { ExecutionLogger } from '../utils/execution-logger';
-import { executionStream } from '../streaming/execution-stream';
-import { UnifiedPlanner } from './planning/unified-planner';
 import { ContextualStepAnalyzer } from './analysis/contextual-analyzer';
 import { StepContextManager } from './analysis/step-context';
 import { ActionExecutor } from './execution/action-executor';
-import { StepRefinementManager } from './execution/step-refinement';
 import { NavigationHandler } from './execution/navigation-handler';
 import { PlanExecutionManager } from './execution/plan-execution-manager';
+import { StepRefinementManager } from './execution/step-refinement';
+import { UnifiedPlanner } from './planning/unified-planner';
 
 /**
  * Core ActionEngine implementation that orchestrates task execution
- * 
+ *
  * PLANNING ARCHITECTURE:
  * - Uses UnifiedPlanner for ALL task execution (hierarchical planning by default)
  * - No more planning decision logic - hierarchical is always used
  * - Consistent behavior across all interfaces (API, MCP, CLI, Direct)
- * 
+ *
  * EXECUTION FLOW:
  * 1. Receive natural language instruction
  * 2. Capture current page state for context
@@ -39,7 +38,7 @@ export class ActionEngine implements IActionEngine {
   private aiEngine: AIEngine;
   private stepContextManager: StepContextManager;
   private contextualAnalyzer?: ContextualStepAnalyzer;
-  
+
   // Execution modules
   private actionExecutor: ActionExecutor;
   private stepRefinementManager: StepRefinementManager;
@@ -95,20 +94,11 @@ export class ActionEngine implements IActionEngine {
     executionStream.startSession(logger.getSessionId());
 
     try {
-      // Check if instruction contains navigation and handle it specially
-      if (await this.navigationHandler.instructionContainsNavigation(objective)) {
-        return await this.navigationHandler.executeNavigationAwareTask(
-          objective,
-          logger,
-          executionStream,
-          await this.actionExecutor.captureState(),
-          (plan, logger) => this.planExecutionManager.executeActionPlan(plan, logger),
-          () => this.actionExecutor.captureState()
-        );
-      }
+
 
       // Use UnifiedPlanner for all tasks (hierarchical planning by default)
       console.log(`🧠 Using UnifiedPlanner with hierarchical planning (always default)`);
+      console.log(`🔍 ActionEngine: Starting hierarchical planning for: "${objective}"`);
       return await this.executeWithUnifiedPlanning(objective, context, logger);
 
     } catch (error) {
@@ -138,8 +128,8 @@ export class ActionEngine implements IActionEngine {
    * Execute task using UnifiedPlanner (always hierarchical planning)
    */
   private async executeWithUnifiedPlanning(
-    objective: string, 
-    context?: TaskContext, 
+    objective: string,
+    context?: TaskContext,
     logger?: ExecutionLogger
   ): Promise<TaskResult> {
     try {
@@ -216,7 +206,7 @@ export class ActionEngine implements IActionEngine {
       console.log('🔍 No active page available for context, proceeding with navigation planning');
     }
 
-    // Create context from page state (or empty context if no page)  
+    // Create context from page state (or empty context if no page)
     const context: TaskContext = {
       id: 'task-' + Date.now(),
       objective: instruction,

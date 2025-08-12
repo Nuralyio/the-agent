@@ -39,6 +39,8 @@ export const Dashboard: React.FC = () => {
     setLeftPanelTab,
     currentPlan,
     setCurrentPlan,
+    currentHierarchicalPlan,
+    setCurrentHierarchicalPlan,
     currentScreenshot,
     setCurrentScreenshot,
     selectedStepIndex,
@@ -57,6 +59,7 @@ export const Dashboard: React.FC = () => {
   // Initialize event stream
   useEventStreamSimple({
     setCurrentPlan,
+    setCurrentHierarchicalPlan,
     setCurrentScreenshot,
     setChatMessages,
     updateLastStepMessage,
@@ -89,6 +92,7 @@ export const Dashboard: React.FC = () => {
       />
       <RightPanel
         currentPlan={currentPlan}
+        currentHierarchicalPlan={currentHierarchicalPlan}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         tabs={DEFAULT_TABS}

@@ -1,11 +1,12 @@
 import React from 'react';
-import type { ExecutionStep, TabItem } from '../../Dashboard.types';
+import type { ExecutionStep, TabItem, HierarchicalPlan } from '../../Dashboard.types';
 import { styles } from '../../Dashboard.styles';
 import { ExecutionPlan } from './ExecutionPlan';
 import { TabSection } from './TabSection/index';
 
 interface RightPanelProps {
   currentPlan: ExecutionStep[];
+  currentHierarchicalPlan?: HierarchicalPlan | null;
   activeTab: string;
   setActiveTab: (tab: string) => void;
   tabs: TabItem[];
@@ -18,6 +19,7 @@ interface RightPanelProps {
 
 export const RightPanel: React.FC<RightPanelProps> = ({
   currentPlan,
+  currentHierarchicalPlan,
   activeTab,
   setActiveTab,
   tabs,
@@ -32,6 +34,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
       {/* Execution Plan Section */}
       <ExecutionPlan
         currentPlan={currentPlan}
+        currentHierarchicalPlan={currentHierarchicalPlan}
         handleStepClick={handleStepClick}
       />
 
