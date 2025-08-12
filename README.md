@@ -60,8 +60,6 @@ real-time visualization and monitoring capabilities.
   <em>Real-time browser automation dashboard with hierarchical planning visualization</em>
 </div>
 
-Experience intelligent browser automation through our modern React-based
-dashboard featuring:
 
 - **Live Execution Monitoring** - Watch your automation tasks execute in
   real-time
