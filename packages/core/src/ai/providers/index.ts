@@ -1,4 +1,4 @@
 // AI providers exports
+export * from './ollama';
 export * from './provider.interface';
-export { OllamaProvider } from './ollama.provider';
 
