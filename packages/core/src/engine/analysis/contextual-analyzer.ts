@@ -1,7 +1,8 @@
 import { StepContext } from './step-context';
 
 /**
- * Simple contextual analyzer that uses previous step knowledge to improve current step execution
+ * Generic contextual analyzer that uses previous step knowledge to improve current step execution
+ * Provides framework-agnostic selector adaptation and step improvement
  */
 export class ContextualStepAnalyzer {
 
@@ -108,41 +109,112 @@ export class ContextualStepAnalyzer {
     currentSelector: string,
     stepDescription: string
   ): string | null {
-    // Extract the pattern from successful selector
-    // e.g., input[name='custname'] -> look for input[name='custemail'] for email steps
+    const description = stepDescription.toLowerCase();
 
+    // For menu navigation, create flexible selectors
+    if (description.includes('menu') || description.includes('navigate')) {
+      const menuKeyword = this.extractKeywordFromDescription(stepDescription);
+      if (menuKeyword) {
+        return this.generateFlexibleSelector(menuKeyword, 'menu');
+      }
+    }
+
+    // For form fields, adapt based on input type patterns
     if (successfulSelector.includes('input[name=')) {
-      const description = stepDescription.toLowerCase();
-
-      // Map description keywords to likely field names
-      if (description.includes('email')) {
-        return successfulSelector.replace(/name='[^']*'/, "name='custemail'");
-      }
-      if (description.includes('phone') || description.includes('telephone')) {
-        return successfulSelector.replace(/name='[^']*'/, "name='custtel'");
-      }
-      if (description.includes('name') && !description.includes('email')) {
-        return successfulSelector.replace(/name='[^']*'/, "name='custname'");
-      }
-      if (description.includes('delivery') && description.includes('time')) {
-        return successfulSelector.replace(/name='[^']*'/, "name='delivery'");
-      }
-      if (description.includes('comment') || description.includes('instruction')) {
-        return 'textarea[name="comments"]';
-      }
+      return this.adaptFormFieldSelector(successfulSelector, description);
     }
 
-    // For radio buttons and checkboxes, look for value patterns
-    if (successfulSelector.includes('input[') && stepDescription.includes('medium')) {
-      return 'input[name="size"][value="medium"]';
-    }
-    if (successfulSelector.includes('input[') && stepDescription.includes('bacon')) {
-      return 'input[name="topping"][value="bacon"]';
-    }
-    if (successfulSelector.includes('input[') && stepDescription.includes('cheese')) {
-      return 'input[name="topping"][value="cheese"]';
+    // For buttons and interactive elements
+    if (successfulSelector.includes('button') || successfulSelector.includes('click')) {
+      return this.adaptButtonSelector(successfulSelector, description);
     }
 
+    return null;
+  }
+
+  /**
+   * Generate flexible selector for any element type
+   */
+  private generateFlexibleSelector(keyword: string, elementType: string): string {
+    const capitalizedKeyword = keyword.charAt(0).toUpperCase() + keyword.slice(1);
+    
+    // Generic selectors that work across different UI frameworks
+    const selectors = [
+      `text="${capitalizedKeyword}"`,
+      `[aria-label*="${keyword}"]`,
+      `[title*="${keyword}"]`,
+      `[data-testid*="${keyword}"]`,
+      `[class*="${keyword}"]`,
+      `[id*="${keyword}"]`,
+      `a[href*="${keyword}"]`,
+      `button:has-text("${capitalizedKeyword}")`,
+      `span:has-text("${capitalizedKeyword}")`,
+      `div:has-text("${capitalizedKeyword}")`
+    ];
+
+    return selectors.join(', ');
+  }
+
+  /**
+   * Extract relevant keyword from step description
+   */
+  private extractKeywordFromDescription(description: string): string | null {
+    // Extract the main action word or object from description
+    const words = description.toLowerCase().split(' ');
+    
+    // Look for common UI keywords
+    const uiKeywords = ['menu', 'button', 'link', 'form', 'input', 'select', 'login', 'submit', 'save', 'cancel'];
+    
+    for (const word of words) {
+      if (uiKeywords.includes(word)) {
+        return word;
+      }
+    }
+    
+    // If no specific UI keyword, return the first meaningful word
+    const meaningfulWords = words.filter(word => word.length > 3 && !['the', 'and', 'for', 'with'].includes(word));
+    return meaningfulWords.length > 0 ? meaningfulWords[0] : null;
+  }
+
+  /**
+   * Adapt form field selectors based on description
+   */
+  private adaptFormFieldSelector(successfulSelector: string, description: string): string | null {
+    // Generic form field patterns
+    if (description.includes('email')) {
+      return 'input[type="email"], input[name*="email"], input[id*="email"]';
+    }
+    if (description.includes('password')) {
+      return 'input[type="password"], input[name*="password"], input[id*="password"]';
+    }
+    if (description.includes('name')) {
+      return 'input[name*="name"], input[id*="name"], input[placeholder*="name"]';
+    }
+    if (description.includes('phone')) {
+      return 'input[type="tel"], input[name*="phone"], input[name*="tel"], input[id*="phone"]';
+    }
+    if (description.includes('text') || description.includes('comment')) {
+      return 'textarea, input[type="text"], input[name*="comment"], input[name*="message"]';
+    }
+    
+    return null;
+  }
+
+  /**
+   * Adapt button selectors based on description
+   */
+  private adaptButtonSelector(successfulSelector: string, description: string): string | null {
+    // Generic button patterns
+    if (description.includes('submit') || description.includes('save')) {
+      return 'button[type="submit"], input[type="submit"], button:has-text("Submit"), button:has-text("Save")';
+    }
+    if (description.includes('cancel')) {
+      return 'button:has-text("Cancel"), a:has-text("Cancel"), [role="button"]:has-text("Cancel")';
+    }
+    if (description.includes('login') || description.includes('sign in')) {
+      return 'button:has-text("Login"), button:has-text("Sign"), input[type="submit"]';
+    }
+    
     return null;
   }
 }

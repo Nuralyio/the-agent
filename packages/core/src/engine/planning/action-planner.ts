@@ -201,10 +201,19 @@ Convert this to browser automation steps. Respond with ONLY valid JSON, no other
    * Parse AI response into structured format with robust error handling
    */
   private parseAIResponse(response: string): ParsedInstruction {
-    const trimmed = response.trim();
+    let trimmed = response.trim();
 
     try {
       console.log(`🔍 Parsing AI response: ${trimmed.length} chars`);
+
+      // Strip markdown code blocks if present
+      if (trimmed.startsWith('```json')) {
+        trimmed = trimmed.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+        console.log('🔧 Removed markdown code block wrapper');
+      } else if (trimmed.startsWith('```')) {
+        trimmed = trimmed.replace(/^```\s*/, '').replace(/\s*```$/, '');
+        console.log('🔧 Removed generic code block wrapper');
+      }
 
       // Try to fix common JSON issues before parsing
       let jsonString = trimmed;
@@ -351,7 +360,10 @@ Current page state:
 - URL: ${currentState.url}
 - Title: ${currentState.title}
 
-Please analyze the situation and provide an updated action plan that should work better with the current page state. Respond with ONLY valid JSON, no other text.`;
+Current page content (for accurate selector refinement):
+${currentState.content || 'No content available'}
+
+Please analyze the situation and the actual page HTML content above to provide an updated action plan with correct selectors based on what's actually on the page. Respond with ONLY valid JSON, no other text.`;
 
       const response = await this.aiEngine.generateText(adaptPrompt, systemPrompt);
       const adaptedInstruction = await this.parseAIResponse(response.content);

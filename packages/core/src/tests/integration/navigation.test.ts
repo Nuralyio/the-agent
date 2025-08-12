@@ -82,10 +82,10 @@ export class NavigationTest {
       await this.setup();
 
       await this.testSimpleNavigation();
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       await this.testDomainInference();
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       await this.testNavigationError();
 

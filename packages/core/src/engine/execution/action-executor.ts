@@ -1,11 +1,11 @@
-import { ActionStep, ActionType, BrowserManager, PageState } from '../../types';
 import { executionStream } from '../../streaming/execution-stream';
+import { ActionStep, ActionType, BrowserManager, PageState } from '../../types';
 
 /**
  * Handles the execution of individual action steps
  */
 export class ActionExecutor {
-  constructor(private browserManager: BrowserManager) {}
+  constructor(private browserManager: BrowserManager) { }
 
   /**
    * Execute a single action step
@@ -67,7 +67,7 @@ export class ActionExecutor {
     await page.waitForLoad();
 
     // Give a small additional delay to ensure content is fully rendered
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     // Stream page change event
     try {
@@ -176,7 +176,7 @@ export class ActionExecutor {
       const timeout = parseInt(step.value.toString());
       await new Promise(resolve => setTimeout(resolve, timeout));
     } else {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
     return { success: true };
   }
@@ -203,7 +203,7 @@ export class ActionExecutor {
 
     // Fallback: Extract from common content elements
     const contentSelectors = ['p', 'div', 'span', '.info', '.note', '.help'];
-    
+
     for (const selector of contentSelectors) {
       try {
         const elements = await page.findElements(selector);

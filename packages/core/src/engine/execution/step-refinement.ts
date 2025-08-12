@@ -69,12 +69,12 @@ export class StepRefinementManager {
           } else {
             console.log(`   ⚠️ No refinement found, will retry with same selector`);
             // Add a small delay before retry
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 100));
           }
         } catch (refinementError) {
           console.log(`   ⚠️ Refinement failed: ${refinementError instanceof Error ? refinementError.message : 'Unknown error'}`);
           // Add a delay before raw retry
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
       }
     }
@@ -188,12 +188,13 @@ export class StepRefinementManager {
         failedSelector: step.target?.selector || 'none',
         stepType: step.type,
         pageUrl: pageState.url,
-        pageTitle: pageState.title
+        pageTitle: pageState.title,
+        pageContent: pageState.content || 'No content available'
       });
 
       const refinedPlan = await this.actionPlanner.createActionPlan(refinementPrompt, {
         id: crypto.randomUUID(),
-        objective: 'Refine selector',
+        objective: 'Refine selector based on page content',
         constraints: [],
         variables: {},
         history: [],
@@ -327,7 +328,8 @@ export class StepRefinementManager {
       stepType: step.type,
       stepDescription: step.description,
       currentSelector: step.target?.selector || 'none',
-      pageUrl: pageState.url
+      pageUrl: pageState.url,
+      pageContent: pageState.content || 'No content available'
     });
   }
 }

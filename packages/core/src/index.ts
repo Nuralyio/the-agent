@@ -1,7 +1,9 @@
 import { BrowserAdapterRegistry } from './adapters/adapter-registry';
 import { AIEngine } from './ai/ai-engine';
-import { BrowserManagerImpl } from './managers/browser-manager';
 import { ActionEngine } from './engine/action-engine';
+import { UnifiedPlanner } from './engine/planning/unified-planner';
+import { BrowserManagerImpl } from './managers/browser-manager';
+import { executionStream } from './streaming/execution-stream';
 import {
   AIConfig,
   BrowserAdapter,
@@ -11,7 +13,6 @@ import {
   LaunchOptions,
   TaskResult
 } from './types';
-import { executionStream } from './streaming/execution-stream';
 
 /**
  * Main Browser Automation Framework class
@@ -78,7 +79,7 @@ export class BrowserAutomation {
     if (this.aiConfig && this.aiConfig.model) {
       console.log('🤖 Initializing AI engine with config:', this.aiConfig);
       this.aiEngine = new AIEngine();
-      
+
       // Use the provider specified in the config, fallback to 'ollama'
       const providerName = this.aiConfig.provider || 'ollama';
       this.aiEngine.addProvider(providerName, this.aiConfig as Required<AIConfig>);
@@ -287,7 +288,7 @@ export class BrowserAutomation {
     }
 
     // Add small delay for stability
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 100));
   }
 }
 
@@ -295,8 +296,9 @@ export class BrowserAutomation {
 export { BrowserAdapterRegistry } from './adapters/adapter-registry';
 export { PlaywrightAdapter } from './adapters/playwright/adapter';
 export { PuppeteerAdapter } from './adapters/puppeteer/adapter';
-export { ExecutionStream, executionStream } from './streaming/execution-stream';
 export { AIEngine } from './ai/ai-engine';
 export { ActionEngine } from './engine/action-engine';
+export { UnifiedPlanner } from './engine/planning/unified-planner';
+export { ExecutionStream, executionStream } from './streaming/execution-stream';
 export * from './types';
 

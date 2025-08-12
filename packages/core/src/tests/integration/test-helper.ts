@@ -84,14 +84,14 @@ export async function setupTestContext(): Promise<TestContext> {
  */
 export async function teardownTestContext(context: TestContext): Promise<void> {
   console.log('🧹 Cleaning up test context...');
-  
+
   try {
     // Close browser automation first
     await context.automation.close();
-    
+
     // Wait for browser processes to fully terminate
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     // Force any remaining cleanup
     if (context.automation && typeof (context.automation as any).forceCleanup === 'function') {
       await (context.automation as any).forceCleanup();
@@ -99,7 +99,7 @@ export async function teardownTestContext(context: TestContext): Promise<void> {
   } catch (error) {
     console.warn('Error during test context cleanup:', error);
   }
-  
+
   // Note: Test server is managed globally and will be stopped by test runner
 }
 
@@ -139,11 +139,11 @@ export async function executeTestInstruction(
   testName: string
 ): Promise<{ success: boolean; steps: any[] }> {
   console.log(`\n📋 ${testName}`);
-  
+
   // Replace httpbin URLs with local test server URLs for stability
   const testServer = getTestServer();
   const localInstruction = replaceHttpbinUrls(instruction, testServer);
-  
+
   console.log(`🤖 Instruction: "${localInstruction}"`);
   if (localInstruction !== instruction) {
     console.log(`🔄 Replaced external URLs with local test server`);
