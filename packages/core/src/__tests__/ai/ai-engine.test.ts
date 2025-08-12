@@ -88,7 +88,7 @@ describe('AIEngine', () => {
       };
 
       expect(() => aiEngine.addProvider('unsupported', config)).toThrow(
-        'Unsupported AI provider: unsupported. Only \'ollama\' is supported.'
+        'Unsupported AI provider: unsupported. Supported providers: \'ollama\', \'openai\'.'
       );
     });
   });
