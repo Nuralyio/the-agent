@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { runCommand, testCommand, configCommand } from './commands';
+import { runCommand, testCommand, configCommand, installCommand } from './commands';
 
 const program = new Command();
 
@@ -26,6 +26,8 @@ program
   .option('--ai-model <model>', 'AI model to use')
   .option('--ai-api-key <key>', 'AI API key')
   .option('--ai-base-url <url>', 'AI base URL')
+  .option('--install-browsers', 'automatically install browser dependencies if missing')
+  .option('--check-browsers', 'check browser installation status without running task')
   .action(runCommand);
 
 // Test command
@@ -58,6 +60,16 @@ program
       return configCommand(options);
     }
   });
+
+// Install command
+program
+  .command('install')
+  .description('Install browser dependencies')
+  .option('--playwright', 'install Playwright browsers')
+  .option('--puppeteer', 'install Puppeteer browser')
+  .option('--force', 'force reinstallation even if already installed')
+  .option('--check', 'only check installation status')
+  .action(installCommand);
 
 // Examples command
 program
@@ -94,12 +106,19 @@ Configuration:
   theagent config ai.provider openai
   theagent config ai.model gpt-4o
   theagent config ai.apiKey your-api-key
-  theagent config --get ai.provider
 
 AI Provider Usage:
   theagent run "take a screenshot" --ai-provider openai --ai-model gpt-4o
   theagent run "navigate to google" --ai-provider ollama --ai-model llama3.2
   theagent run "search for news" --ai-provider anthropic --ai-model claude-3-sonnet
+
+Browser Installation:
+  theagent install --check                    # Check browser status
+  theagent install --playwright               # Install Playwright browsers
+  theagent install --puppeteer                # Install Puppeteer browser
+  theagent install                             # Install all missing browsers
+  theagent run "task" --install-browsers       # Auto-install during task
+  theagent run "task" --check-browsers         # Check browsers before task
 
 Direct Usage:
   theagent run "navigate to https://example.com"

@@ -28,6 +28,8 @@ export interface RunOptions {
   aiModel?: string;
   aiApiKey?: string;
   aiBaseUrl?: string;
+  installBrowsers?: boolean;
+  checkBrowsers?: boolean;
 }
 
 export interface InitOptions {

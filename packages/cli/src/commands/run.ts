@@ -2,6 +2,7 @@ import { BrowserAutomation } from '@theagent/core';
 import { getBrowserType, formatDuration } from '../utils/browser';
 import { loadConfig } from '../utils/config';
 import { createLogger } from '../utils/logger';
+import { checkBrowserInstallations, autoInstallBrowsers, suggestBrowserInstallation } from '../utils/installer';
 import { RunOptions } from '../types';
 
 export async function runCommand(task: string, options: RunOptions) {
@@ -10,6 +11,44 @@ export async function runCommand(task: string, options: RunOptions) {
   try {
     // Load configuration
     const config = await loadConfig(options.config);
+    
+    const adapter = options.adapter || config.adapter;
+    
+    // Handle browser check option
+    if (options.checkBrowsers) {
+      logger.info('🔍 Checking browser installations...');
+      await suggestBrowserInstallation(adapter);
+      process.exit(0);
+      return;
+    }
+    
+    // Check and optionally install browsers
+    const status = await checkBrowserInstallations();
+    const needsInstallation = (adapter === 'playwright' && !status.playwright) || 
+                             (adapter === 'puppeteer' && !status.puppeteer);
+    
+    if (needsInstallation) {
+      if (options.installBrowsers) {
+        logger.info(`🔧 Auto-installing browsers for ${adapter}...`);
+        const installSuccess = await autoInstallBrowsers(adapter);
+        
+        if (!installSuccess) {
+          logger.error(`❌ Failed to install browsers for ${adapter}`);
+          await suggestBrowserInstallation(adapter);
+          process.exit(1);
+          return;
+        }
+        
+        logger.success(`✅ Browsers installed successfully for ${adapter}!`);
+      } else {
+        logger.warn(`⚠️  Browser dependencies missing for ${adapter}`);
+        await suggestBrowserInstallation(adapter);
+        logger.info('💡 Tip: Use --install-browsers to auto-install or run:');
+        logger.info(`   theagent install --${adapter}`);
+        process.exit(1);
+        return;
+      }
+    }
     
     // Override AI configuration with command-line options
     const aiConfig = {
