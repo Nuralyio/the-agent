@@ -65,7 +65,22 @@ real-time visualization and monitoring capabilities.
 - 🧪 **Unit Testing**: Comprehensive unit test coverage with CI/CD integration
 - 📦 **Monorepo Architecture**: Well-organized, modular codebase
 
-## 🏗️ Architecture
+## � Web Dashboard Preview
+
+<div align="center">
+  <img src="./assets/web-ui.png" alt="The Agent Web Dashboard" width="800"/>
+  <br/>
+  <em>Real-time browser automation dashboard with hierarchical planning visualization</em>
+</div>
+
+Experience intelligent browser automation through our modern React-based dashboard featuring:
+- **Live Execution Monitoring** - Watch your automation tasks execute in real-time
+- **Hierarchical Plan Visualization** - See complex tasks broken down into manageable sub-plans
+- **Action Detail Display** - View target selectors, action types, and execution values
+- **Browser Preview** - Live browser screenshots and page state
+- **Event Stream Integration** - Real-time status updates and progress tracking
+
+## �🏗️ Architecture
 
 This project is organized as a TypeScript monorepo with the following packages:
 
