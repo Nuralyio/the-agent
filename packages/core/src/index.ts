@@ -28,7 +28,6 @@ export class BrowserAutomation {
     this.browserManager = new BrowserManagerImpl();
     this.registry = this.browserManager.getRegistry();
 
-    // Default configuration
     this.config = {
       adapter: 'auto',
       browserType: BrowserType.CHROMIUM,
@@ -252,7 +251,6 @@ export class BrowserAutomation {
   private async executeBasicInstruction(instruction: string): Promise<void> {
     const lowerInstruction = instruction.toLowerCase();
 
-    // Simple pattern matching for basic commands
     if (lowerInstruction.includes('go to') || lowerInstruction.includes('navigate to')) {
       const urlMatch = instruction.match(/(?:go to|navigate to)\s+(.+)/i);
       if (urlMatch) {

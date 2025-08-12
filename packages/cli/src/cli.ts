@@ -52,33 +52,27 @@ program
 program
   .command('init')
   .description('Initialize a new automation project')
-  .action(() => {
-    console.log(chalk.blue('🔧 Initializing new automation project...'));
-    // TODO: Implement project initialization
-    console.log(chalk.green('✅ Project initialized'));
+  .action(async () => {
+    console.log('Feature coming soon!');
   });
 
 program
   .command('test')
   .description('Run automation tests')
-  .option('-w, --watch', 'watch mode')
-  .action(() => {
-    console.log(chalk.blue('🧪 Running tests...'));
-    // TODO: Implement test runner
-    console.log(chalk.green('✅ Tests completed'));
+  .action(async () => {
+    console.log('Feature coming soon!');
   });
 
 function getBrowserType(browser: string): BrowserType {
   switch (browser.toLowerCase()) {
     case 'chrome':
     case 'chromium':
+    case 'edge':
       return BrowserType.CHROMIUM;
     case 'firefox':
       return BrowserType.FIREFOX;
     case 'safari':
       return BrowserType.WEBKIT;
-    case 'edge':
-      return BrowserType.CHROMIUM;
     default:
       return BrowserType.CHROMIUM;
   }

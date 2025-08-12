@@ -31,7 +31,6 @@ export class BrowserAutomation {
     this.browserManager = new BrowserManagerImpl();
     this.registry = this.browserManager.getRegistry();
 
-    // Default configuration
     this.config = {
       adapter: 'auto',
       browserType: BrowserType.CHROMIUM,
@@ -144,8 +143,6 @@ export class BrowserAutomation {
    * Basic execution without AI (fallback)
    */
   private async basicExecute(instruction: string, options?: ExecutionOptions): Promise<TaskResult> {
-    // Implementation for basic execution without AI
-    // This would be a simplified version that handles basic commands
     throw new Error('Basic execution not implemented. Please configure AI support.');
   }
 

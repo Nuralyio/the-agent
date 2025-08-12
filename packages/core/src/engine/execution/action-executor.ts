@@ -173,11 +173,9 @@ export class ActionExecutor {
     if (step.condition && step.condition.timeout) {
       await new Promise(resolve => setTimeout(resolve, step.condition!.timeout!));
     } else if (step.value) {
-      // Support value-based timeout for AI-generated steps
       const timeout = parseInt(step.value.toString());
       await new Promise(resolve => setTimeout(resolve, timeout));
     } else {
-      // Default wait time
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
     return { success: true };
@@ -239,7 +237,6 @@ export class ActionExecutor {
     const page = await this.browserManager.getCurrentPage();
     if (!page) throw new Error('No active page');
 
-    // Simple scroll implementation
     await page.evaluate(() => {
       window.scrollBy(0, 500); // Scroll down 500px
     });

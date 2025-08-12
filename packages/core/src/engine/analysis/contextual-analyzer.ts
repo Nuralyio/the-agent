@@ -6,7 +6,6 @@ import { StepContext } from './step-context';
 export class ContextualStepAnalyzer {
 
   constructor() {
-    // Simple implementation without complex dependencies
   }
 
   /**

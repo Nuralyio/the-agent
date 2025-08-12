@@ -14,7 +14,6 @@ export function createApp(): express.Application {
     // CORS middleware
     app.use(corsMiddleware);
 
-    // Basic middleware
     app.use(basicMiddleware);
 
     // Routes
