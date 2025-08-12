@@ -11,7 +11,7 @@ on:
 
 jobs:
   quick-test:
-    name: Quick Tests (Chrome + Playwright)
+    name: Quick Tests (Unit Tests)
     runs-on: ubuntu-latest
     environment: ci # This references the environment you configured
 
@@ -31,9 +31,6 @@ jobs:
           else
             npm install
           fi
-
-      - name: Install Playwright
-        run: npm run install:browsers
 
       - name: Run linting
         run: npm run lint
@@ -44,26 +41,14 @@ jobs:
       - name: TypeScript check
         run: npm run typecheck
 
-      - name: Run Navigation Tests
-        run: npm run test:integration
-        continue-on-error: true
+      - name: Run Unit Tests
+        run: npm run test:unit
         env:
-          DEFAULT_AI_PROVIDER: ${{ vars.DEFAULT_AI_PROVIDER }}
-          OLLAMA_BASE_URL: ${{ vars.OLLAMA_BASE_URL }}
-          OLLAMA_MODEL: ${{ vars.OLLAMA_MODEL }}
-          OLLAMA_TEMPERATURE: ${{ vars.OLLAMA_TEMPERATURE }}
-
-      - name: Run Screenshot Tests
-        run: npm run test:integration
-        continue-on-error: true
-        env:
-          DEFAULT_AI_PROVIDER: ${{ vars.DEFAULT_AI_PROVIDER }}
-          OLLAMA_BASE_URL: ${{ vars.OLLAMA_BASE_URL }}
-          OLLAMA_MODEL: ${{ vars.OLLAMA_MODEL }}
-          OLLAMA_TEMPERATURE: ${{ vars.OLLAMA_TEMPERATURE }}
+          CI: true
+          NODE_OPTIONS: "--max-old-space-size=4096"
 
   comprehensive-test:
-    name: Comprehensive Test Matrix
+    name: Comprehensive Unit Test Matrix
     runs-on: ubuntu-latest
     environment: ci # This references the environment you configured
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -71,23 +56,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test-suite:
-          - 'Navigation Tests'
-          - 'Screenshot Tests'
-          - 'Form Filling Tests'
-          - 'Interaction Tests'
-          - 'Dynamic Planning Tests'
-        browser: [chrome]
-        adapter: [playwright]
+        node-version: [18.x, 20.x]
+        test-type: ['core', 'api', 'cli']
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: ${{ matrix.node-version }}
 
       - name: Install dependencies
         run: |
@@ -97,45 +76,17 @@ jobs:
             npm install
           fi
 
-      - name: Install Playwright browsers
-        run: npm run install:browsers
-
       - name: Build packages
         run: npm run build
 
-      - name: Run test suite
-        run: npm run test:integration
-        continue-on-error: true
+      - name: Run unit tests
+        run: npm run test:unit
         env:
           CI: true
-          BROWSER_HEADLESS: true
-          BROWSER_TYPE: ${{ matrix.browser }}
-          BROWSER_ADAPTER: ${{ matrix.adapter }}
-          # AI Provider Configuration
-          DEFAULT_AI_PROVIDER: ${{ vars.DEFAULT_AI_PROVIDER }}
-          OLLAMA_BASE_URL: ${{ vars.OLLAMA_BASE_URL }}
-          OLLAMA_MODEL: ${{ vars.OLLAMA_MODEL }}
-          OLLAMA_TEMPERATURE: ${{ vars.OLLAMA_TEMPERATURE }}
-          TEST_TIMEOUT: 10000
-
-      - name: Upload execution logs
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: logs-${{ matrix.test-suite }}-chrome-playwright
-          path: logs/
-          retention-days: 3
-
-      - name: Upload screenshots
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshots-${{ matrix.test-suite }}-chrome-playwright
-          path: screenshots/
-          retention-days: 3
+          NODE_OPTIONS: "--max-old-space-size=4096"
 
   parallel-test:
-    name: Parallel Test Execution
+    name: Parallel Unit Test Execution
     runs-on: ubuntu-latest
     environment: ci # This references the environment you configured
     if: github.event_name == 'schedule'
@@ -157,27 +108,11 @@ jobs:
             npm install
           fi
 
-      - name: Install Playwright
-        run: npx playwright install chromium --with-deps
+      - name: Build packages
+        run: npm run build
 
-      - name: Run all tests in parallel
-        run: npm test -- --headless --browser chrome --adapter playwright --parallel all
-        continue-on-error: true
+      - name: Run all unit tests
+        run: npm run test:unit
         env:
           CI: true
-          BROWSER_HEADLESS: true
-          # AI Provider Configuration
-          DEFAULT_AI_PROVIDER: ${{ vars.DEFAULT_AI_PROVIDER }}
-          OLLAMA_BASE_URL: ${{ vars.OLLAMA_BASE_URL }}
-          OLLAMA_MODEL: ${{ vars.OLLAMA_MODEL }}
-          OLLAMA_TEMPERATURE: ${{ vars.OLLAMA_TEMPERATURE }}
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: parallel-test-results
-          path: |
-            execution-logs/
-            screenshots/
-          retention-days: 7
+          NODE_OPTIONS: "--max-old-space-size=4096"

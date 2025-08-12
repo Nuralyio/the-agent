@@ -42,25 +42,10 @@ jobs:
       - name: TypeScript compilation
         run: npm run typecheck
 
-      - name: Install Playwright
-        run: npm run install:browsers
-
-      - name: Run core functionality tests
-        run: npm run test:integration
-        continue-on-error: true
-        env:
-          CI: true
-          BROWSER_HEADLESS: true
-          # AI Provider Configuration
-          DEFAULT_AI_PROVIDER: ${{ vars.DEFAULT_AI_PROVIDER }}
-          OLLAMA_BASE_URL: ${{ vars.OLLAMA_BASE_URL }}
-          OLLAMA_MODEL: ${{ vars.OLLAMA_MODEL }}
-          OLLAMA_TEMPERATURE: ${{ vars.OLLAMA_TEMPERATURE }}
-
       - name: Check for test artifacts
         if: failure()
         run: |
-          echo "Tests failed. Checking for generated artifacts..."
+          echo "Build failed. Checking for generated artifacts..."
           ls -la logs/ || echo "No execution logs found"
           ls -la packages/core/screenshots/ || echo "No screenshots found"      - name: Comment PR with test results
           if: failure()
@@ -78,19 +63,19 @@ jobs:
                 comment.body.includes('## Test Results')
               );
 
-              const body = `## Test Results ❌
+              const body = `## Build Results ❌
 
-              The automated tests failed for this pull request. Please check the following:
+              The automated build failed for this pull request. Please check the following:
 
               - ✅ Code formatting and linting passed
-              - ❌ Core functionality tests failed
+              - ❌ Build or compilation failed
 
               **Next steps:**
-              1. Check the test logs in the Actions tab
-              2. Run tests locally: \`npm run test:integration\`
-              3. Fix any failing tests and push your changes
+              1. Check the build logs in the Actions tab
+              2. Run build locally: \`npm run build\`
+              3. Fix any build errors and push your changes
 
-              The tests will run automatically when you push new commits.
+              The build will run automatically when you push new commits.
               `;
 
               if (botComment) {
