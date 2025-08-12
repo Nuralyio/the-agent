@@ -118,13 +118,13 @@ export class ScreenshotTest {
       await this.setup();
 
       await this.testBasicScreenshot();
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       await this.testScreenshotWithFilename();
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       await this.testScreenshotWithScroll();
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       await this.testWaitThenScreenshot();
 

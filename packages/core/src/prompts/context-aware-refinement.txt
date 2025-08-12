@@ -1,4 +1,4 @@
-CONTEXT-AWARE STEP REFINEMENT
+CONTEXT-AWARE STEP REFINEMENT WITH PAGE CONTENT
 
 Previous steps (recent):
 {recentSteps}
@@ -13,7 +13,16 @@ Current step to refine:
 
 Current page: {pageUrl}
 
-Based on previous successful actions and patterns, provide the BEST CSS selector for this step.
-Prefer selectors that have worked before or follow similar successful patterns.
+Current page content (analyze for correct selectors):
+{pageContent}
 
-Respond with ONLY a JSON object with the refined step.
+Based on previous successful actions, patterns, and the actual page HTML content above, provide the BEST CSS selector for this step.
+
+CRITICAL REFINEMENT STRATEGY:
+1. First, look at successful selectors from previous steps that might apply
+2. Then, analyze the actual page HTML content to find the right element
+3. If looking for "Add" functionality and current selector is `a[href*="addCandidate"]`, check for `button.oxd-button` with "Add" text
+4. Use actual class names from the page content like `oxd-button`, `oxd-button--secondary`
+5. Prefer selectors that combine successful patterns with actual page elements
+
+Respond with ONLY a JSON object with the refined step using a selector based on successful patterns and actual page content.

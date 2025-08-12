@@ -1,4 +1,4 @@
-SELECTOR REFINEMENT WITH ERROR CONTEXT
+SELECTOR REFINEMENT WITH ERROR CONTEXT AND PAGE CONTENT
 
 Failed step: {stepDescription}
 Failed selector: {failedSelector}
@@ -7,8 +7,19 @@ Step type: {stepType}
 Current page URL: {pageUrl}
 Current page title: {pageTitle}
 
-The selector failed to find elements after multiple attempts. Analyze the page content and provide a better selector.
+Current page content (analyze this to find correct selectors):
+{pageContent}
+
+The selector "{failedSelector}" failed to find elements after multiple attempts. 
+Analyze the actual page HTML content above to provide a better selector that targets the right element.
+
+CRITICAL REFINEMENT RULES:
+1. Look at the actual HTML structure in the page content
+2. If looking for "Add" functionality and the failed selector was `a[href*="addCandidate"]`, check for `button` elements with "Add" text
+3. Use actual class names from the page content like `oxd-button`, `oxd-button--secondary`
+4. Don't make assumptions about element types - use what's actually on the page
+5. Generate new selectors based on visible HTML attributes and classes
 
 Focus on finding elements that match the intent: "{stepDescription}"
 
-Respond with ONLY a JSON object with the refined step.
+Respond with ONLY a JSON object with the refined step using a selector based on the actual page content.

@@ -5,11 +5,12 @@ import {
   ActionEngine as IActionEngine,
   PageState,
   TaskContext,
-  TaskResult
+  TaskResult,
+  HierarchicalPlan
 } from '../types';
 import { ExecutionLogger } from '../utils/execution-logger';
 import { executionStream } from '../streaming/execution-stream';
-import { ActionPlanner } from './planning/action-planner';
+import { UnifiedPlanner } from './planning/unified-planner';
 import { ContextualStepAnalyzer } from './analysis/contextual-analyzer';
 import { StepContextManager } from './analysis/step-context';
 import { ActionExecutor } from './execution/action-executor';
@@ -19,10 +20,22 @@ import { PlanExecutionManager } from './execution/plan-execution-manager';
 
 /**
  * Core ActionEngine implementation that orchestrates task execution
+ * 
+ * PLANNING ARCHITECTURE:
+ * - Uses UnifiedPlanner for ALL task execution (hierarchical planning by default)
+ * - No more planning decision logic - hierarchical is always used
+ * - Consistent behavior across all interfaces (API, MCP, CLI, Direct)
+ * 
+ * EXECUTION FLOW:
+ * 1. Receive natural language instruction
+ * 2. Capture current page state for context
+ * 3. Use UnifiedPlanner.planAndExecute() for hierarchical planning and execution
+ * 4. Handle navigation-aware tasks through NavigationHandler when needed
+ * 5. Return structured results with logging and streaming
  */
 export class ActionEngine implements IActionEngine {
   private browserManager: BrowserManager;
-  private actionPlanner: ActionPlanner;
+  private unifiedPlanner: UnifiedPlanner;
   private aiEngine: AIEngine;
   private stepContextManager: StepContextManager;
   private contextualAnalyzer?: ContextualStepAnalyzer;
@@ -39,7 +52,7 @@ export class ActionEngine implements IActionEngine {
   ) {
     this.browserManager = browserManager;
     this.aiEngine = aiEngine;
-    this.actionPlanner = new ActionPlanner(aiEngine);
+    this.unifiedPlanner = new UnifiedPlanner(aiEngine);
     this.stepContextManager = new StepContextManager();
 
     // Initialize contextual analyzer
@@ -53,14 +66,14 @@ export class ActionEngine implements IActionEngine {
     // Initialize execution modules
     this.actionExecutor = new ActionExecutor(browserManager);
     this.stepRefinementManager = new StepRefinementManager(
-      this.actionPlanner,
+      this.unifiedPlanner.getActionPlanner(),
       this.stepContextManager,
       this.contextualAnalyzer
     );
-    this.navigationHandler = new NavigationHandler(this.actionPlanner, aiEngine);
+    this.navigationHandler = new NavigationHandler(this.unifiedPlanner.getActionPlanner(), aiEngine);
     this.planExecutionManager = new PlanExecutionManager(
       browserManager,
-      this.actionPlanner,
+      this.unifiedPlanner.getActionPlanner(),
       this.stepContextManager,
       this.actionExecutor,
       this.stepRefinementManager
@@ -94,25 +107,10 @@ export class ActionEngine implements IActionEngine {
         );
       }
 
-      // 1. Parse the instruction into actionable steps
-      const actionPlan = await this.parseInstruction(objective);
-      console.log(`📋 Generated ${actionPlan.steps.length} steps`);
+      // Use UnifiedPlanner for all tasks (hierarchical planning by default)
+      console.log(`🧠 Using UnifiedPlanner with hierarchical planning (always default)`);
+      return await this.executeWithUnifiedPlanning(objective, context, logger);
 
-      // Stream the plan creation with total step count and step details
-      executionStream.streamPlanCreated(actionPlan.steps.length, actionPlan.steps);
-
-      // 2. Execute the action plan with logging
-      const result = await this.planExecutionManager.executeActionPlan(actionPlan, logger);
-
-      // 3. Finalize logging
-      const logPath = logger.finishSession(result.success);
-
-      console.log(`📋 Complete execution log saved to: ${logPath}`);
-
-      // Stream execution completion
-      executionStream.streamExecutionComplete();
-
-      return result;
     } catch (error) {
       console.error('❌ Task execution failed:', error);
 
@@ -137,7 +135,77 @@ export class ActionEngine implements IActionEngine {
   }
 
   /**
+   * Execute task using UnifiedPlanner (always hierarchical planning)
+   */
+  private async executeWithUnifiedPlanning(
+    objective: string, 
+    context?: TaskContext, 
+    logger?: ExecutionLogger
+  ): Promise<TaskResult> {
+    try {
+      // Capture current page state for context
+      let pageState: PageState | undefined = undefined;
+      try {
+        pageState = await this.actionExecutor.captureState();
+      } catch (error) {
+        console.log('� No active page available for context, proceeding with hierarchical planning');
+      }
+
+      // Create context from page state (or empty context if no page)
+      const taskContext: TaskContext = context || {
+        id: 'task-' + Date.now(),
+        objective: objective,
+        constraints: [],
+        variables: {},
+        history: [],
+        currentState: pageState || {
+          url: '',
+          title: '',
+          content: '',
+          screenshot: Buffer.alloc(0),
+          timestamp: Date.now(),
+          viewport: { width: 1280, height: 720 },
+          elements: []
+        },
+        url: pageState?.url || '',
+        pageTitle: pageState?.title || ''
+      };
+
+      // 1. Use UnifiedPlanner for end-to-end planning and execution
+      console.log(`🧠 UnifiedPlanner: Creating and executing hierarchical plan`);
+      const result = await this.unifiedPlanner.planAndExecute(
+        objective,
+        taskContext,
+        (plan: ActionPlan) => this.planExecutionManager.executeActionPlan(plan, logger)
+      );
+
+      // 2. Finalize logging
+      if (logger) {
+        const logPath = logger.finishSession(result.success);
+        console.log(`📋 Complete execution log saved to: ${logPath}`);
+      }
+
+      // Stream execution completion
+      executionStream.streamExecutionComplete();
+
+      return {
+        success: result.success,
+        steps: result.results?.flatMap((r: any) => r.steps || []) || [],
+        extractedData: null,
+        screenshots: result.results?.flatMap((r: any) => r.screenshots || []) || [],
+        duration: Date.now() - Date.now(),
+        hierarchicalPlan: result.plan
+      };
+
+    } catch (error) {
+      console.error('❌ UnifiedPlanner execution failed:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Parse natural language instruction into structured action plan
+   * Uses UnifiedPlanner for consistent hierarchical planning
    */
   async parseInstruction(instruction: string): Promise<ActionPlan> {
     // Try to capture current page state for context, but handle case where no page is loaded
@@ -168,8 +236,8 @@ export class ActionEngine implements IActionEngine {
       pageTitle: pageState?.title || ''
     };
 
-    // Use the AI-powered planner to generate steps with current page content
-    const actionPlan = await this.actionPlanner.createActionPlan(instruction, context, pageState);
+    // Use the UnifiedPlanner to generate action plan with current page content
+    const actionPlan = await this.unifiedPlanner.createActionPlan(instruction, context);
 
     return actionPlan;
   }
