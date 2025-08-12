@@ -1,102 +1,125 @@
-import { ChatOllama } from '@langchain/ollama';
-import { OutputFixingParser, StructuredOutputParser } from 'langchain/output_parsers';
-import { AIConfig, AIResponse } from '../ai-engine';
-import { BrowserActionSchema } from '../schemas/browser-action.schema';
+import { StructuredOutputParser } from 'langchain/output_parsers';
+import { z } from 'zod';
+import { AIProvider, AIResponse } from '../ai-engine';
 
 /**
- * Utility for generating structured JSON responses using LangChain
+ * Generic utility for generating structured JSON responses
+ * Works with any AI provider that implements the AIProvider interface
  */
 export class StructuredOutputUtil {
-  private model: ChatOllama;
   private parser: StructuredOutputParser<any>;
-  private outputFixingParser: OutputFixingParser<any>;
 
-  constructor(config: AIConfig) {
-    // Create the LangChain ChatOllama instance
-    this.model = new ChatOllama({
-      model: config.model,
-      baseUrl: config.baseUrl || 'http://localhost:11434',
-      temperature: config.temperature || 0.7,
-      ...(config.maxTokens && {
-        numPredict: config.maxTokens
-      })
-    });
-
-    // Create structured output parser with explicit type handling
-    this.parser = StructuredOutputParser.fromZodSchema(BrowserActionSchema as any);
-
-    // Create output fixing parser as fallback
-    this.outputFixingParser = OutputFixingParser.fromLLM(this.model, this.parser);
+  constructor(private schema: z.ZodType<any>) {
+    // Create structured output parser with the provided schema
+    this.parser = StructuredOutputParser.fromZodSchema(schema as any);
   }
 
   /**
-   * Generate structured JSON response using LangChain with structured output parsing
+   * Generate structured JSON response using the provided AI provider
    */
-  async generateStructuredJSON(prompt: string, systemPrompt?: string): Promise<AIResponse> {
+  async generateStructuredJSON(
+    provider: AIProvider,
+    prompt: string, 
+    systemPrompt?: string
+  ): Promise<AIResponse> {
+    // Get format instructions from the schema
+    const formatInstructions = this.parser.getFormatInstructions();
+
+    // Combine system prompt with format instructions
+    const enhancedSystemPrompt = systemPrompt
+      ? `${systemPrompt}\n\n${formatInstructions}`
+      : formatInstructions;
+
+    // Enhance the prompt with format requirements
+    const enhancedPrompt = `${prompt}\n\n${formatInstructions}`;
+
     try {
-      // Get format instructions
-      const formatInstructions = this.parser.getFormatInstructions();
-
-      // Combine system prompt with format instructions
-      const enhancedSystemPrompt = systemPrompt
-        ? `${systemPrompt}\n\n${formatInstructions}`
-        : formatInstructions;
-
-      // Enhance the prompt with format requirements
-      const enhancedPrompt = `${prompt}\n\n${formatInstructions}`;
-
-      // Generate response using LangChain
-      const response = await this.model.invoke([
-        { role: 'system', content: enhancedSystemPrompt },
-        { role: 'user', content: enhancedPrompt }
-      ]);
-
-      // Parse the structured output
+      // Use the provider's generateText method
+      const response = await provider.generateText(enhancedPrompt, enhancedSystemPrompt);
+      
+      // Try to parse the structured output
       try {
-        const parsedOutput = await this.parser.parse(response.content as string);
+        const parsedOutput = await this.parser.parse(response.content);
         return this.createSuccessResponse(parsedOutput);
       } catch (parseError) {
-        // Try with output fixing parser
-        try {
-          const fixedOutput = await this.outputFixingParser.parse(response.content as string);
-          return this.createSuccessResponse(fixedOutput);
-        } catch (fixError) {
-          // Return fallback response with enhanced prompting instructions
-          return this.createFallbackResponse(prompt, systemPrompt);
-        }
+        // If parsing fails, try with fallback enhanced prompting
+        return this.generateWithFallback(provider, prompt, systemPrompt);
       }
     } catch (error) {
-      // Return fallback response with enhanced prompting instructions
-      return this.createFallbackResponse(prompt, systemPrompt);
+      // If generation fails, try with fallback enhanced prompting
+      return this.generateWithFallback(provider, prompt, systemPrompt);
     }
   }
 
   /**
-   * Create success response from parsed output
+   * Get format instructions for the schema
    */
+  getFormatInstructions(): string {
+    return this.parser.getFormatInstructions();
+  }
+
+  /**
+   * Parse a string response into the structured format
+   */
+  async parseResponse(responseContent: string): Promise<any> {
+    return this.parser.parse(responseContent);
+  }
+
+  /**
+   * Validate that an object matches the schema
+   */
+  validateStructure(data: any): boolean {
+    try {
+      this.schema.parse(data);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Private helper methods
+   */
+
+  private async generateWithFallback(
+    provider: AIProvider,
+    prompt: string, 
+    systemPrompt?: string
+  ): Promise<AIResponse> {
+    const enhancedSystemPrompt = systemPrompt
+      ? `${systemPrompt}\n\nCRITICAL: You MUST respond with ONLY valid JSON. No markdown formatting, no code blocks, no comments, no explanations. Only raw JSON that can be parsed directly.`
+      : 'CRITICAL: You MUST respond with ONLY valid JSON. No markdown formatting, no code blocks, no comments, no explanations. Only raw JSON that can be parsed directly.';
+
+    const enhancedPrompt = `${prompt}\n\nRemember: Respond with ONLY valid JSON that matches the required schema.`;
+
+    return provider.generateText(enhancedPrompt, enhancedSystemPrompt);
+  }
+
   private createSuccessResponse(parsedOutput: any): AIResponse {
     return {
       content: JSON.stringify(parsedOutput, null, 2),
       finishReason: 'stop',
       usage: {
-        promptTokens: 0, // Ollama doesn't provide token counts
+        promptTokens: 0, // Provider-specific token counts would be handled by the provider
         completionTokens: 0,
         totalTokens: 0
       }
     };
   }
+}
 
-  /**
-   * Create fallback response with enhanced prompting
-   */
-  private createFallbackResponse(prompt: string, systemPrompt?: string): AIResponse {
-    const enhancedSystemPrompt = systemPrompt
-      ? `${systemPrompt}\n\nCRITICAL: You MUST respond with ONLY valid JSON. No markdown formatting, no code blocks, no comments, no explanations. Only raw JSON that can be parsed directly.`
-      : 'CRITICAL: You MUST respond with ONLY valid JSON. No markdown formatting, no code blocks, no comments, no explanations. Only raw JSON that can be parsed directly.';
+/**
+ * Factory function to create a StructuredOutputUtil with a specific schema
+ */
+export function createStructuredOutputUtil<T>(schema: z.ZodType<T>): StructuredOutputUtil {
+  return new StructuredOutputUtil(schema);
+}
 
-    const enhancedPrompt = `${prompt}\n\nRemember: Respond with ONLY valid JSON. Example format: {"action": "click", "selector": "#button", "reasoning": "Need to click the submit button"}`;
-
-    // This would be handled by the provider's generateText method
-    throw new Error('Fallback to generateText - this should be caught by the provider');
-  }
+/**
+ * Helper function to create a browser action structured output utility
+ */
+export function createBrowserActionStructuredUtil(): StructuredOutputUtil {
+  // Import the schema here to avoid circular dependencies
+  const { BrowserActionSchema } = require('../schemas/browser-action.schema');
+  return new StructuredOutputUtil(BrowserActionSchema);
 }
