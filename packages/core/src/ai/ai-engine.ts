@@ -1,6 +1,7 @@
 import { ActionStep, ActionType } from '../engine/types';
 import { PromptTemplate } from '../prompt-template';
 import { PageState } from '../types';
+import { OllamaProvider } from './providers';
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -17,7 +18,6 @@ export interface AIResponse {
   };
 }
 
-import { OllamaProvider } from './providers';
 
 /**
  * AI Configuration for providers
