@@ -1,28 +1,43 @@
 import React from 'react';
-import { List20Regular } from '@fluentui/react-icons';
-import type { ExecutionStep } from '../../Dashboard.types';
+import { List20Regular, OrganizationRegular } from '@fluentui/react-icons';
+import type { ExecutionStep, HierarchicalPlan } from '../../Dashboard.types';
 import { styles } from '../../Dashboard.styles';
 import { formatTime } from '../../utils/formatting';
+import { HierarchicalPlanDisplay } from '../HierarchicalPlanDisplay';
 
 interface ExecutionPlanProps {
   currentPlan: ExecutionStep[];
+  currentHierarchicalPlan?: HierarchicalPlan | null;
   handleStepClick: (stepIndex: number, step: ExecutionStep) => void;
 }
 
 export const ExecutionPlan: React.FC<ExecutionPlanProps> = ({
   currentPlan,
+  currentHierarchicalPlan,
   handleStepClick,
 }) => {
   return (
     <div style={styles.executionPlanSection}>
       <div style={styles.executionPlanHeader}>
         <h3 style={styles.executionPlanTitle}>
-          <List20Regular style={{ marginRight: '8px', verticalAlign: 'middle' }} />
-          Execution Plan
+          {currentHierarchicalPlan ? (
+            <OrganizationRegular style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+          ) : (
+            <List20Regular style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+          )}
+          {currentHierarchicalPlan ? 'Hierarchical Execution Plan' : 'Execution Plan'}
         </h3>
       </div>
       <div style={styles.executionPlanContent}>
-        {currentPlan.length > 0 ? (
+        {currentHierarchicalPlan ? (
+          <HierarchicalPlanDisplay
+            hierarchicalPlan={currentHierarchicalPlan}
+            onSubPlanClick={(subPlanIndex, subPlan) => {
+              // Handle sub-plan click if needed
+              console.log('Sub-plan clicked:', subPlanIndex, subPlan);
+            }}
+          />
+        ) : currentPlan.length > 0 ? (
           <div>
             {currentPlan.map((step, index) => (
               <div
@@ -58,6 +73,65 @@ export const ExecutionPlan: React.FC<ExecutionPlanProps> = ({
                   </div>
                 </div>
                 <div style={styles.planStepDescription}>{step.description}</div>
+                {/* Action details display */}
+                {step.actionType && (
+                  <div style={{
+                    marginTop: '8px',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '6px',
+                    alignItems: 'center',
+                  }}>
+                    <span style={{
+                      fontSize: '11px',
+                      fontWeight: '500',
+                      backgroundColor: '#374151',
+                      color: '#f3f4f6',
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      border: '1px solid #4b5563',
+                    }}>
+                      {step.actionType.toUpperCase()}
+                    </span>
+                    {step.target?.description && (
+                      <span style={{
+                        fontSize: '11px',
+                        backgroundColor: '#1e3a8a',
+                        color: '#93c5fd',
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        border: '1px solid #3b82f6',
+                      }}>
+                        🎯 {step.target.description}
+                      </span>
+                    )}
+                    {step.value && (
+                      <span style={{
+                        fontSize: '11px',
+                        backgroundColor: '#166534',
+                        color: '#86efac',
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        border: '1px solid #16a34a',
+                      }}>
+                        💬 "{step.value}"
+                      </span>
+                    )}
+                    {step.target?.selector && (
+                      <span style={{
+                        fontSize: '10px',
+                        backgroundColor: '#713f12',
+                        color: '#fbbf24',
+                        padding: '2px 6px',
+                        borderRadius: '3px',
+                        border: '1px solid #a16207',
+                        fontFamily: 'monospace',
+                      }}>
+                        {step.target.selector}
+                      </span>
+                    )}
+                  </div>
+                )}
                 {step.timestamp && (
                   <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
                     {formatTime(step.timestamp)}

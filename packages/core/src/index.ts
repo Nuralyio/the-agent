@@ -98,20 +98,14 @@ export class BrowserAutomation {
       await this.initialize();
     }
 
+    console.log(`📝 Using BrowserAutomation.execute() for instruction: "${instruction}"`);
+
     // If we have an ActionEngine (AI is configured), use it for intelligent planning
     if (this.actionEngine) {
-      console.log('🎯 Using ActionEngine for intelligent task planning');
+      console.log('🎯 Using ActionEngine with hierarchical planning (unified approach)');
       try {
-        // Parse the instruction into an action plan
-        const plan = await this.actionEngine.parseInstruction(instruction);
-        console.log('📋 Generated action plan with', plan.steps.length, 'steps');
-
-        // Stream plan creation event with the actual steps
-        executionStream.streamPlanCreated(plan.steps.length, plan.steps);
-
-        // Execute the action plan
-        const result = await this.actionEngine.executeActionPlan(plan);
-        return result;
+        // Use executeTask for hierarchical planning (same as executeTask method)
+        return await this.actionEngine.executeTask(instruction);
       } catch (error) {
         console.error('❌ AI execution failed, falling back to basic execution:', error);
         // Fall through to basic execution
@@ -142,12 +136,15 @@ export class BrowserAutomation {
   }
 
   /**
-   * Execute a task using the smart ActionEngine (same as tests)
-   * This provides navigation-aware planning and better form field detection
+   * Execute a task using the smart ActionEngine (same as execute())
+   * This method is identical to execute() - both use hierarchical planning
+   * Kept for backward compatibility with existing code
    */
   async executeTask(instruction: string): Promise<TaskResult> {
     if (this.actionEngine) {
       console.log('🎯 Using ActionEngine.executeTask for intelligent task planning');
+      console.log('🧠 ActionEngine will use UnifiedPlanner for hierarchical planning');
+      console.log(`📝 Task instruction: "${instruction}"`);
       return await this.actionEngine.executeTask(instruction);
     } else {
       console.log('⚠️ No ActionEngine available, falling back to basic execute');

@@ -1,9 +1,9 @@
 import { BrowserAutomation } from '@theagent/core/dist/index';
-import { BrowserType } from '@theagent/core/dist/types';
 import { executionStream } from '@theagent/core/dist/streaming/execution-stream';
+import { BrowserType } from '@theagent/core/dist/types';
 import { v4 as uuidv4 } from 'uuid';
+import { ExecutionEvent, ExecutionStreamWithClients } from '../types';
 import { configService } from './config.service';
-import { ExecutionStreamWithClients, ExecutionEvent } from '../types';
 
 /**
  * Service for handling browser automation tasks

@@ -136,7 +136,8 @@ export function assert(condition: boolean, message: string): void {
 export async function executeTestInstruction(
   actionEngine: ActionEngine,
   instruction: string,
-  testName: string
+  testName: string,
+  automation?: BrowserAutomation
 ): Promise<{ success: boolean; steps: any[] }> {
   console.log(`\n📋 ${testName}`);
 
@@ -150,14 +151,27 @@ export async function executeTestInstruction(
   }
 
   try {
-    // Use executeTask which includes logging and screenshots
-    const result = await actionEngine.executeTask(localInstruction);
-    console.log(`${result.success ? '✅' : '❌'} Execution result: ${result.success ? 'Success' : 'Failed'}`);
+    // Use execute from automation instead of executeTask to see the difference in planning
+    if (automation) {
+      console.log(`🔄 Using BrowserAutomation.execute() instead of ActionEngine.executeTask()`);
+      const result = await automation.execute(localInstruction);
+      console.log(`${result.success ? '✅' : '❌'} Execution result: ${result.success ? 'Success' : 'Failed'}`);
 
-    return {
-      success: result.success,
-      steps: result.steps
-    };
+      return {
+        success: result.success,
+        steps: result.steps
+      };
+    } else {
+      // Fallback to executeTask if no automation instance provided
+      console.log(`🔄 Using ActionEngine.executeTask() (hierarchical planning)`);
+      const result = await actionEngine.executeTask(localInstruction);
+      console.log(`${result.success ? '✅' : '❌'} Execution result: ${result.success ? 'Success' : 'Failed'}`);
+
+      return {
+        success: result.success,
+        steps: result.steps
+      };
+    }
   } catch (error) {
     console.log(`❌ Failed to execute instruction: ${error}`);
     return {
