@@ -21,28 +21,15 @@ real-time visualization and monitoring capabilities.
 
 **Overall Progress: ~30%** �
 
-| Component | Completion | Status | Notes |
-|-----------|------------|--------|-------|
-| **Core Framework** | 40% | 🟡 Alpha | Multi-adapter support, basic AI integration |
-| **Browser Adapters** | 45% | 🟡 Alpha | Playwright, Puppeteer, Selenium - basic functionality |
-| **AI Integration** | 35% | 🟡 Alpha | Ollama, OpenAI, Mistral - early implementation |
-| **Web Dashboard** | 30% | 🟡 Alpha | Basic monitoring, hierarchical plans prototype |
-| **API Server** | 35% | 🟡 Alpha | REST API, WebSocket streaming - early stage |
-| **CLI Interface** | 25% | � Early Dev | Basic commands, limited functionality |
-| **MCP Server** | 20% | � Early Dev | Model Context Protocol - proof of concept |
-| **Hierarchical Planning** | 35% | 🟡 Alpha | Task decomposition - experimental feature |
-| **Action Engine** | 30% | 🟡 Alpha | Element interaction - basic implementation |
-| **Testing Framework** | 20% | � Early Dev | Limited unit tests, basic integration |
-| **Documentation** | 25% | � Early Dev | Basic API docs, setup instructions |
-| **Performance Optimization** | 10% | � Not Started | Planned for future releases |
-
 #### 🔄 In Progress (Alpha Development)
+
 - Core framework stabilization and testing
 - Basic error handling and recovery mechanisms
 - Essential documentation and setup guides
 - Fundamental feature implementation
 
 #### 🚀 Planned for Beta
+
 - Performance optimizations for real-world usage
 - Advanced scheduling and workflow management
 - Multi-session automation support
@@ -73,10 +60,15 @@ real-time visualization and monitoring capabilities.
   <em>Real-time browser automation dashboard with hierarchical planning visualization</em>
 </div>
 
-Experience intelligent browser automation through our modern React-based dashboard featuring:
-- **Live Execution Monitoring** - Watch your automation tasks execute in real-time
-- **Hierarchical Plan Visualization** - See complex tasks broken down into manageable sub-plans
-- **Action Detail Display** - View target selectors, action types, and execution values
+Experience intelligent browser automation through our modern React-based
+dashboard featuring:
+
+- **Live Execution Monitoring** - Watch your automation tasks execute in
+  real-time
+- **Hierarchical Plan Visualization** - See complex tasks broken down into
+  manageable sub-plans
+- **Action Detail Display** - View target selectors, action types, and execution
+  values
 - **Browser Preview** - Live browser screenshots and page state
 - **Event Stream Integration** - Real-time status updates and progress tracking
 
