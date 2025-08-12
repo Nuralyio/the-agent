@@ -1,8 +1,6 @@
 # The agent - AI-Powered Browser Automation Framework
 
 [![CI Tests](https://github.com/Nuralyio/the-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/Nuralyio/the-agent/actions/workflows/ci.yml)
-[![Test Coverage](https://github.com/Nuralyio/the-agent/actions/workflows/test-coverage.yml/badge.svg)](https://github.com/Nuralyio/the-agent/actions/workflows/test-coverage.yml)
-[![PR Validation](https://github.com/Nuralyio/the-agent/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/Nuralyio/the-agent/actions/workflows/pr-validation.yml)
 [![Release](https://github.com/Nuralyio/the-agent/actions/workflows/release.yml/badge.svg)](https://github.com/Nuralyio/the-agent/actions/workflows/release.yml)
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue)](https://www.typescriptlang.org/)
