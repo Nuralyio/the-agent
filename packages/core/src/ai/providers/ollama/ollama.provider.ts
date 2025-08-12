@@ -1,11 +1,12 @@
 import { AIConfig, AIMessage, AIProvider, AIResponse, VisionCapabilities } from '../../ai-engine';
-import { StructuredOutputUtil } from '../../utils/structured-output.util';
+import { BrowserActionSchema } from '../../schemas/browser-action.schema';
+import { StructuredOutputUtil, createStructuredOutputUtil } from '../../utils/structured-output.util';
 import { OllamaApiClient } from './api-client';
 import { OllamaModelUtils } from './model-utils';
 import {
-  OllamaChatMessage,
+  OllamaGenerateRequest,
   OllamaChatRequest,
-  OllamaGenerateRequest
+  OllamaChatMessage
 } from './types';
 
 /**
@@ -32,14 +33,12 @@ export class OllamaProvider implements AIProvider {
 
     // Initialize API client
     this.apiClient = new OllamaApiClient(
-      this.config.baseUrl!,
+      this.config.baseUrl!, 
       this.config.timeout
     );
 
-    // Initialize structured output utility
-    this.structuredOutputUtil = new StructuredOutputUtil(this.config);
-
-    // Set vision capabilities based on model
+    // Initialize structured output utility with browser action schema
+    this.structuredOutputUtil = createStructuredOutputUtil(BrowserActionSchema);    // Set vision capabilities based on model
     this.visionCapabilities = OllamaModelUtils.getVisionCapabilities(this.config.model);
   }
 
@@ -120,7 +119,7 @@ export class OllamaProvider implements AIProvider {
 
   async generateStructuredJSON(prompt: string, systemPrompt?: string): Promise<AIResponse> {
     try {
-      return await this.structuredOutputUtil.generateStructuredJSON(prompt, systemPrompt);
+      return await this.structuredOutputUtil.generateStructuredJSON(this, prompt, systemPrompt);
     } catch (error) {
       // Fallback to enhanced text generation
       return this.generateTextWithJsonFallback(prompt, systemPrompt);
