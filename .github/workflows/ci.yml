@@ -27,9 +27,6 @@ jobs:
       - name: Run linting
         run: npm run lint
 
-      - name: Build core package first
-        run: npm run build -w packages/core
-
       - name: Build all packages
         run: npm run build
 
