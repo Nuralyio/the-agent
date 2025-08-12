@@ -101,6 +101,9 @@ OPENAI_MODEL=gpt-3.5-turbo
 ### Development
 
 ```bash
+# Build core package first (required for development)
+npm run build -w packages/core
+
 # Start all services simultaneously
 npm run dev
 
@@ -110,6 +113,8 @@ npm run dev:api     # API server only (port 3002)
 npm run dev:ui      # Web UI only (port 3003)
 npm run dev:cli     # CLI development
 ```
+
+**Important**: For initial setup or after clean install, build the core package first before running development servers.
 
 ### Access Points
 
@@ -195,16 +200,21 @@ npm run test:coverage
 ## 🔨 Building
 
 ```bash
-# Build all packages
+# Build all packages (builds in dependency order)
 npm run build
 
-# Build specific package
+# Build core package first (required for other packages)
 npm run build -w packages/core
+
+# Build specific package
 npm run build -w packages/api
+npm run build -w packages/cli
 
 # Clean build artifacts
 npm run clean
 ```
+
+**Note**: Always build `@theagent/core` first as other packages depend on it.
 
 ## 📚 Documentation
 
