@@ -1,7 +1,7 @@
 import { ActionStep, ActionType } from '../engine/types';
 import { PromptTemplate } from '../prompt-template';
 import { PageState } from '../types';
-import { OllamaProvider } from './providers';
+import { OllamaProvider, OpenAIProvider } from './providers';
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -24,6 +24,7 @@ export interface AIResponse {
  */
 export interface AIConfig {
   model: string;
+  provider?: string;
   apiKey?: string;
   baseUrl?: string;
   temperature?: number;
@@ -116,8 +117,10 @@ export class AIEngine {
     switch (providerName.toLowerCase()) {
       case 'ollama':
         return new OllamaProvider(config);
+      case 'openai':
+        return new OpenAIProvider(config);
       default:
-        throw new Error(`Unsupported AI provider: ${providerName}. Only 'ollama' is supported.`);
+        throw new Error(`Unsupported AI provider: ${providerName}. Supported providers: 'ollama', 'openai'.`);
     }
   }
 

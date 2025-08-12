@@ -14,6 +14,13 @@ export interface EnvironmentConfig {
     model: string;
     temperature: number;
   };
+  openai: {
+    apiKey?: string;
+    model: string;
+    baseUrl: string;
+    temperature: number;
+    maxTokens: number;
+  };
 
   // Browser Settings
   browser: {
@@ -48,6 +55,14 @@ export function loadEnvironmentConfig(): EnvironmentConfig {
       baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
       model: process.env.OLLAMA_MODEL || 'llama2',
       temperature: parseFloat(process.env.OLLAMA_TEMPERATURE || '0.3'),
+    },
+
+    openai: {
+      apiKey: process.env.OPENAI_API_KEY,
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      baseUrl: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
+      temperature: parseFloat(process.env.OPENAI_TEMPERATURE || '0.7'),
+      maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS || '2000'),
     },
 
     // Browser Settings
@@ -85,6 +100,17 @@ export function createAIProviderConfigs(envConfig: EnvironmentConfig): Record<st
     temperature: envConfig.ollama.temperature,
   };
 
+  // OpenAI (if API key is provided)
+  if (envConfig.openai.apiKey) {
+    configs.openai = {
+      model: envConfig.openai.model,
+      apiKey: envConfig.openai.apiKey,
+      baseUrl: envConfig.openai.baseUrl,
+      temperature: envConfig.openai.temperature,
+      maxTokens: envConfig.openai.maxTokens,
+    };
+  }
+
   return configs;
 }
 
@@ -95,6 +121,8 @@ export function isProviderAvailable(provider: string, envConfig: EnvironmentConf
   switch (provider.toLowerCase()) {
     case 'ollama':
       return true; // Always available (assuming Ollama is running)
+    case 'openai':
+      return !!envConfig.openai.apiKey; // Available if API key is configured
     default:
       return false;
   }
@@ -104,14 +132,34 @@ export function isProviderAvailable(provider: string, envConfig: EnvironmentConf
  * Get the list of available providers
  */
 export function getAvailableProviders(envConfig: EnvironmentConfig): string[] {
-  return ['ollama'];
+  const providers: string[] = [];
+  
+  // Ollama is always available
+  providers.push('ollama');
+  
+  // OpenAI is available if API key is configured
+  if (isProviderAvailable('openai', envConfig)) {
+    providers.push('openai');
+  }
+  
+  return providers;
 }
 
 /**
  * Validate that the default provider is available
  */
 export function validateDefaultProvider(envConfig: EnvironmentConfig): string {
-  return 'ollama'; // Always use Ollama
+  const requestedProvider = envConfig.defaultProvider;
+  const availableProviders = getAvailableProviders(envConfig);
+  
+  // Check if the requested provider is available
+  if (availableProviders.includes(requestedProvider)) {
+    return requestedProvider;
+  }
+  
+  // Fallback to the first available provider
+  console.warn(`⚠️ Requested provider '${requestedProvider}' is not available. Available providers: ${availableProviders.join(', ')}`);
+  return availableProviders[0] || 'ollama';
 }
 
 /**

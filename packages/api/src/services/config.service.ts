@@ -21,41 +21,48 @@ export class ConfigService {
     /**
      * Get AI configuration from environment
      */
-    getAIConfig(): AIConfig | undefined {
+    getAIConfig(requestedProvider?: string): AIConfig | undefined {
+        const provider = requestedProvider || this.envConfig.defaultProvider;
+        
         console.log('🔍 Checking AI configuration...');
         console.log('Environment config:', {
+            requestedProvider,
             defaultProvider: this.envConfig.defaultProvider,
+            finalProvider: provider,
             ollamaBaseUrl: this.envConfig.ollama.baseUrl,
-            ollamaModel: this.envConfig.ollama.model
+            ollamaModel: this.envConfig.ollama.model,
+            openaiModel: this.envConfig.openai.model,
+            openaiApiKey: this.envConfig.openai.apiKey ? '✅ Set' : '❌ Not set'
         });
 
-        // Check if the default provider is available
-        if (!isProviderAvailable(this.envConfig.defaultProvider, this.envConfig)) {
-            console.log('❌ Default AI provider not available:', this.envConfig.defaultProvider);
+        // Check if the requested provider is available
+        if (!isProviderAvailable(provider, this.envConfig)) {
+            console.log('❌ Requested AI provider not available:', provider);
             return undefined;
         }
 
         // Create provider configs
         const providerConfigs = createAIProviderConfigs(this.envConfig);
-        const defaultProviderConfig = providerConfigs[this.envConfig.defaultProvider];
+        const providerConfig = providerConfigs[provider];
 
-        if (!defaultProviderConfig) {
-            console.log('❌ No configuration found for default provider:', this.envConfig.defaultProvider);
+        if (!providerConfig) {
+            console.log('❌ No configuration found for provider:', provider);
             return undefined;
         }
 
         console.log('✅ AI configuration loaded successfully:', {
-            provider: this.envConfig.defaultProvider,
-            model: defaultProviderConfig.model,
-            baseUrl: defaultProviderConfig.baseUrl
+            provider: provider,
+            model: providerConfig.model,
+            baseUrl: providerConfig.baseUrl,
+            apiKey: providerConfig.apiKey ? '✅ Set' : '❌ Not set'
         });
 
         return {
-            provider: 'ollama',
-            ...defaultProviderConfig
+            ...providerConfig,
+            provider: provider // Make sure we include the provider name
         };
     }
 }
 
-// Singleton instance
+// Create and export a singleton instance
 export const configService = new ConfigService();

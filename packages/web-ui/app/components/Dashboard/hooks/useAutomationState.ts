@@ -17,6 +17,7 @@ export const useAutomationState = ({
 }: UseAutomationProps) => {
   const [taskDescription, setTaskDescription] = useState('');
   const [selectedEngine, setSelectedEngine] = useState('playwright');
+  const [selectedAIProvider, setSelectedAIProvider] = useState('openai');
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('preview');
   const [leftPanelTab, setLeftPanelTab] = useState('chat');
@@ -75,6 +76,7 @@ export const useAutomationState = ({
       const result = await executeAutomationTask({
         taskDescription,
         engine: selectedEngine,
+        aiProvider: selectedAIProvider,
         options: {
           headless: false, // Show browser for better UX
         },
@@ -120,6 +122,8 @@ export const useAutomationState = ({
     setTaskDescription,
     selectedEngine,
     setSelectedEngine,
+    selectedAIProvider,
+    setSelectedAIProvider,
     advancedOpen,
     setAdvancedOpen,
     activeTab,

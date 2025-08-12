@@ -6,6 +6,8 @@ interface SettingsTabProps {
   setSelectedEngine: (value: string) => void;
   advancedOpen: boolean;
   setAdvancedOpen: (value: boolean) => void;
+  selectedAIProvider?: string;
+  setSelectedAIProvider?: (value: string) => void;
 }
 
 export const SettingsTab: React.FC<SettingsTabProps> = ({
@@ -13,9 +15,28 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
   setSelectedEngine,
   advancedOpen,
   setAdvancedOpen,
+  selectedAIProvider = 'ollama',
+  setSelectedAIProvider = () => {},
 }) => {
   return (
     <div style={styles.settingsContainer}>
+      {/* AI Provider Selection */}
+      <div style={styles.settingsGroup}>
+        <div style={styles.settingsCard}>
+          <label style={styles.label}>AI Provider</label>
+          <select style={styles.select} value={selectedAIProvider} onChange={e => setSelectedAIProvider(e.target.value)}>
+            <option value='ollama'>Ollama (Local)</option>
+            <option value='openai'>OpenAI (GPT)</option>
+          </select>
+          <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>
+            {selectedAIProvider === 'ollama' ? 
+              'Local AI models via Ollama server' : 
+              'Cloud-based OpenAI GPT models'
+            }
+          </div>
+        </div>
+      </div>
+
       {/* Engine Selection */}
       <div style={styles.settingsGroup}>
         <div style={styles.settingsCard}>
@@ -82,6 +103,12 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
         </div>
         <div style={{ fontSize: '13px', color: '#9ca3af', lineHeight: '1.4' }}>
           <div>
+            AI Provider:{' '}
+            <strong style={{ color: selectedAIProvider === 'openai' ? '#00D084' : '#FF6B35' }}>
+              {selectedAIProvider === 'ollama' ? 'Ollama (Local)' : 'OpenAI (GPT)'}
+            </strong>
+          </div>
+          <div style={{ marginTop: '4px' }}>
             Engine:{' '}
             <strong style={{ color: '#007ACC' }}>
               {selectedEngine.charAt(0).toUpperCase() + selectedEngine.slice(1)}

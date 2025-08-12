@@ -78,7 +78,10 @@ export class BrowserAutomation {
     if (this.aiConfig && this.aiConfig.model) {
       console.log('🤖 Initializing AI engine with config:', this.aiConfig);
       this.aiEngine = new AIEngine();
-      this.aiEngine.addProvider('ollama', this.aiConfig as Required<AIConfig>);
+      
+      // Use the provider specified in the config, fallback to 'ollama'
+      const providerName = this.aiConfig.provider || 'ollama';
+      this.aiEngine.addProvider(providerName, this.aiConfig as Required<AIConfig>);
       this.actionEngine = new ActionEngine(this.browserManager, this.aiEngine);
       console.log('✅ ActionEngine initialized successfully');
     } else {

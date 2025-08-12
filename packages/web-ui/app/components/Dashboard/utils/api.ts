@@ -3,6 +3,7 @@ import { AUTOMATION_SERVER_URL } from './constants';
 export interface ExecuteTaskRequest {
   taskDescription: string;
   engine: string;
+  aiProvider?: string;
   options: {
     headless: boolean;
   };

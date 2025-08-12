@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run copy-assets",
+    "copy-assets": "cp -r src/prompts dist/",
     "dev": "nodemon --exec ts-node src/index.ts",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "jest --passWithNoTests --forceExit",

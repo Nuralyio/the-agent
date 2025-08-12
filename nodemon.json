@@ -1,0 +1,13 @@
+{
+  "watch": ["packages/**/*.ts", "packages/**/*.js"],
+  "ext": "ts,js,json",
+  "ignore": [
+    "node_modules/**/*",
+    "dist/**/*", 
+    "build/**/*",
+    "logs/**/*",
+    "*.log",
+    "**/*.log"
+  ],
+  "exec": "npm run dev"
+}

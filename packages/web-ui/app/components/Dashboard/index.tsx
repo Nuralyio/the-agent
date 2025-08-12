@@ -29,6 +29,8 @@ export const Dashboard: React.FC = () => {
     setTaskDescription,
     selectedEngine,
     setSelectedEngine,
+    selectedAIProvider,
+    setSelectedAIProvider,
     advancedOpen,
     setAdvancedOpen,
     activeTab,
@@ -77,6 +79,8 @@ export const Dashboard: React.FC = () => {
         setTaskDescription={setTaskDescription}
         selectedEngine={selectedEngine}
         setSelectedEngine={setSelectedEngine}
+        selectedAIProvider={selectedAIProvider}
+        setSelectedAIProvider={setSelectedAIProvider}
         advancedOpen={advancedOpen}
         setAdvancedOpen={setAdvancedOpen}
         handleRunTask={handleRunTask}

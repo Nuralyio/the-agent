@@ -15,6 +15,8 @@ interface LeftSidebarProps {
   setTaskDescription: (value: string) => void;
   selectedEngine: string;
   setSelectedEngine: (value: string) => void;
+  selectedAIProvider?: string;
+  setSelectedAIProvider?: (value: string) => void;
   advancedOpen: boolean;
   setAdvancedOpen: (value: boolean) => void;
   handleRunTask: () => void;
@@ -36,6 +38,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   setTaskDescription,
   selectedEngine,
   setSelectedEngine,
+  selectedAIProvider,
+  setSelectedAIProvider,
   advancedOpen,
   setAdvancedOpen,
   handleRunTask,
@@ -76,6 +80,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
         <SettingsTab
           selectedEngine={selectedEngine}
           setSelectedEngine={setSelectedEngine}
+          selectedAIProvider={selectedAIProvider}
+          setSelectedAIProvider={setSelectedAIProvider}
           advancedOpen={advancedOpen}
           setAdvancedOpen={setAdvancedOpen}
         />
