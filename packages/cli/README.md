@@ -16,18 +16,33 @@ npm install @theagent/cli
 
 ## Quick Start
 
-### 1. Initialize a new project
+### 1. Install The Agent CLI
 
 ```bash
-theagent init my-automation-project
-cd my-automation-project
-npm install
+npm install -g @theagent/cli
 ```
 
-### 2. Run your first automation
+### 2. Configure AI Provider (Optional)
+
+```bash
+# For OpenAI (default)
+export OPENAI_API_KEY="your-api-key"
+
+# For local Ollama
+theagent config --set ai.provider --value ollama
+```
+
+### 3. Run your first automation
 
 ```bash
 theagent run "navigate to https://example.com and take a screenshot"
+```
+
+### 4. Install browsers if needed
+
+```bash
+theagent install --check  # Check browser status
+theagent install          # Install missing browsers
 ```
 
 ## Commands
@@ -44,6 +59,12 @@ Execute an automation task using natural language.
 - `-c, --config <path>` - Configuration file path
 - `-t, --timeout <ms>` - Timeout in milliseconds
 - `-r, --retries <count>` - Number of retries on failure
+- `--ai-provider <provider>` - AI provider (ollama, openai, anthropic, mistral)
+- `--ai-model <model>` - AI model to use
+- `--ai-api-key <key>` - AI API key for cloud providers
+- `--ai-base-url <url>` - AI base URL for local providers
+- `--install-browsers` - Automatically install browser dependencies if missing
+- `--check-browsers` - Check browser installation status without running task
 
 **Examples:**
 ```bash
@@ -59,22 +80,14 @@ theagent run "fill in the contact form with name 'John' and email 'john@example.
 # Data extraction
 theagent run "extract all product titles from this page"
 
-# With options
-theagent run "navigate to example.com" --browser firefox --headless --output screenshot.png
-```
+# With AI provider options
+theagent run "navigate to example.com" --browser firefox --headless --output screenshot.png --ai-provider ollama --ai-model llama3.1
 
-### `theagent init [name]`
+# With automatic browser installation
+theagent run "search for 'automation' on google" --install-browsers
 
-Initialize a new The Agent automation project.
-
-**Options:**
-- `-f, --force` - Overwrite existing directory
-- `-t, --template <name>` - Project template
-
-**Example:**
-```bash
-theagent init my-project
-theagent init my-project --force
+# Check browser status before running
+theagent run "fill contact form" --check-browsers
 ```
 
 ### `theagent test`
@@ -117,6 +130,31 @@ theagent config --set headless --value true
 theagent config --set ai.provider --value ollama
 ```
 
+### `theagent install`
+
+Install browser dependencies for automation adapters.
+
+**Options:**
+- `--playwright` - Install Playwright browsers (chromium, firefox, webkit)
+- `--puppeteer` - Install Puppeteer browser (chromium)
+- `--force` - Force reinstallation even if already installed
+- `--check` - Only check installation status without installing
+
+**Examples:**
+```bash
+# Install all missing browsers
+theagent install
+
+# Install only Playwright browsers
+theagent install --playwright
+
+# Check browser installation status
+theagent install --check
+
+# Force reinstall all browsers
+theagent install --force
+```
+
 ### `theagent examples`
 
 Show usage examples and common patterns.
@@ -133,15 +171,55 @@ module.exports = {
   timeout: 30000,
   retries: 3,
   ai: {
-    provider: 'ollama',
-    model: 'llama3.1',
-    baseUrl: 'http://localhost:11434'
+    provider: 'openai',  // ollama, openai, anthropic, mistral
+    model: 'gpt-4o',     // Model specific to provider
+    baseUrl: 'https://api.openai.com/v1',  // For local providers like Ollama
+    apiKey: process.env.OPENAI_API_KEY     // API key for cloud providers
   },
   screenshots: {
     enabled: true,
     path: './screenshots'
   }
 };
+```
+
+### AI Provider Configuration
+
+The Agent supports multiple AI providers for intelligent automation:
+
+#### OpenAI (Default)
+```bash
+theagent config --set ai.provider --value openai
+theagent config --set ai.model --value gpt-4o
+export OPENAI_API_KEY="your-api-key"
+```
+
+#### Anthropic Claude
+```bash
+theagent config --set ai.provider --value anthropic
+theagent config --set ai.model --value claude-3-sonnet
+export ANTHROPIC_API_KEY="your-api-key"
+```
+
+#### Ollama (Local)
+```bash
+theagent config --set ai.provider --value ollama
+theagent config --set ai.model --value llama3.1
+theagent config --set ai.baseUrl --value http://localhost:11434
+```
+
+#### Mistral AI
+```bash
+theagent config --set ai.provider --value mistral
+theagent config --set ai.model --value mistral-large
+export MISTRAL_API_KEY="your-api-key"
+```
+
+#### Command-line AI Options
+You can also specify AI settings per command:
+```bash
+theagent run "your task" --ai-provider openai --ai-model gpt-4 --ai-api-key "your-key"
+theagent run "your task" --ai-provider ollama --ai-model llama3.1 --ai-base-url http://localhost:11434
 ```
 
 ### Configuration Options
@@ -152,13 +230,60 @@ module.exports = {
 - **timeout**: Default timeout for operations (ms)
 - **retries**: Number of retries on failure
 - **ai**: AI configuration for intelligent automation
-  - **provider**: AI provider (`ollama`, `openai`, `anthropic`)
-  - **model**: AI model name
-  - **baseUrl**: Base URL for local AI providers
-  - **apiKey**: API key for cloud providers
+  - **provider**: AI provider (`ollama`, `openai`, `anthropic`, `mistral`)
+  - **model**: AI model name (provider-specific)
+    - OpenAI: `gpt-4o`, `gpt-4`, `gpt-3.5-turbo`
+    - Anthropic: `claude-3-opus`, `claude-3-sonnet`, `claude-3-haiku`
+    - Ollama: `llama3.1`, `codellama`, `mistral`
+    - Mistral: `mistral-large`, `mistral-medium`, `mistral-small`
+  - **baseUrl**: Base URL for local AI providers (e.g., `http://localhost:11434` for Ollama)
+  - **apiKey**: API key for cloud providers (OpenAI, Anthropic, Mistral)
 - **screenshots**: Screenshot settings
   - **enabled**: Enable automatic screenshots
   - **path**: Directory for screenshots
+
+## Browser Management
+
+The Agent provides automatic browser management to ensure all required browsers are installed and available:
+
+### Automatic Installation
+
+The CLI can automatically install missing browsers when running tasks:
+
+```bash
+# Auto-install browsers if missing during task execution
+theagent run "navigate to example.com" --install-browsers
+
+# Check browser status before running
+theagent run "search for products" --check-browsers
+```
+
+### Manual Installation
+
+Use the dedicated install command for manual browser management:
+
+```bash
+# Install all missing browsers
+theagent install
+
+# Install only Playwright browsers (chromium, firefox, webkit)
+theagent install --playwright
+
+# Install only Puppeteer browser (chromium)
+theagent install --puppeteer
+
+# Check installation status
+theagent install --check
+
+# Force reinstall even if already present
+theagent install --force
+```
+
+### Supported Browsers
+
+- **Playwright**: Installs Chromium, Firefox, and WebKit browsers
+- **Puppeteer**: Installs Chromium browser
+- **System Browsers**: Detects Chrome, Firefox, Safari, and Edge if installed
 
 ## Natural Language Tasks
 
@@ -195,21 +320,31 @@ The Agent understands natural language instructions for browser automation:
 - "login with username 'user' and password 'pass', then navigate to dashboard"
 - "search for products, filter by price, and add the first item to cart"
 
-## Project Structure
+## Project Setup
 
-When you initialize a project with `theagent init`, it creates:
+To use The Agent in your own project, create a simple automation script:
 
+```javascript
+// automation.js
+const { BrowserAutomation } = require('@theagent/core');
+
+async function runAutomation() {
+  const automation = new BrowserAutomation({ 
+    headless: false,
+    ai: { provider: 'openai', model: 'gpt-4o' }
+  });
+  
+  await automation.initialize();
+  await automation.execute('Navigate to https://example.com and take a screenshot');
+  await automation.close();
+}
+
+runAutomation();
 ```
-my-project/
-├── src/
-│   └── index.js          # Main automation script
-├── tests/
-│   └── example.test.js   # Example tests
-├── screenshots/          # Screenshot directory
-├── package.json
-├── theagent.config.js    # Configuration
-├── README.md
-└── .gitignore
+
+Or use the CLI directly without any setup:
+```bash
+theagent run "your automation task"
 ```
 
 ## Testing
@@ -243,31 +378,62 @@ describe('My Tests', () => {
 
 You can configure The Agent using environment variables:
 
-- `THEAGENT_ADAPTER` - Default adapter
+- `THEAGENT_ADAPTER` - Default adapter (playwright, puppeteer, selenium)
 - `THEAGENT_HEADLESS` - Run in headless mode (true/false)
-- `THEAGENT_AI_PROVIDER` - AI provider
-- `THEAGENT_AI_MODEL` - AI model
-- `THEAGENT_AI_API_KEY` - AI API key
+- `THEAGENT_AI_PROVIDER` - AI provider (ollama, openai, anthropic, mistral)
+- `THEAGENT_AI_MODEL` - AI model name
+- `THEAGENT_AI_API_KEY` - AI API key for cloud providers
+- `THEAGENT_AI_BASE_URL` - AI base URL for local providers
+- `OPENAI_API_KEY` - OpenAI API key (alternative to THEAGENT_AI_API_KEY)
+- `ANTHROPIC_API_KEY` - Anthropic API key (alternative to THEAGENT_AI_API_KEY)
+- `MISTRAL_API_KEY` - Mistral API key (alternative to THEAGENT_AI_API_KEY)
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Browser not found**: Make sure the browser is installed
+1. **Browser not found**: Make sure the browser is installed or use auto-installation
    ```bash
-   # Install browsers for Playwright
-   npx playwright install
+   # Check browser status
+   theagent install --check
+   
+   # Install browsers automatically
+   theagent install
+   
+   # Install specific browsers
+   theagent install --playwright
+   theagent install --puppeteer
+   
+   # Use auto-install during task execution
+   theagent run "your task" --install-browsers
    ```
 
 2. **AI provider not available**: Check AI service configuration
    ```bash
-   # For Ollama
+   # For Ollama (local)
    ollama run llama3.1
+   
+   # For OpenAI (cloud)
+   export OPENAI_API_KEY="your-api-key"
+   theagent config --set ai.provider --value openai
+   
+   # For Anthropic (cloud)
+   export ANTHROPIC_API_KEY="your-api-key"
+   theagent config --set ai.provider --value anthropic
    ```
 
 3. **Timeout errors**: Increase timeout in configuration
    ```bash
    theagent config --set timeout --value 60000
+   ```
+
+4. **Browser installation fails**: Try manual installation
+   ```bash
+   # For Playwright
+   npx playwright install
+   
+   # For Puppeteer
+   npm install puppeteer
    ```
 
 ### Debug Mode
