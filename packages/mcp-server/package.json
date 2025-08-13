@@ -1,6 +1,6 @@
 {
   "name": "@theagent/mcp-server",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Model Context Protocol server for browser automation framework",
   "main": "dist/index.js",
   "bin": {
@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.5.0",
-    "@theagent/core": "^1.0.0",
+    "@theagent/core": "^0.1.0",
     "dotenv": "^16.4.5"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@theagent/cli",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Command-line interface for The Agent automation framework",
   "main": "dist/index.js",
   "bin": {
@@ -25,6 +25,18 @@
   ],
   "author": "The Agent Framework Team",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nuralyio/the-agent.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/Nuralyio/the-agent#readme",
+  "bugs": {
+    "url": "https://github.com/Nuralyio/the-agent/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "dist",
     "README.md"
@@ -40,7 +52,7 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
-    "@theagent/core": "^1.0.0",
+    "@theagent/core": "^0.1.0",
     "commander": "^11.0.0",
     "chalk": "^4.1.2",
     "inquirer": "^8.2.6"

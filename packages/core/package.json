@@ -1,6 +1,6 @@
 {
   "name": "@theagent/core",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Core browser automation framework with multi-adapter support",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -30,6 +30,18 @@
   ],
   "author": "Browser Automation Framework Team",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nuralyio/the-agent.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/Nuralyio/the-agent#readme",
+  "bugs": {
+    "url": "https://github.com/Nuralyio/the-agent/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "dist",
     "README.md"
