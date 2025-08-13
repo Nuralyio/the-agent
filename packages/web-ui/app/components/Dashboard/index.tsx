@@ -45,6 +45,8 @@ export const Dashboard: React.FC = () => {
     setCurrentScreenshot,
     selectedStepIndex,
     setSelectedStepIndex,
+    headlessMode,
+    setHeadlessMode,
     handleRunTask,
     handleStepClick,
     getDisplayScreenshot,
@@ -86,6 +88,8 @@ export const Dashboard: React.FC = () => {
         setSelectedAIProvider={setSelectedAIProvider}
         advancedOpen={advancedOpen}
         setAdvancedOpen={setAdvancedOpen}
+        headlessMode={headlessMode}
+        setHeadlessMode={setHeadlessMode}
         handleRunTask={handleRunTask}
         copyToClipboard={copyToClipboard}
         handleStepClick={handleStepClick}

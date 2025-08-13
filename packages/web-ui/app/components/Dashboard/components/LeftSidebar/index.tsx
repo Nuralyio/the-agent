@@ -19,6 +19,8 @@ interface LeftSidebarProps {
   setSelectedAIProvider?: (value: string) => void;
   advancedOpen: boolean;
   setAdvancedOpen: (value: boolean) => void;
+  headlessMode: boolean;
+  setHeadlessMode: (value: boolean) => void;
   handleRunTask: () => void;
   copyToClipboard: (text: string) => void;
   handleStepClick: (stepIndex: number, step: ExecutionStep) => void;
@@ -42,6 +44,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   setSelectedAIProvider,
   advancedOpen,
   setAdvancedOpen,
+  headlessMode,
+  setHeadlessMode,
   handleRunTask,
   copyToClipboard,
   handleStepClick,
@@ -84,6 +88,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
           setSelectedAIProvider={setSelectedAIProvider}
           advancedOpen={advancedOpen}
           setAdvancedOpen={setAdvancedOpen}
+          headlessMode={headlessMode}
+          setHeadlessMode={setHeadlessMode}
         />
       )}
     </div>
