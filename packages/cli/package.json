@@ -1,6 +1,6 @@
 {
   "name": "@theagent/cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Command-line interface for The Agent automation framework",
   "main": "dist/index.js",
   "bin": {
@@ -41,6 +41,12 @@
     "dist",
     "README.md"
   ],
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": ["**/__tests__/**/*.test.ts", "**/?(*.)+(spec|test).ts"],
+    "testPathIgnorePatterns": ["/node_modules/", "/dist/", "/src/commands/"]
+  },
   "devDependencies": {
     "@types/inquirer": "^8.2.10",
     "@types/jest": "^30.0.0",
