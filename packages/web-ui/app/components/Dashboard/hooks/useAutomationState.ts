@@ -27,6 +27,7 @@ export const useAutomationState = ({
   const [currentScreenshot, setCurrentScreenshot] = useState<string | null>(null);
   const [selectedStepIndex, setSelectedStepIndex] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [headlessMode, setHeadlessMode] = useState(false); // Default to headed mode for better UX
 
   // Effect to sync currentPlan and currentHierarchicalPlan from chatMessages
   useEffect(() => {
@@ -113,7 +114,7 @@ export const useAutomationState = ({
         engine: selectedEngine,
         aiProvider: selectedAIProvider,
         options: {
-          headless: false, // Show browser for better UX
+          headless: headlessMode,
         },
       });
 
@@ -176,6 +177,8 @@ export const useAutomationState = ({
     selectedStepIndex,
     setSelectedStepIndex,
     isLoading,
+    headlessMode,
+    setHeadlessMode,
     handleRunTask,
     handleStepClick,
     getDisplayScreenshot,

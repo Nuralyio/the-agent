@@ -8,6 +8,8 @@ interface SettingsTabProps {
   setAdvancedOpen: (value: boolean) => void;
   selectedAIProvider?: string;
   setSelectedAIProvider?: (value: string) => void;
+  headlessMode: boolean;
+  setHeadlessMode: (value: boolean) => void;
 }
 
 export const SettingsTab: React.FC<SettingsTabProps> = ({
@@ -17,6 +19,8 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
   setAdvancedOpen,
   selectedAIProvider = 'ollama',
   setSelectedAIProvider = () => {},
+  headlessMode,
+  setHeadlessMode,
 }) => {
   return (
     <div style={styles.settingsContainer}>
@@ -63,7 +67,11 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
             </div>
             <div style={{ marginBottom: '16px' }}>
               <label style={styles.label}>Browser Mode</label>
-              <select style={styles.select}>
+              <select 
+                style={styles.select} 
+                value={headlessMode ? 'headless' : 'headed'} 
+                onChange={e => setHeadlessMode(e.target.value === 'headless')}
+              >
                 <option value='headless'>Headless (Background)</option>
                 <option value='headed'>Headed (Visible)</option>
               </select>
@@ -112,6 +120,12 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
             Engine:{' '}
             <strong style={{ color: '#007ACC' }}>
               {selectedEngine.charAt(0).toUpperCase() + selectedEngine.slice(1)}
+            </strong>
+          </div>
+          <div style={{ marginTop: '4px' }}>
+            Browser Mode:{' '}
+            <strong style={{ color: headlessMode ? '#9333ea' : '#059669' }}>
+              {headlessMode ? 'Headless' : 'Headed (Visible)'}
             </strong>
           </div>
           <div style={{ marginTop: '4px' }}>Ready to execute automation tasks</div>
