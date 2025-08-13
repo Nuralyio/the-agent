@@ -8,7 +8,7 @@ const program = new Command();
 program
   .name('theagent')
   .description('CLI for The Agent - Intelligent browser automation framework')
-  .version('1.0.0');
+  .version('0.1.0');
 
 // Run command
 program

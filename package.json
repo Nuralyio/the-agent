@@ -1,6 +1,6 @@
 {
   "name": "theagent-workspace",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "AI-powered The Agent automation framework workspace",
   "private": true,
   "workspaces": [

@@ -1,6 +1,6 @@
 {
   "name": "browser-automation-test-server",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Local test server for browser automation tests",
   "main": "server.js",
   "scripts": {
