@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import { ActionStep } from '../types';
 
 export interface ExecutionEvent {
-  type: 'plan_created' | 'step_start' | 'step_complete' | 'step_error' | 'screenshot' | 'page_change' | 'execution_complete';
+  type: 'plan_created' | 'hierarchical_plan_created' | 'sub_plan_start' | 'sub_plan_completed' | 'step_start' | 'step_complete' | 'step_error' | 'screenshot' | 'page_change' | 'execution_complete';
   stepIndex?: number;
   step?: ActionStep;
   steps?: ActionStep[];
@@ -11,8 +11,16 @@ export interface ExecutionEvent {
   url?: string;
   title?: string;
   error?: string;
+  success?: boolean; // For sub-plan completion status
   timestamp: Date;
   sessionId: string;
+  // Hierarchical plan specific fields
+  hierarchicalPlan?: any;
+  globalObjective?: string;
+  planningStrategy?: string;
+  // Sub-plan specific fields
+  subPlanIndex?: number;
+  subPlan?: any;
 }
 
 export interface StreamClient {
@@ -29,6 +37,7 @@ export class ExecutionStream extends EventEmitter {
   private currentSessionId: string | null = null;
   private executionHistory: ExecutionEvent[] = [];
   private cleanupInterval?: NodeJS.Timeout;
+  private currentSubPlanIndex: number | undefined = undefined;
 
   constructor() {
     super();
@@ -38,18 +47,29 @@ export class ExecutionStream extends EventEmitter {
     }
   }
 
-  /**
+    /**
    * Start a new execution session
    */
   startSession(sessionId: string): void {
     this.currentSessionId = sessionId;
     this.executionHistory = [];
+    this.currentSubPlanIndex = undefined;
 
     this.broadcastEvent({
       type: 'execution_complete', // Reset event
       sessionId,
       timestamp: new Date()
     });
+
+    console.log(`🚀 New execution session started: ${sessionId}`);
+  }
+
+  /**
+   * Set the current sub-plan context for streaming events
+   */
+  setCurrentSubPlan(subPlanIndex: number | undefined): void {
+    this.currentSubPlanIndex = subPlanIndex;
+    console.log(`🔄 ExecutionStream: Set current sub-plan index to ${subPlanIndex}`);
   }
 
   /**
@@ -74,10 +94,48 @@ export class ExecutionStream extends EventEmitter {
   }
 
   /**
+   * Stream hierarchical plan creation event
+   */
+  streamHierarchicalPlanCreated(hierarchicalPlan: any, globalObjective: string, planningStrategy?: string): void {
+    if (!this.currentSessionId) {
+      console.log('⚠️ StreamHierarchicalPlanCreated: No current session ID');
+      return;
+    }
+
+    console.log('📡 StreamHierarchicalPlanCreated: Broadcasting hierarchical plan event');
+    console.log(`📡 Session ID: ${this.currentSessionId}`);
+    console.log(`📡 Connected clients: ${this.clients.size}`);
+
+    const event: ExecutionEvent = {
+      type: 'hierarchical_plan_created',
+      hierarchicalPlan,
+      globalObjective,
+      planningStrategy,
+      sessionId: this.currentSessionId,
+      timestamp: new Date()
+    };
+
+    this.executionHistory.push(event);
+    this.broadcastEvent(event);
+    
+    console.log('✅ StreamHierarchicalPlanCreated: Event broadcasted successfully');
+  }
+
+  /**
    * Stream step start event
    */
-  streamStepStart(stepIndex: number, step: ActionStep): void {
-    if (!this.currentSessionId) return;
+  streamStepStart(stepIndex: number, step: ActionStep, subPlanIndex?: number): void {
+    if (!this.currentSessionId) {
+      console.log('⚠️ StreamStepStart: No current session ID');
+      return;
+    }
+
+    // Use provided subPlanIndex or fall back to current context
+    const currentSubPlan = subPlanIndex !== undefined ? subPlanIndex : this.currentSubPlanIndex;
+
+    console.log(`📡 StreamStepStart: Broadcasting step start event for step ${stepIndex + 1}${currentSubPlan !== undefined ? ` in sub-plan ${currentSubPlan + 1}` : ''}`);
+    console.log(`📡 Step: ${step.description}`);
+    console.log(`📡 Connected clients: ${this.clients.size}`);
 
     const event: ExecutionEvent = {
       type: 'step_start',
@@ -87,15 +145,32 @@ export class ExecutionStream extends EventEmitter {
       timestamp: new Date()
     };
 
+    // Add sub-plan context if available
+    if (currentSubPlan !== undefined) {
+      event.subPlanIndex = currentSubPlan;
+    }
+
     this.executionHistory.push(event);
     this.broadcastEvent(event);
+    
+    console.log(`✅ StreamStepStart: Step ${stepIndex + 1} start event broadcasted successfully`);
   }
 
   /**
    * Stream step completion with screenshot
    */
-  streamStepComplete(stepIndex: number, step: ActionStep, screenshot?: Buffer): void {
-    if (!this.currentSessionId) return;
+  streamStepComplete(stepIndex: number, step: ActionStep, screenshot?: Buffer, subPlanIndex?: number): void {
+    if (!this.currentSessionId) {
+      console.log('⚠️ StreamStepComplete: No current session ID');
+      return;
+    }
+
+    // Use provided subPlanIndex or fall back to current context
+    const currentSubPlan = subPlanIndex !== undefined ? subPlanIndex : this.currentSubPlanIndex;
+
+    console.log(`📡 StreamStepComplete: Broadcasting step complete event for step ${stepIndex + 1}${currentSubPlan !== undefined ? ` in sub-plan ${currentSubPlan + 1}` : ''}`);
+    console.log(`📡 Step: ${step.description}`);
+    console.log(`📡 Connected clients: ${this.clients.size}`);
 
     const event: ExecutionEvent = {
       type: 'step_complete',
@@ -105,12 +180,19 @@ export class ExecutionStream extends EventEmitter {
       timestamp: new Date()
     };
 
+    // Add sub-plan context if available
+    if (currentSubPlan !== undefined) {
+      event.subPlanIndex = currentSubPlan;
+    }
+
     if (screenshot) {
       event.screenshot = screenshot.toString('base64');
     }
 
     this.executionHistory.push(event);
     this.broadcastEvent(event);
+    
+    console.log(`✅ StreamStepComplete: Step ${stepIndex + 1} complete event broadcasted successfully`);
   }
 
   /**
@@ -168,6 +250,61 @@ export class ExecutionStream extends EventEmitter {
 
     this.executionHistory.push(event);
     this.broadcastEvent(event);
+  }
+
+  /**
+   * Stream sub-plan start event
+   */
+  streamSubPlanStart(subPlanIndex: number, subPlan: any): void {
+    if (!this.currentSessionId) return;
+
+    console.log(`📡 StreamSubPlanStart: Broadcasting sub-plan start event for sub-plan ${subPlanIndex + 1}`);
+
+    const event: ExecutionEvent = {
+      type: 'sub_plan_start',
+      subPlanIndex,
+      subPlan,
+      sessionId: this.currentSessionId,
+      timestamp: new Date()
+    };
+
+    this.executionHistory.push(event);
+    this.broadcastEvent(event);
+    
+    console.log(`✅ StreamSubPlanStart: Sub-plan ${subPlanIndex + 1} start event broadcasted successfully`);
+  }
+
+  /**
+   * Stream sub-plan completion event
+   */
+  streamSubPlanComplete(subPlanIndex: number, subPlan: any, success: boolean = true, totalSubPlans?: number): void {
+    if (!this.currentSessionId) return;
+
+    console.log(`📡 StreamSubPlanComplete: Broadcasting sub-plan complete event for sub-plan ${subPlanIndex + 1} (${success ? 'success' : 'failed'})`);
+
+    const event: ExecutionEvent = {
+      type: 'sub_plan_completed',
+      subPlanIndex,
+      subPlan,
+      success,
+      sessionId: this.currentSessionId,
+      timestamp: new Date()
+    };
+
+    // Add total sub-plans count if provided
+    if (totalSubPlans !== undefined) {
+      (event as any).totalSubPlans = totalSubPlans;
+    }
+
+    // Add error property if sub-plan failed
+    if (!success) {
+      event.error = 'Sub-plan execution failed';
+    }
+
+    this.executionHistory.push(event);
+    this.broadcastEvent(event);
+    
+    console.log(`✅ StreamSubPlanComplete: Sub-plan ${subPlanIndex + 1} complete event broadcasted successfully`);
   }
 
   /**

@@ -6,6 +6,8 @@
     "dist/**/*", 
     "build/**/*",
     "logs/**/*",
+    "execution-logs/**/*",
+    "packages/api/execution-logs/**/*",
     "*.log",
     "**/*.log"
   ],

@@ -49,6 +49,7 @@ export interface HierarchicalPlan {
   totalEstimatedDuration: number;
   planningStrategy: 'sequential' | 'parallel' | 'conditional';
   currentSubPlanIndex?: number;
+  status?: 'pending' | 'running' | 'completed' | 'error';
   metadata?: any;
 }
 

@@ -34,7 +34,6 @@ export const ExecutionPlan: React.FC<ExecutionPlanProps> = ({
             hierarchicalPlan={currentHierarchicalPlan}
             onSubPlanClick={(subPlanIndex, subPlan) => {
               // Handle sub-plan click if needed
-              console.log('Sub-plan clicked:', subPlanIndex, subPlan);
             }}
           />
         ) : currentPlan.length > 0 ? (

@@ -1,4 +1,4 @@
-import { loadEnvironmentConfig } from '@theagent/core/dist/config/environment';
+import { loadEnvironmentConfig } from '@theagent/core/src/config/environment';
 import { AutomationApiServer } from './app';
 
 /**
