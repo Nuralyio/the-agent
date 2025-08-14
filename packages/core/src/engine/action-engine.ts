@@ -109,7 +109,7 @@ export class ActionEngine implements IActionEngine {
 
       // Finalize logging even on failure
       try {
-        logger.finishSession(false);
+        await logger.completeSession(false);
       } catch (logError) {
         console.warn('⚠️ Failed to finalize execution log:', logError);
       }
@@ -171,7 +171,7 @@ export class ActionEngine implements IActionEngine {
 
       // 2. Finalize logging
       if (logger) {
-        const logPath = logger.finishSession(result.success);
+        const logPath = await logger.completeSession(result.success);
         console.log(`📋 Complete execution log saved to: ${logPath}`);
       }
 

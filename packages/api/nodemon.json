@@ -1,14 +1,14 @@
 {
-  "watch": ["packages/**/*.ts", "packages/**/*.js"],
+  "watch": ["src"],
   "ext": "ts,js",
   "ignore": [
-    "node_modules/**/*",
-    "dist/**/*", 
-    "build/**/*",
-    "logs/**/*",
+    "**/*.test.*",
+    "**/*.spec.*",
+    "**/logs/**",
+    "**/dist/**",
+    "**/node_modules/**",
     "**/execution-logs/**/*",
     "execution-logs/**/*",
-    "packages/**/execution-logs/**/*",
     "*.log",
     "**/*.log",
     "**/*.json",
@@ -20,7 +20,11 @@
     "**/*.gif",
     "**/*.md",
     "**/*.xml", 
-    "**/*.puml"
+    "**/*.puml",
+    "screenshots/**/*"
   ],
-  "exec": "npm run dev"
+  "exec": "ts-node src/server.ts",
+  "env": {
+    "NODE_ENV": "development"
+  }
 }

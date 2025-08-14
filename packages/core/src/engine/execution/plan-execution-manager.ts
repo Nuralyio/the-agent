@@ -195,16 +195,16 @@ export class PlanExecutionManager {
 
         // Log step execution with screenshot and refinement info
         if (logger) {
-          await logger.logStepExecution(
-            i,
-            currentPlan.steps[i]!,
-            stepExecutionResult,
-            pageStateAfter.url,
-            pageStateAfter.title,
+          await logger.logStep({
+            stepIndex: i,
+            step: currentPlan.steps[i]!,
+            result: stepExecutionResult,
+            pageUrl: pageStateAfter.url,
+            pageTitle: pageStateAfter.title,
             screenshotBuffer,
-            pageStateAfter.viewport,
+            viewport: pageStateAfter.viewport,
             refinementInfo
-          );
+          });
         }
 
         executedSteps.push({

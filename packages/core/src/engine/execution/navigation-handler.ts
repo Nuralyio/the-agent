@@ -185,7 +185,7 @@ export class NavigationHandler {
       // No navigation step found, proceed normally
       console.log('⚠️ No navigation step found despite detection, proceeding normally');
       const result = await executeActionPlan(initialPlan, logger);
-      const logPath = logger.finishSession(result.success);
+      const logPath = await logger.completeSession(result.success);
 
       console.log(`📋 Complete execution log saved to: ${logPath}`);
       return result;
@@ -212,7 +212,7 @@ export class NavigationHandler {
     const navResult = await executeActionPlan(navigationPlan, logger);
 
     if (!navResult.success) {
-      const logPath = logger.finishSession(false);
+      const logPath = await logger.completeSession(false);
 
       console.log(`📋 Complete execution log saved to: ${logPath}`);
       return navResult;
@@ -259,14 +259,14 @@ export class NavigationHandler {
         finalResult.error = errorMessage;
       }
 
-      const logPath = logger.finishSession(finalResult.success);
+      const logPath = await logger.completeSession(finalResult.success);
 
       console.log(`📋 Complete execution log saved to: ${logPath}`);
       return finalResult;
     }
 
     // Only navigation was needed
-    const logPath = logger.finishSession(navResult.success);
+    const logPath = await logger.completeSession(navResult.success);
 
     console.log(`📋 Complete execution log saved to: ${logPath}`);
     return navResult;
