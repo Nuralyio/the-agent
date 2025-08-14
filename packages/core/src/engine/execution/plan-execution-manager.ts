@@ -1,3 +1,4 @@
+import { executionStream } from '../../streaming/execution-stream';
 import {
   ActionPlan,
   ActionStep,
@@ -6,9 +7,8 @@ import {
   TaskResult
 } from '../../types';
 import { ExecutionLogger } from '../../utils/execution-logger';
-import { executionStream } from '../../streaming/execution-stream';
-import { ActionPlanner } from '../planning/action-planner';
 import { StepContextManager, StepExecutionResult } from '../analysis/step-context';
+import { ActionPlanner } from '../planning/action-planner';
 import { ActionExecutor } from './action-executor';
 import { StepRefinementManager } from './step-refinement';
 
@@ -22,7 +22,7 @@ export class PlanExecutionManager {
     private stepContextManager: StepContextManager,
     private actionExecutor: ActionExecutor,
     private stepRefinementManager: StepRefinementManager
-  ) {}
+  ) { }
 
   /**
    * Execute a structured action plan with dynamic refinement and context awareness
@@ -223,7 +223,6 @@ export class PlanExecutionManager {
 
         // If step failed, try to adapt the remaining plan
         if (!stepResult.success) {
-          console.log(''); // Add spacing before failure handling
           console.warn(`⚠️ Step ${i + 1} failed, attempting to adapt remaining plan...`);
           const updatedPageState = await this.actionExecutor.captureState();
           const remainingSteps = currentPlan.steps.slice(i + 1);

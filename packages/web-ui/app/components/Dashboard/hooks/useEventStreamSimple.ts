@@ -26,15 +26,6 @@ export const useEventStreamSimple = ({
       try {
         const data = JSON.parse(event.data);
         
-        // Log specific event types we care about
-        if (data.type === 'execution_event') {
-          if (data.data.type === 'plan_created') {
-            console.log('Plan created data:', data.data);
-          } else if (data.data.type === 'hierarchical_plan_created') {
-            console.log('Hierarchical plan created data:', data.data);
-          }
-        }
-
         if (data.type === 'execution_start') {
           const message: ChatMessage = {
             id: Date.now(),
@@ -67,8 +58,6 @@ export const useEventStreamSimple = ({
           };
           setChatMessages(prev => [...prev, planMessage]);
         } else if (data.type === 'execution_event' && data.data.type === 'hierarchical_plan_created') {
-          console.log('Received hierarchical_plan_created event:', data.data);
-          
           // Handle hierarchical plan creation
           const hierarchicalPlan: HierarchicalPlan = {
             id: data.data.hierarchicalPlan?.id || 'hierarchical-plan',
@@ -95,12 +84,12 @@ export const useEventStreamSimple = ({
             totalEstimatedDuration: data.data.hierarchicalPlan?.totalEstimatedDuration || 0,
             planningStrategy: data.data.planningStrategy || data.data.hierarchicalPlan?.planningStrategy || 'sequential',
             currentSubPlanIndex: 0,
+            status: 'pending' as const,
             metadata: data.data.hierarchicalPlan?.metadata
           };
 
           // Update hierarchical plan state
           if (setCurrentHierarchicalPlan) {
-            console.log('Setting hierarchical plan in state:', hierarchicalPlan);
             setCurrentHierarchicalPlan(hierarchicalPlan);
           }
 
@@ -200,6 +189,40 @@ export const useEventStreamSimple = ({
               } : step,
             );
           });
+
+          // Update hierarchical plan step status for step_start  
+          if (setCurrentHierarchicalPlan) {
+            setCurrentHierarchicalPlan(prev => {
+              if (!prev) {
+                return prev;
+              }
+
+              // Use subPlanIndex from event data if available, otherwise use currentSubPlanIndex
+              const targetSubPlanIndex = data.data.subPlanIndex !== undefined ? data.data.subPlanIndex : prev.currentSubPlanIndex;
+              
+              if (targetSubPlanIndex === undefined) {
+                return prev;
+              }
+
+              const updatedHierarchical: HierarchicalPlan = {
+                ...prev,
+                subPlans: prev.subPlans.map((subPlan, subPlanIndex) => 
+                  subPlanIndex === targetSubPlanIndex ? {
+                    ...subPlan,
+                    steps: subPlan.steps.map((step, stepIndex) =>
+                      stepIndex === data.data.stepIndex ? {
+                        ...step,
+                        status: 'running' as const,
+                        timestamp: new Date()
+                      } : step
+                    )
+                  } : subPlan
+                )
+              };
+
+              return updatedHierarchical;
+            });
+          }
 
           // Add step message to chat
           const stepMessage: ChatMessage = {
@@ -320,12 +343,19 @@ export const useEventStreamSimple = ({
           // Handle hierarchical step completion
           if (setCurrentHierarchicalPlan) {
             setCurrentHierarchicalPlan(prev => {
-              if (!prev || prev.currentSubPlanIndex === undefined) return prev;
+              if (!prev) return prev;
+
+              // Use subPlanIndex from event data if available, otherwise use currentSubPlanIndex
+              const targetSubPlanIndex = data.data.subPlanIndex !== undefined ? data.data.subPlanIndex : prev.currentSubPlanIndex;
+              
+              if (targetSubPlanIndex === undefined) {
+                return prev;
+              }
 
               const updatedHierarchical: HierarchicalPlan = {
                 ...prev,
                 subPlans: prev.subPlans.map((subPlan, subPlanIndex) => 
-                  subPlanIndex === prev.currentSubPlanIndex ? {
+                  subPlanIndex === targetSubPlanIndex ? {
                     ...subPlan,
                     steps: subPlan.steps.map((step, stepIndex) =>
                       stepIndex === data.data.stepIndex ? {
@@ -385,17 +415,62 @@ export const useEventStreamSimple = ({
 
           // Update the last step message to completed
           updateLastStepMessage('completed');
-        } else if (data.type === 'execution_event' && data.data.type === 'sub_plan_completed') {
-          // Handle sub-plan completion
+        } else if (data.type === 'execution_event' && data.data.type === 'sub_plan_start') {
+          // Handle sub-plan start
           if (setCurrentHierarchicalPlan) {
             setCurrentHierarchicalPlan(prev => {
               if (!prev) return prev;
 
               const updatedHierarchical: HierarchicalPlan = {
                 ...prev,
-                subPlans: prev.subPlans.map((subPlan, index) =>
-                  index === data.data.subPlanIndex ? { ...subPlan, status: data.data.error ? 'error' as const : 'completed' as const } : subPlan
-                )
+                currentSubPlanIndex: data.data.subPlanIndex,
+                status: 'running' as const, // Mark hierarchical plan as running when any sub-plan starts
+                subPlans: prev.subPlans.map((subPlan, index) => {
+                  if (index === data.data.subPlanIndex) {
+                    return { ...subPlan, status: 'running' as const };
+                  } else if (index < data.data.subPlanIndex) {
+                    // Automatically mark all previous sub-plans as completed when starting a new one
+                    return { ...subPlan, status: 'completed' as const };
+                  }
+                  // Keep future sub-plans as pending
+                  return subPlan;
+                })
+              };
+
+              // Update main plan display
+              setCurrentPlan(prevPlan => {
+                if (prevPlan.length > 0 && prevPlan[0].title?.includes('Sub-plan')) {
+                  return updatedHierarchical.subPlans.map((subPlan, index) => ({
+                    id: index,
+                    title: `Sub-plan ${index + 1}: ${subPlan.objective}`,
+                    description: `${subPlan.steps.length} steps • Priority: ${subPlan.priority} • Est: ${Math.round(subPlan.estimatedDuration / 1000)}s`,
+                    status: subPlan.status,
+                    timestamp: new Date()
+                  }));
+                }
+                return prevPlan;
+              });
+
+              return updatedHierarchical;
+            });
+          }
+        } else if (data.type === 'execution_event' && data.data.type === 'sub_plan_completed') {
+          // Handle sub-plan completion
+          if (setCurrentHierarchicalPlan) {
+            setCurrentHierarchicalPlan(prev => {
+              if (!prev) {
+                return prev;
+              }
+
+              const updatedHierarchical: HierarchicalPlan = {
+                ...prev,
+                subPlans: prev.subPlans.map((subPlan, index) => {
+                  if (index === data.data.subPlanIndex) {
+                    const newStatus = data.data.success === false ? 'error' as const : 'completed' as const;
+                    return { ...subPlan, status: newStatus };
+                  }
+                  return subPlan;
+                })
               };
 
               // Update main plan display
@@ -417,11 +492,14 @@ export const useEventStreamSimple = ({
           }
 
           // Add sub-plan completion message to chat
-          const status = data.data.error ? 'failed' : 'completed';
+          const status = data.data.success === false ? 'failed' : 'completed';
+          const totalSubPlans = data.data.totalSubPlans || (setCurrentHierarchicalPlan ? undefined : 0);
           const subPlanCompletionMessage: ChatMessage = {
             id: Date.now(),
             type: 'system',
-            text: `✅ Sub-plan ${data.data.subPlanIndex + 1}/${data.data.totalSubPlans} ${status}: ${data.data.subPlan?.objective || 'Sub-plan execution'}`,
+            text: totalSubPlans ? 
+              `✅ Sub-plan ${data.data.subPlanIndex + 1}/${totalSubPlans} ${status}: ${data.data.subPlan?.objective || 'Sub-plan execution'}` :
+              `✅ Sub-plan ${data.data.subPlanIndex + 1} ${status}: ${data.data.subPlan?.objective || 'Sub-plan execution'}`,
             timestamp: new Date()
           };
           setChatMessages(prev => [...prev, subPlanCompletionMessage]);
@@ -434,7 +512,7 @@ export const useEventStreamSimple = ({
               const updatedHierarchical: HierarchicalPlan = {
                 ...prev,
                 subPlans: prev.subPlans.map((subPlan, index) =>
-                  index === data.subPlanIndex ? { ...subPlan, status: data.error ? 'error' as const : 'completed' as const } : subPlan
+                  index === data.subPlanIndex ? { ...subPlan, status: data.success === false ? 'error' as const : 'completed' as const } : subPlan
                 )
               };
 
@@ -457,11 +535,14 @@ export const useEventStreamSimple = ({
           }
 
           // Add sub-plan completion message to chat
-          const status = data.error ? 'failed' : 'completed';
+          const status = data.success === false ? 'failed' : 'completed';
+          const totalSubPlans = data.totalSubPlans || undefined;
           const subPlanCompletionMessage: ChatMessage = {
             id: Date.now(),
             type: 'system',
-            text: `✅ Sub-plan ${data.subPlanIndex + 1}/${data.totalSubPlans} ${status}: ${data.subPlan?.objective || 'Sub-plan execution'}`,
+            text: totalSubPlans ? 
+              `✅ Sub-plan ${data.subPlanIndex + 1}/${totalSubPlans} ${status}: ${data.subPlan?.objective || 'Sub-plan execution'}` :
+              `✅ Sub-plan ${data.subPlanIndex + 1} ${status}: ${data.subPlan?.objective || 'Sub-plan execution'}`,
             timestamp: new Date()
           };
           setChatMessages(prev => [...prev, subPlanCompletionMessage]);
@@ -519,6 +600,38 @@ export const useEventStreamSimple = ({
             );
           });
         } else if (data.type === 'execution_complete') {
+          // Mark hierarchical plan as completed and mark all sub-plans as completed
+          if (setCurrentHierarchicalPlan) {
+            setCurrentHierarchicalPlan(prev => {
+              if (!prev) return prev;
+              
+              const updatedHierarchical = {
+                ...prev,
+                status: 'completed' as const,
+                subPlans: prev.subPlans.map(subPlan => ({
+                  ...subPlan,
+                  status: subPlan.status === 'running' ? 'completed' as const : subPlan.status
+                }))
+              };
+
+              // Update main plan display to show all sub-plans as completed
+              setCurrentPlan(prevPlan => {
+                if (prevPlan.length > 0 && prevPlan[0].title?.includes('Sub-plan')) {
+                  return updatedHierarchical.subPlans.map((subPlan, index) => ({
+                    id: index,
+                    title: `Sub-plan ${index + 1}: ${subPlan.objective}`,
+                    description: `${subPlan.steps.length} steps • Priority: ${subPlan.priority} • Est: ${Math.round(subPlan.estimatedDuration / 1000)}s`,
+                    status: subPlan.status,
+                    timestamp: new Date()
+                  }));
+                }
+                return prevPlan;
+              });
+
+              return updatedHierarchical;
+            });
+          }
+
           const completionMessage: ChatMessage = {
             id: Date.now(),
             type: 'system',

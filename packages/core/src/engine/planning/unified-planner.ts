@@ -2,6 +2,7 @@ import { HierarchicalPlanner } from './hierarchical-planner';
 import { ActionPlanner } from './action-planner';
 import { AIEngine } from '../../ai/ai-engine';
 import { TaskContext, ActionPlan, HierarchicalPlan } from '../../types';
+import { executionStream } from '../../streaming/execution-stream';
 
 /**
  * Unified Planner that always uses HierarchicalPlanner for planning
@@ -33,6 +34,16 @@ export class UnifiedPlanner {
     const plan = await this.hierarchicalPlanner.createHierarchicalPlan(instruction, context);
     
     console.log(`📋 UnifiedPlanner: Created hierarchical plan with ${plan.subPlans.length} sub-plans`);
+    
+    // Stream the hierarchical plan to the frontend
+    console.log('📡 UnifiedPlanner: About to stream hierarchical plan to frontend');
+    executionStream.streamHierarchicalPlanCreated(
+      plan,
+      plan.globalObjective,
+      plan.planningStrategy
+    );
+    console.log('📡 UnifiedPlanner: Hierarchical plan streaming call completed');
+    
     return plan;
   }
 
@@ -43,8 +54,25 @@ export class UnifiedPlanner {
     plan: HierarchicalPlan, 
     executePlanFunction: (actionPlan: ActionPlan) => Promise<any>
   ): Promise<any> {
-    console.log('🚀 UnifiedPlanner: Executing hierarchical plan');
-    return await this.hierarchicalPlanner.executeHierarchicalPlan(plan, executePlanFunction);
+    console.log('� ENTERING UnifiedPlanner.executePlan method - THIS SHOULD APPEAR IN LOGS!!!');
+    console.log('�🚀 UnifiedPlanner: Executing hierarchical plan');
+    console.log('🔍 DEBUG: UnifiedPlanner.executePlan called with plan:', {
+      id: plan.id,
+      subPlansCount: plan.subPlans.length,
+      objective: plan.globalObjective
+    });
+    console.log('🔍 DEBUG: hierarchicalPlanner exists?', !!this.hierarchicalPlanner);
+    console.log('🔍 DEBUG: executeHierarchicalPlan method exists?', typeof this.hierarchicalPlanner.executeHierarchicalPlan);
+    
+    try {
+      console.log('🔍 DEBUG: About to call hierarchicalPlanner.executeHierarchicalPlan');
+      const result = await this.hierarchicalPlanner.executeHierarchicalPlan(plan, executePlanFunction);
+      console.log('🔍 DEBUG: hierarchicalPlanner.executeHierarchicalPlan completed successfully');
+      return result;
+    } catch (error) {
+      console.error('🔍 DEBUG: Error in hierarchicalPlanner.executeHierarchicalPlan:', error);
+      throw error;
+    }
   }
 
   /**
@@ -62,8 +90,13 @@ export class UnifiedPlanner {
     const plan = await this.planInstruction(instruction, context);
     
     // Execute the hierarchical plan
+    console.log('🔥 CRITICAL: About to call this.executePlan - THIS SHOULD APPEAR!!!');
+    console.log('🔥 CRITICAL: plan object:', { id: plan.id, subPlansCount: plan.subPlans.length });
+    console.log('🔥 CRITICAL: executePlanFunction type:', typeof executePlanFunction);
+    
     const result = await this.executePlan(plan, executePlanFunction);
     
+    console.log('🔥 CRITICAL: this.executePlan returned successfully');
     console.log(`✅ UnifiedPlanner: Completed execution with ${plan.subPlans.length} sub-plans`);
     
     // Include the hierarchical plan in the result for frontend display

@@ -3,6 +3,7 @@ import { AIEngine } from '../../ai/ai-engine';
 import { PromptTemplate } from '../../prompt-template';
 import { ActionPlan, ActionStep, ActionType, HierarchicalPlan, SubPlan, PageState, TaskContext } from '../types';
 import { ActionPlanner } from './action-planner';
+import { executionStream } from '../../streaming/execution-stream';
 
 interface GlobalPlanInstruction {
   subObjectives: string[];
@@ -308,6 +309,13 @@ Respond with ONLY valid JSON in this format:
     for (let i = 0; i < hierarchicalPlan.subPlans.length; i++) {
       const subPlan = hierarchicalPlan.subPlans[i];
       console.log(`📍 Executing sub-plan ${i + 1}/${hierarchicalPlan.subPlans.length}: ${subPlan.objective}`);
+      console.log(`🎯 CRITICAL DEBUG: STARTING sub-plan ${i + 1} iteration`);
+
+      // Set current sub-plan context for streaming
+      executionStream.setCurrentSubPlan(i);
+
+      // Stream sub-plan start event
+      executionStream.streamSubPlanStart(i, subPlan);
 
       // Create an action plan from the sub-plan
       const subActionPlan: ActionPlan = {
@@ -323,18 +331,46 @@ Respond with ONLY valid JSON in this format:
       };
 
       const result = await executeActionPlan(subActionPlan);
+      console.log(`🎯 CRITICAL DEBUG: FINISHED executeActionPlan call for sub-plan ${i + 1}`);
+      console.log(`🎯 CRITICAL DEBUG: Result object keys:`, Object.keys(result));
+      console.log(`🎯 CRITICAL DEBUG: Result object:`, JSON.stringify(result, null, 2));
+      console.log(`🚨 IMMEDIATE: Sub-plan ${i + 1} result received - PROCESSING COMPLETION NOW!`);
       results.push(result);
+      
+      // Always mark sub-plan as done (completed) regardless of success/failure
+      const isSuccess = result && result.success === true;
+      console.log(`� MARKING SUB-PLAN ${i + 1} AS DONE: ${isSuccess ? 'SUCCESS' : 'FAILED'}`);
+      
+      try {
+        executionStream.streamSubPlanComplete(i, subPlan, isSuccess, hierarchicalPlan.subPlans.length);
+        console.log(`✅ Sub-plan ${i + 1} marked as completed in UI`);
+      } catch (error) {
+        console.error(`❌ ERROR marking sub-plan ${i + 1} as completed:`, error);
+      }
 
-      if (!result.success) {
+      // Check if sub-plan failed and handle early exit
+      if (!isSuccess) {
         console.warn(`⚠️ Sub-plan ${i + 1} failed, stopping hierarchical execution`);
         break;
       }
 
-      console.log(`✅ Sub-plan ${i + 1} completed successfully`);
+      console.log(`✅ Sub-plan ${i + 1} completed successfully, continuing to next sub-plan`);  
+    }
+
+    // After all sub-plans are processed, stream the overall hierarchical plan completion
+    const overallSuccess = results.every(r => r.success);
+    console.log(`🎯 CRITICAL DEBUG: All sub-plans completed. Overall success: ${overallSuccess}`);
+    
+    try {
+      console.log(`🔍 DEBUG: About to call streamExecutionComplete for hierarchical plan`);
+      executionStream.streamExecutionComplete();
+      console.log(`✅ DEBUG: streamExecutionComplete call completed for hierarchical plan`);
+    } catch (error) {
+      console.error(`❌ ERROR in streamExecutionComplete for hierarchical plan:`, error);
     }
 
     return {
-      success: results.every(r => r.success),
+      success: overallSuccess,
       results,
       hierarchicalPlan
     };
