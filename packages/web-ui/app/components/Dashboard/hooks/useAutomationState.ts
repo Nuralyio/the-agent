@@ -96,6 +96,10 @@ export const useAutomationState = ({
     if (!taskDescription.trim()) return;
 
     setIsLoading(true);
+    
+    // Clear existing plans to show loading state immediately
+    setCurrentPlan([]);
+    setCurrentHierarchicalPlan(null);
 
     // Add user message
     const userMessage: ChatMessage = {
@@ -136,6 +140,7 @@ export const useAutomationState = ({
           timestamp: new Date(),
         };
         addMessage(errorMessage);
+        setIsLoading(false); // Stop loading on API error
       }
     } catch (error) {
       // Add network error message
@@ -146,8 +151,7 @@ export const useAutomationState = ({
         timestamp: new Date(),
       };
       addMessage(errorMessage);
-    } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Stop loading on error
     }
 
     setTaskDescription('');
@@ -177,6 +181,7 @@ export const useAutomationState = ({
     selectedStepIndex,
     setSelectedStepIndex,
     isLoading,
+    setIsLoading,
     headlessMode,
     setHeadlessMode,
     handleRunTask,

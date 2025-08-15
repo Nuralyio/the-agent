@@ -6,6 +6,7 @@ export interface UseEventStreamProps {
   setCurrentScreenshot: React.Dispatch<React.SetStateAction<string | null>>;
   setChatMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   updateLastStepMessage: (status: string) => void;
+  setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export interface EventData {

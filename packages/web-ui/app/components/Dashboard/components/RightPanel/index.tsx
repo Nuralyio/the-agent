@@ -7,6 +7,7 @@ import { TabSection } from './TabSection/index';
 interface RightPanelProps {
   currentPlan: ExecutionStep[];
   currentHierarchicalPlan?: HierarchicalPlan | null;
+  isLoading?: boolean;
   activeTab: string;
   setActiveTab: (tab: string) => void;
   tabs: TabItem[];
@@ -17,9 +18,10 @@ interface RightPanelProps {
   handleStepClick: (stepIndex: number, step: ExecutionStep) => void;
 }
 
-export const RightPanel: React.FC<RightPanelProps> = ({
+export default function RightPanel({
   currentPlan,
   currentHierarchicalPlan,
+  isLoading = false,
   activeTab,
   setActiveTab,
   tabs,
@@ -28,14 +30,13 @@ export const RightPanel: React.FC<RightPanelProps> = ({
   getDisplayScreenshot,
   selectedEngine,
   handleStepClick,
-}) => {
+}: RightPanelProps) {
   return (
     <div style={styles.rightPanel}>
       {/* Execution Plan Section */}
       <ExecutionPlan
-        currentPlan={currentPlan}
         currentHierarchicalPlan={currentHierarchicalPlan}
-        handleStepClick={handleStepClick}
+        isLoading={isLoading}
       />
 
       {/* Tab Section */}
