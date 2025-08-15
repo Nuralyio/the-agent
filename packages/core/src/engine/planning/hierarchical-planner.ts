@@ -1,11 +1,11 @@
 import { AIEngine } from '../../ai/ai-engine';
-import { Plan, TaskContext, PageState, ActionPlan } from '../types';
+import { ActionPlan, PageState, Plan, TaskContext } from '../types';
 import { ActionPlanner } from './action-planner';
 import { HierarchicalPlanManager } from './hierarchical';
 
 /**
  * Planner - Creates multi-level plans with global planning and sub-plan refinement
- * 
+ *
  * This is a refactored version that uses modular components for better maintainability
  * and separation of concerns.
  */
@@ -20,8 +20,8 @@ export class HierarchicalPlanner {
    * Create a plan from a complex instruction
    */
   async createHierarchicalPlan(
-    instruction: string, 
-    context: TaskContext, 
+    instruction: string,
+    context: TaskContext,
     pageState?: PageState
   ): Promise<Plan> {
     return await this.planManager.createHierarchicalPlan(instruction, context, pageState);

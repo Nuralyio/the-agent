@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 import { AIEngine } from '../../../../ai/ai-engine';
-import { Plan, PageState, TaskContext } from '../../../../types';
+import { PageState, Plan, TaskContext } from '../../../../types';
 import { ActionPlanner } from '../../action-planner';
 import { GlobalPlanService } from '../services/global-plan.service';
 import { PlanAssemblyService } from '../services/plan-assembly.service';

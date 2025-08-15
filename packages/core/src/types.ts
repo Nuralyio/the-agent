@@ -5,15 +5,15 @@
 // Re-export all adapter types
 export * from './adapters/types';
 
-// Re-export all engine types  
+// Re-export all engine types
 export * from './engine/types';
 
 // Import for local use
 import { ScreenshotOptions } from './adapters/types';
 
 // Import needed types for local use
+import { BrowserInstance, BrowserType, LaunchOptions, PageInstance } from './adapters/types';
 import { ActionStep, TaskContext } from './engine/types';
-import { LaunchOptions, BrowserType, BrowserInstance, PageInstance } from './adapters/types';
 
 // Additional core types
 export interface BrowserConfig {
@@ -75,8 +75,8 @@ export interface TaskResult {
 }
 
 // Re-export specific types for convenience
-export { ActionStep, ActionPlan, ActionType, PageState, TaskContext } from './engine/types';
-export { BrowserAdapter, BrowserInstance, PageInstance, ElementHandle, BrowserType, LaunchOptions } from './adapters/types';
+export { BrowserAdapter, BrowserInstance, BrowserType, ElementHandle, LaunchOptions, PageInstance } from './adapters/types';
+export { ActionPlan, ActionStep, ActionType, PageState, TaskContext } from './engine/types';
 
 // Additional exports
 export interface ActionEngine {

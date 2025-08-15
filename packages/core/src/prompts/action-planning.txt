@@ -49,7 +49,7 @@ CONTEXT-AWARE RULES:
 SELECTOR FLEXIBILITY EXAMPLES:
 - Add buttons: Use `button.oxd-button` or `button:has-text("Add")` or `[role="button"]:has-text("Add")`
 - Menu items: Use `a[href*="menu-keyword"]` or `.menu-class`
-- Buttons: Use `button.btn-class` or `button[type="button"]:has-text("Text")`  
+- Buttons: Use `button.btn-class` or `button[type="button"]:has-text("Text")`
 - Forms: Look for actual input names/types in page content
 - Links: Use `a[href*="keyword"]` or `a:has-text("Link Text")`
 
