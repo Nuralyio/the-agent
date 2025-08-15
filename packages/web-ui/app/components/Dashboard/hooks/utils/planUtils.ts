@@ -29,7 +29,7 @@ export const createPlanMessage = (planSteps: ExecutionStep[]): ChatMessage => ({
 });
 
 /**
- * Creates a hierarchical plan from event data
+ * Creates a plan from event data
  */
 export const createHierarchicalPlan = (data: EventData): HierarchicalPlan => {
   const planData = data.data?.hierarchicalPlan || data;
@@ -78,12 +78,12 @@ export const createSubPlanSteps = (hierarchicalPlan: HierarchicalPlan): Executio
 };
 
 /**
- * Creates a hierarchical plan chat message
+ * Creates a plan chat message
  */
 export const createHierarchicalPlanMessage = (hierarchicalPlan: HierarchicalPlan): ChatMessage => ({
   id: Date.now(),
   type: 'hierarchical_plan',
-  text: `🧠 Hierarchical Plan: ${hierarchicalPlan.globalObjective} (${hierarchicalPlan.subPlans.length} sub-plans)`,
+  text: `🧠 Plan: ${hierarchicalPlan.globalObjective} (${hierarchicalPlan.subPlans.length} sub-plans)`,
   timestamp: new Date(),
   hierarchicalPlan,
 });

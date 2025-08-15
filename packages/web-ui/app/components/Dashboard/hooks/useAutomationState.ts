@@ -31,14 +31,14 @@ export const useAutomationState = ({
 
   // Effect to sync currentPlan and currentHierarchicalPlan from chatMessages
   useEffect(() => {
-    // Find the latest plan or hierarchical plan in chat messages
+    // Find the latest plan or plan in chat messages
     const latestPlanMessage = [...chatMessages]
       .reverse()
       .find(msg => msg.type === 'plan' || msg.type === 'hierarchical_plan');
 
     if (latestPlanMessage) {
       if (latestPlanMessage.type === 'hierarchical_plan' && latestPlanMessage.hierarchicalPlan) {
-        // Set hierarchical plan if it's not already set
+        // Set plan if it's not already set
         if (!currentHierarchicalPlan) {
           setCurrentHierarchicalPlan(latestPlanMessage.hierarchicalPlan);
         }

@@ -33,7 +33,7 @@ real-time monitor and monitoring capabilities.
 <div align="center">
   <img src="./assets/webui.png" alt="The Agent Web Dashboard" width="800"/>
   <br/>
-  <em>Real-time browser automation dashboard with hierarchical planning monitor</em>
+  <em>Real-time browser automation dashboard with plan monitor</em>
 </div>
 
 
@@ -55,7 +55,7 @@ real-time monitor and monitoring capabilities.
 
 - **Live Execution Monitoring** - Watch your automation tasks execute in
   real-time
-- **Hierarchical Plan Monitor** - See complex tasks broken down into
+- **Plan Monitor** - See complex tasks broken down into
   manageable sub-plans
 - **Action Detail Display** - View target selectors, action types, and execution
   values

@@ -97,8 +97,8 @@ export class ActionEngine implements IActionEngine {
 
 
       // Use UnifiedPlanner for all tasks (hierarchical planning by default)
-      console.log(`🧠 Using UnifiedPlanner with hierarchical planning (always default)`);
-      console.log(`🔍 ActionEngine: Starting hierarchical planning for: "${objective}"`);
+      console.log(`🧠 Using UnifiedPlanner with planning (always default)`);
+      console.log(`🔍 ActionEngine: Starting planning for: "${objective}"`);
       return await this.executeWithUnifiedPlanning(objective, context, logger);
 
     } catch (error) {
@@ -138,7 +138,7 @@ export class ActionEngine implements IActionEngine {
       try {
         pageState = await this.actionExecutor.captureState();
       } catch (error) {
-        console.log('� No active page available for context, proceeding with hierarchical planning');
+        console.log('� No active page available for context, proceeding with planning');
       }
 
       // Create context from page state (or empty context if no page)
@@ -162,7 +162,7 @@ export class ActionEngine implements IActionEngine {
       };
 
       // 1. Use UnifiedPlanner for end-to-end planning and execution
-      console.log(`🧠 UnifiedPlanner: Creating and executing hierarchical plan`);
+      console.log(`🧠 UnifiedPlanner: Creating and executing plan`);
       const result = await this.unifiedPlanner.planAndExecute(
         objective,
         taskContext,

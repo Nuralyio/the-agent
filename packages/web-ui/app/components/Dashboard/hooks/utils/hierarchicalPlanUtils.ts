@@ -2,7 +2,7 @@ import type { ExecutionStep, HierarchicalPlan } from '../../Dashboard.types';
 import type { EventData } from '../types/eventStream.types';
 
 /**
- * Updates hierarchical plan step status
+ * Updates plan step status
  */
 export const updateHierarchicalStepStatus = (
   plan: HierarchicalPlan,
@@ -59,7 +59,7 @@ export const updateSubPlanStatus = (
 };
 
 /**
- * Marks hierarchical plan as completed
+ * Marks plan as completed
  */
 export const completeHierarchicalPlan = (plan: HierarchicalPlan): HierarchicalPlan => {
   return {
@@ -73,7 +73,7 @@ export const completeHierarchicalPlan = (plan: HierarchicalPlan): HierarchicalPl
 };
 
 /**
- * Creates main plan display from hierarchical plan
+ * Creates main plan display from plan
  */
 export const createMainPlanFromHierarchical = (
   hierarchicalPlan: HierarchicalPlan,

@@ -54,17 +54,17 @@ export class EventHandlers {
   };
 
   /**
-   * Handles hierarchical plan creation events
+   * Handles plan creation events
    */
   handleHierarchicalPlanCreated = (data: EventData): void => {
     const hierarchicalPlan = createHierarchicalPlan(data);
 
-    // Update hierarchical plan state
+    // Update plan state
     if (this.props.setCurrentHierarchicalPlan) {
       this.props.setCurrentHierarchicalPlan(hierarchicalPlan);
     }
 
-    // Turn off loading state when hierarchical plan is received
+    // Turn off loading state when plan is received
     if (this.props.setIsLoading) {
       this.props.setIsLoading(false);
     }
@@ -73,7 +73,7 @@ export class EventHandlers {
     const subPlanSteps = createSubPlanSteps(hierarchicalPlan);
     this.props.setCurrentPlan(subPlanSteps);
 
-    // Add hierarchical plan message to chat
+    // Add plan message to chat
     const hierarchicalPlanMessage = createHierarchicalPlanMessage(hierarchicalPlan);
     this.props.setChatMessages(prev => [...prev, hierarchicalPlanMessage]);
   };
@@ -90,7 +90,7 @@ export class EventHandlers {
       createOrExtendPlan(prev, stepIndex, stepData, 'running')
     );
 
-    // Update hierarchical plan step status
+    // Update plan step status
     if (this.props.setCurrentHierarchicalPlan) {
       this.props.setCurrentHierarchicalPlan(prev => {
         if (!prev) return prev;
@@ -121,7 +121,7 @@ export class EventHandlers {
       this.props.setCurrentScreenshot(`data:image/png;base64,${screenshot}`);
     }
 
-    // Update hierarchical plan step status
+    // Update plan step status
     if (this.props.setCurrentHierarchicalPlan) {
       this.props.setCurrentHierarchicalPlan(prev => {
         if (!prev) return prev;
@@ -217,7 +217,7 @@ export class EventHandlers {
    * Handles execution completion events
    */
   handleExecutionComplete = (eventSource: EventSource): void => {
-    // Mark hierarchical plan as completed
+    // Mark plan as completed
     if (this.props.setCurrentHierarchicalPlan) {
       this.props.setCurrentHierarchicalPlan(prev => {
         if (!prev) return prev;

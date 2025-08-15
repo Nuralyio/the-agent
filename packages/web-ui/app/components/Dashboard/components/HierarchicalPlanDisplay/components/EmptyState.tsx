@@ -5,7 +5,7 @@ interface EmptyStateProps {
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
-  message = 'No hierarchical plan available. The system will create one for complex tasks.',
+  message = 'No execution plan available. The system will create one for complex tasks.',
 }) => {
   const styles = {
     container: {
