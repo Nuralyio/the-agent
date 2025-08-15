@@ -326,10 +326,10 @@ To use The Agent in your own project, create a simple automation script:
 
 ```javascript
 // automation.js
-const { BrowserAutomation } = require('@theagent/core');
+const { TheAgent } = require('@theagent/core');
 
 async function runAutomation() {
-  const automation = new BrowserAutomation({ 
+  const automation = new TheAgent({ 
     headless: false,
     ai: { provider: 'openai', model: 'gpt-4o' }
   });
@@ -352,13 +352,13 @@ theagent run "your automation task"
 Write tests using familiar syntax:
 
 ```javascript
-const { BrowserAutomation } = require('@theagent/core');
+const { TheAgent } = require('@theagent/core');
 
 describe('My Tests', () => {
   let automation;
 
   beforeEach(async () => {
-    automation = new BrowserAutomation({ headless: true });
+    automation = new TheAgent({ headless: true });
     await automation.initialize();
   });
 

@@ -1,4 +1,4 @@
-import { BrowserAutomation } from '@theagent/core';
+import { TheAgent } from '@theagent/core';
 import { getBrowserType, formatDuration } from '../utils/browser';
 import { loadConfig } from '../utils/config';
 import { createLogger } from '../utils/logger';
@@ -66,7 +66,7 @@ export async function runCommand(task: string, options: RunOptions) {
     logger.info(`   AI Provider: ${aiConfig.provider}`);
     logger.info(`   AI Model: ${aiConfig.model}`);
 
-    const automation = new BrowserAutomation({
+    const automation = new TheAgent({
       adapter: options.adapter || config.adapter,
       browserType: getBrowserType(options.browser || config.browser),
       headless: options.headless ?? config.headless,

@@ -15,9 +15,9 @@ import {
 } from './types';
 
 /**
- * Main Browser Automation Framework class
+ * Main TheAgent Framework class
  */
-export class BrowserAutomation {
+export class TheAgent {
   private browserManager: BrowserManagerImpl;
   private registry: BrowserAdapterRegistry;
   private config: BrowserConfig;
@@ -98,7 +98,7 @@ export class BrowserAutomation {
       await this.initialize();
     }
 
-    console.log(`📝 Using BrowserAutomation.execute() for instruction: "${instruction}"`);
+    console.log(`📝 Using TheAgent.execute() for instruction: "${instruction}"`);
 
     // If we have an ActionEngine (AI is configured), use it for intelligent planning
     if (this.actionEngine) {

@@ -17,9 +17,9 @@ import {
 import { executionStream } from '../streaming/execution-stream';
 
 /**
- * Main Browser Automation Framework class
+ * Main TheAgent Framework class
  */
-export class BrowserAutomation {
+export class TheAgent {
   private browserManager: BrowserManagerImpl;
   private registry: BrowserAdapterRegistry;
   private config: BrowserConfig;

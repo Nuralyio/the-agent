@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { BrowserAutomation } from '@theagent/core';
+import { TheAgent } from '@theagent/core';
 import { getBrowserType } from '../utils/browser';
 import { loadConfig } from '../utils/config';
 import { createLogger } from '../utils/logger';
@@ -135,7 +135,7 @@ async function runTestFile(testFile: string, config: any): Promise<{ total: numb
   let failed = 0;
   
   // Create a test environment
-  const automation = new BrowserAutomation({
+  const automation = new TheAgent({
     adapter: config.adapter,
     browserType: getBrowserType(config.browser),
     headless: config.headless,
@@ -178,7 +178,7 @@ async function runTestFile(testFile: string, config: any): Promise<{ total: numb
     
     // Create a safe evaluation environment
     const testGlobals = {
-      BrowserAutomation,
+      TheAgent,
       automation,
       expect,
       test,

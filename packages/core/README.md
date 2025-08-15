@@ -24,9 +24,9 @@ npm install @theagent/core
 ## Quick Start
 
 ```typescript
-import { BrowserAutomation, BrowserType } from '@theagent/core';
+import { TheAgent, BrowserType } from '@theagent/core';
 
-const automation = new BrowserAutomation({
+const automation = new TheAgent({
   adapter: 'playwright',
   headless: false,
   browserType: BrowserType.CHROME,
