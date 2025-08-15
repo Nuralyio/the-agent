@@ -1,6 +1,6 @@
 import { writeFileSync } from 'fs';
 import { join } from 'path';
-import { ExecutionSessionLog } from '../logging/execution-logger';
+import { ExecutionSessionLog } from '../execution-logger';
 
 /**
  * HTML visualization generator for execution logs
