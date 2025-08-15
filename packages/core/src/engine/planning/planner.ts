@@ -1,20 +1,20 @@
 import { AIEngine } from '../../ai/ai-engine';
 import { executionStream } from '../../streaming/execution-stream';
-import { ActionPlan, Plan, TaskContext, PageState } from '../../types';
+import { ActionPlan, PageState, Plan, TaskContext } from '../../types';
 import { ActionPlanner } from './action-planner';
-import { HierarchicalPlanManager } from './hierarchical';
+import { HierarchicalPlanManager } from './hierarchical/managers/hierarchical-plan-manager';
 
 /**
  * Main Planner class that handles all planning and execution
- * 
+ *
  * This is the unified interface for all planning operations:
  * - Creates structured plans from natural language instructions
  * - Executes plans step by step with streaming
  * - Handles both simple and complex multi-step tasks
- * 
+ *
  * Used across all interfaces:
  * - API endpoints
- * - MCP server  
+ * - MCP server
  * - CLI tools
  * - Direct usage
  */
@@ -33,11 +33,11 @@ export class Planner {
    */
   async planInstruction(instruction: string, context: TaskContext, pageState?: PageState): Promise<Plan> {
     console.log('🧠 Planner: Using structured planning by default');
-    
+
     const plan = await this.planManager.createHierarchicalPlan(instruction, context, pageState);
-    
+
     console.log(`📋 Planner: Created plan with ${plan.subPlans.length} sub-plans`);
-    
+
     // Stream the plan to the frontend
     console.log('📡 Planner: About to stream plan to frontend');
     executionStream.streamHierarchicalPlanCreated(
@@ -46,7 +46,7 @@ export class Planner {
       plan.planningStrategy
     );
     console.log('📡 Planner: Plan streaming call completed');
-    
+
     return plan;
   }
 
@@ -54,7 +54,7 @@ export class Planner {
    * Execute a plan using ActionPlanner for individual action execution
    */
   async executePlan(
-    plan: Plan, 
+    plan: Plan,
     executePlanFunction: (actionPlan: ActionPlan) => Promise<any>
   ): Promise<any> {
     console.log('⚡ ENTERING Planner.executePlan method - THIS SHOULD APPEAR IN LOGS!!!');
@@ -83,15 +83,15 @@ export class Planner {
    * This is the primary method for end-to-end task execution
    */
   async planAndExecute(
-    instruction: string, 
+    instruction: string,
     context: TaskContext,
     executePlanFunction: (actionPlan: ActionPlan) => Promise<any>
   ): Promise<any> {
     console.log(`🎯 Planner: Planning and executing instruction: "${instruction}"`);
-    
+
     // Create the plan
     const plan = await this.planInstruction(instruction, context);
-    
+
     // Execute the plan
     console.log('🔥 CRITICAL: About to call this.executePlan - THIS SHOULD APPEAR!!!');
     console.log('🔥 CRITICAL: plan object:', { id: plan.id, subPlansCount: plan.subPlans.length });

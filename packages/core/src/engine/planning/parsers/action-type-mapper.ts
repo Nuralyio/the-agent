@@ -1,4 +1,4 @@
-import { ActionType } from '../../types';
+import { ActionType } from '../types/types';
 
 /**
  * Maps between different action type representations

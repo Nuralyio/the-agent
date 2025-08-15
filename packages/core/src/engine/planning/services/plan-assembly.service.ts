@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import { ActionPlan, ActionStep, ActionType, SubPlan } from '../../../../types';
+import { ActionPlan, ActionStep, ActionType, SubPlan } from '../../../types';
 import { PlanAssemblyConfig } from '../types/hierarchical-planning.types';
 
 /**

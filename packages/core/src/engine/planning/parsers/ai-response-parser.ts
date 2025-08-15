@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 import { ActionPlanInput } from '../../../types/action-schemas';
-import { ActionStep } from '../../types';
+import { ActionStep } from '../types/types';
 import { ActionTypeMapper } from './action-type-mapper';
 
 export interface ParsedInstruction {

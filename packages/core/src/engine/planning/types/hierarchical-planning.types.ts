@@ -1,4 +1,4 @@
-import { PageState, SubPlan, TaskContext } from '../../../types';
+import { PageState, SubPlan, TaskContext } from './types';
 
 /**
  * Global plan instruction structure from AI response

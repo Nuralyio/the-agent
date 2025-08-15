@@ -1,6 +1,6 @@
 import { AIEngine, AIResponse } from '../../ai/ai-engine';
 import { ActionEngine } from '../../engine/action-engine';
-import { ActionStep, ActionType, TaskContext } from '../../engine/types';
+import { ActionStep, ActionType, TaskContext } from '../../engine/planning/types/types';
 import { BrowserManager, PageInstance } from '../../types';
 
 // Mock dependencies
