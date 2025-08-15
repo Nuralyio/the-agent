@@ -85,7 +85,7 @@ When a selector fails, the system provides current page content. Use this to:
 3. Generate new selectors based on visible HTML structure
 4. Never retry the same failed selector
 
-HIERARCHICAL PLANNING STRUCTURE:
+PLANNING STRUCTURE:
 For complex tasks, create a global plan first, then refine each sub-plan:
 1. Global plan: High-level steps to complete the entire task
 2. Sub-plans: Detailed action steps for each global step

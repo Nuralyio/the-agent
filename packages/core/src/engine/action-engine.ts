@@ -21,14 +21,13 @@ import { UnifiedPlanner } from './planning/unified-planner';
  * Core ActionEngine implementation that orchestrates task execution
  *
  * PLANNING ARCHITECTURE:
- * - Uses UnifiedPlanner for ALL task execution (hierarchical planning by default)
- * - No more planning decision logic - hierarchical is always used
+ * - Uses UnifiedPlanner for ALL task execution
  * - Consistent behavior across all interfaces (API, MCP, CLI, Direct)
  *
  * EXECUTION FLOW:
  * 1. Receive natural language instruction
  * 2. Capture current page state for context
- * 3. Use UnifiedPlanner.planAndExecute() for hierarchical planning and execution
+ * 3. Use UnifiedPlanner.planAndExecute() for planning and execution
  * 4. Handle navigation-aware tasks through NavigationHandler when needed
  * 5. Return structured results with logging and streaming
  */
@@ -96,7 +95,7 @@ export class ActionEngine implements IActionEngine {
     try {
 
 
-      // Use UnifiedPlanner for all tasks (hierarchical planning by default)
+      // Use UnifiedPlanner for all tasks
       console.log(`🧠 Using UnifiedPlanner with planning (always default)`);
       console.log(`🔍 ActionEngine: Starting planning for: "${objective}"`);
       return await this.executeWithUnifiedPlanning(objective, context, logger);
@@ -125,7 +124,7 @@ export class ActionEngine implements IActionEngine {
   }
 
   /**
-   * Execute task using UnifiedPlanner (always hierarchical planning)
+   * Execute task using UnifiedPlanner
    */
   private async executeWithUnifiedPlanning(
     objective: string,
@@ -184,7 +183,7 @@ export class ActionEngine implements IActionEngine {
         extractedData: null,
         screenshots: result.results?.flatMap((r: any) => r.screenshots || []) || [],
         duration: Date.now() - Date.now(),
-        hierarchicalPlan: result.plan
+        plan: result.plan
       };
 
     } catch (error) {
@@ -195,7 +194,7 @@ export class ActionEngine implements IActionEngine {
 
   /**
    * Parse natural language instruction into structured action plan
-   * Uses UnifiedPlanner for consistent hierarchical planning
+   * Uses UnifiedPlanner for consistent planning
    */
   async parseInstruction(instruction: string): Promise<ActionPlan> {
     // Try to capture current page state for context, but handle case where no page is loaded

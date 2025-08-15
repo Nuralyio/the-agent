@@ -1,14 +1,14 @@
 import { HierarchicalPlanner } from './hierarchical-planner';
 import { ActionPlanner } from './action-planner';
 import { AIEngine } from '../../ai/ai-engine';
-import { TaskContext, ActionPlan, HierarchicalPlan } from '../../types';
+import { TaskContext, ActionPlan, Plan } from '../../types';
 import { executionStream } from '../../streaming/execution-stream';
 
 /**
- * Unified Planner that always uses HierarchicalPlanner for planning
+ * Unified Planner that uses structured planning for all tasks
  * and ActionPlanner only for action execution (not planning)
  * 
- * This ensures hierarchical planning is the default across all interfaces:
+ * This ensures consistent planning across all interfaces:
  * - API endpoints
  * - MCP server
  * - CLI tools
@@ -24,53 +24,53 @@ export class UnifiedPlanner {
   }
 
   /**
-   * Always use hierarchical planning for instruction planning
+   * Always use structured planning for instruction planning
    * This is the main planning method that should be used everywhere
    */
-  async planInstruction(instruction: string, context: TaskContext): Promise<HierarchicalPlan> {
-    console.log('🧠 UnifiedPlanner: Using hierarchical planning by default');
+  async planInstruction(instruction: string, context: TaskContext): Promise<Plan> {
+    console.log('🧠 UnifiedPlanner: Using structured planning by default');
     
-    // Always use hierarchical planning - no more shouldUseHierarchicalPlanning checks
+    // Always use structured planning
     const plan = await this.hierarchicalPlanner.createHierarchicalPlan(instruction, context);
     
-    console.log(`📋 UnifiedPlanner: Created hierarchical plan with ${plan.subPlans.length} sub-plans`);
+    console.log(`📋 UnifiedPlanner: Created plan with ${plan.subPlans.length} sub-plans`);
     
-    // Stream the hierarchical plan to the frontend
-    console.log('📡 UnifiedPlanner: About to stream hierarchical plan to frontend');
+    // Stream the plan to the frontend
+    console.log('📡 UnifiedPlanner: About to stream plan to frontend');
     executionStream.streamHierarchicalPlanCreated(
       plan,
       plan.globalObjective,
       plan.planningStrategy
     );
-    console.log('📡 UnifiedPlanner: Hierarchical plan streaming call completed');
+    console.log('📡 UnifiedPlanner: Plan streaming call completed');
     
     return plan;
   }
 
   /**
-   * Execute a hierarchical plan using ActionPlanner for individual action execution
+   * Execute a plan using ActionPlanner for individual action execution
    */
   async executePlan(
-    plan: HierarchicalPlan, 
+    plan: Plan, 
     executePlanFunction: (actionPlan: ActionPlan) => Promise<any>
   ): Promise<any> {
     console.log('� ENTERING UnifiedPlanner.executePlan method - THIS SHOULD APPEAR IN LOGS!!!');
-    console.log('�🚀 UnifiedPlanner: Executing hierarchical plan');
+    console.log('�🚀 UnifiedPlanner: Executing plan');
     console.log('🔍 DEBUG: UnifiedPlanner.executePlan called with plan:', {
       id: plan.id,
       subPlansCount: plan.subPlans.length,
       objective: plan.globalObjective
     });
-    console.log('🔍 DEBUG: hierarchicalPlanner exists?', !!this.hierarchicalPlanner);
-    console.log('🔍 DEBUG: executeHierarchicalPlan method exists?', typeof this.hierarchicalPlanner.executeHierarchicalPlan);
+    console.log('🔍 DEBUG: planner exists?', !!this.hierarchicalPlanner);
+    console.log('🔍 DEBUG: executePlan method exists?', typeof this.hierarchicalPlanner.executeHierarchicalPlan);
     
     try {
-      console.log('🔍 DEBUG: About to call hierarchicalPlanner.executeHierarchicalPlan');
+      console.log('🔍 DEBUG: About to call planner.executePlan');
       const result = await this.hierarchicalPlanner.executeHierarchicalPlan(plan, executePlanFunction);
-      console.log('🔍 DEBUG: hierarchicalPlanner.executeHierarchicalPlan completed successfully');
+      console.log('🔍 DEBUG: planner.executePlan completed successfully');
       return result;
     } catch (error) {
-      console.error('🔍 DEBUG: Error in hierarchicalPlanner.executeHierarchicalPlan:', error);
+      console.error('🔍 DEBUG: Error in planner.executePlan:', error);
       throw error;
     }
   }
@@ -86,10 +86,10 @@ export class UnifiedPlanner {
   ): Promise<any> {
     console.log(`🎯 UnifiedPlanner: Planning and executing instruction: "${instruction}"`);
     
-    // Always use hierarchical planning
+    // Always use structured planning
     const plan = await this.planInstruction(instruction, context);
     
-    // Execute the hierarchical plan
+    // Execute the plan
     console.log('🔥 CRITICAL: About to call this.executePlan - THIS SHOULD APPEAR!!!');
     console.log('🔥 CRITICAL: plan object:', { id: plan.id, subPlansCount: plan.subPlans.length });
     console.log('🔥 CRITICAL: executePlanFunction type:', typeof executePlanFunction);
@@ -99,10 +99,10 @@ export class UnifiedPlanner {
     console.log('🔥 CRITICAL: this.executePlan returned successfully');
     console.log(`✅ UnifiedPlanner: Completed execution with ${plan.subPlans.length} sub-plans`);
     
-    // Include the hierarchical plan in the result for frontend display
+    // Include the plan in the result for frontend display
     if (result && typeof result === 'object') {
-      result.hierarchicalPlan = plan;
-      console.log(`📋 UnifiedPlanner: Added hierarchical plan to result (${plan.subPlans.length} sub-plans)`);
+      result.plan = plan;
+      console.log(`📋 UnifiedPlanner: Added plan to result (${plan.subPlans.length} sub-plans)`);
     }
     
     return result;
@@ -110,7 +110,7 @@ export class UnifiedPlanner {
 
   /**
    * Create a simple action plan using ActionPlanner (for individual step execution only)
-   * This should only be used internally by HierarchicalPlanner for sub-plan creation
+   * This should only be used internally by the planner for sub-plan creation
    */
   async createActionPlan(instruction: string, context: TaskContext): Promise<ActionPlan> {
     console.log('⚙️ UnifiedPlanner: Creating action plan for sub-plan execution');
@@ -125,19 +125,19 @@ export class UnifiedPlanner {
   }
 
   /**
-   * Get the underlying HierarchicalPlanner (for compatibility with existing code)
+   * Get the underlying planner (for compatibility with existing code)
    */
   getHierarchicalPlanner(): HierarchicalPlanner {
     return this.hierarchicalPlanner;
   }
 
   /**
-   * Check if an instruction would use hierarchical planning
-   * Note: This always returns true now since we always use hierarchical planning
+   * Check if an instruction would use structured planning
+   * Note: This always returns true now since we always use structured planning
    * Kept for backward compatibility
    */
   async shouldUseHierarchicalPlanning(instruction: string): Promise<boolean> {
-    console.log('ℹ️ UnifiedPlanner: Always using hierarchical planning (legacy method called)');
-    return true; // Always true - hierarchical planning is now the default
+    console.log('ℹ️ UnifiedPlanner: Always using structured planning (legacy method called)');
+    return true; // Always true - structured planning is now the default
   }
 }

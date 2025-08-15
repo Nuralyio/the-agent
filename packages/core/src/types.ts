@@ -71,7 +71,7 @@ export interface TaskResult {
   screenshots?: Buffer[];
   steps: ActionStep[];
   extractedData?: any;
-  hierarchicalPlan?: any; // Allow hierarchical plan data to be included
+  plan?: any; // Allow plan data to be included
 }
 
 // Re-export specific types for convenience

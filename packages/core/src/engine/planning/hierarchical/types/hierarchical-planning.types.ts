@@ -38,7 +38,7 @@ export interface SubPlanConfig {
 export interface PlanExecutionResult {
   success: boolean;
   results: any[];
-  hierarchicalPlan: any;
+  plan: any;
   executionTime?: number;
   failedAt?: number;
 }

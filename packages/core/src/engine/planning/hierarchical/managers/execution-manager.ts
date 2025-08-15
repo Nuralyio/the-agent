@@ -1,5 +1,5 @@
 import { executionStream } from '../../../../streaming/execution-stream';
-import { ActionPlan, HierarchicalPlan } from '../../../../types';
+import { ActionPlan, Plan } from '../../../../types';
 import {
   HierarchicalExecutionContext,
   PlanExecutionResult
@@ -10,13 +10,13 @@ import {
  */
 export class HierarchicalExecutionManager {
   /**
-   * Execute a hierarchical plan step by step with streaming
+   * Execute a plan step by step with streaming
    */
   async executeHierarchicalPlan(
-    hierarchicalPlan: HierarchicalPlan,
+    hierarchicalPlan: Plan,
     executeActionPlan: (plan: ActionPlan) => Promise<any>
   ): Promise<PlanExecutionResult> {
-    console.log(`🚀 Executing hierarchical plan: ${hierarchicalPlan.subPlans.length} sub-plans`);
+    console.log(`🚀 Executing plan: ${hierarchicalPlan.subPlans.length} sub-plans`);
 
     const context = this.createExecutionContext(hierarchicalPlan);
     const results = [];
@@ -118,9 +118,9 @@ export class HierarchicalExecutionManager {
     console.log(`🎯 CRITICAL DEBUG: All sub-plans completed. Overall success: ${overallSuccess}`);
 
     try {
-      console.log(`🔍 DEBUG: About to call streamExecutionComplete for hierarchical plan`);
+      console.log(`🔍 DEBUG: About to call streamExecutionComplete for plan`);
       executionStream.streamExecutionComplete();
-      console.log(`✅ DEBUG: streamExecutionComplete call completed for hierarchical plan`);
+      console.log(`✅ DEBUG: streamExecutionComplete call completed for plan`);
     } catch (error) {
       console.error(`❌ ERROR in streamExecutionComplete for hierarchical plan:`, error);
     }
@@ -129,7 +129,7 @@ export class HierarchicalExecutionManager {
   /**
    * Create execution context
    */
-  private createExecutionContext(hierarchicalPlan: HierarchicalPlan): HierarchicalExecutionContext {
+  private createExecutionContext(hierarchicalPlan: Plan): HierarchicalExecutionContext {
     return {
       currentSubPlanIndex: 0,
       totalSubPlans: hierarchicalPlan.subPlans.length,
@@ -145,13 +145,13 @@ export class HierarchicalExecutionManager {
   private createExecutionResult(
     success: boolean,
     results: any[],
-    hierarchicalPlan: HierarchicalPlan,
+    hierarchicalPlan: Plan,
     failedAt?: number
   ): PlanExecutionResult {
     return {
       success,
       results,
-      hierarchicalPlan,
+      plan: hierarchicalPlan,
       executionTime: Date.now(),
       failedAt
     };

@@ -58,7 +58,7 @@ export class ExecutionStream extends EventEmitter {
   }
 
   /**
-   * Legacy method for hierarchical plan creation
+   * Legacy method for plan creation
    */
   streamHierarchicalPlanCreated(
     hierarchicalPlan: any,
@@ -151,7 +151,7 @@ export class ExecutionStream extends EventEmitter {
   }
 
   /**
-   * Notify hierarchical plan creation
+   * Notify plan creation
    */
   notifyHierarchicalPlanCreated(
     hierarchicalPlan: any,
@@ -160,7 +160,7 @@ export class ExecutionStream extends EventEmitter {
   ): void {
     const sessionId = this.sessionManager.getCurrentSessionId();
     if (!sessionId) {
-      console.warn('⚠️ No active session for hierarchical plan');
+      console.warn('⚠️ No active session for plan');
       return;
     }
 

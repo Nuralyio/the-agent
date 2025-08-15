@@ -38,7 +38,7 @@ export interface ActionPlan {
   priority: number;
   metadata?: any;
   context?: any;
-  // New hierarchical properties
+  // Sub-plan properties
   subPlans?: SubPlan[];
   parentPlanId?: string;
   planType?: 'global' | 'sub';
@@ -59,7 +59,7 @@ export interface SubPlan {
   context?: any;
 }
 
-export interface HierarchicalPlan {
+export interface Plan {
   id: string;
   globalObjective: string;
   globalPlan: ActionPlan;
@@ -80,7 +80,7 @@ export enum ActionType {
   HOVER = 'hover',
   EXTRACT = 'extract',
   VERIFY = 'verify',
-  // New hierarchical action types
+  // Sub-plan action types
   EXECUTE_SUB_PLAN = 'execute_sub_plan',
   PLAN = 'plan'
 }
