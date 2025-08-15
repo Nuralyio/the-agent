@@ -42,7 +42,7 @@ export class AutomationAPI {
 
   constructor(config: AutomationServerConfig) {
     this.config = {
-      timeout: 30000,
+      timeout: 10000,
       ...config,
     };
   }
