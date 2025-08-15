@@ -63,7 +63,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           <div style={styles.collapsibleContent}>
             <div style={{ marginBottom: '16px' }}>
               <label style={styles.label}>Timeout (seconds)</label>
-              <input type='number' style={styles.input} defaultValue='30' min='5' max='300' />
+              <input type='number' style={styles.input} defaultValue='10' min='5' max='300' />
             </div>
             <div style={{ marginBottom: '16px' }}>
               <label style={styles.label}>Browser Mode</label>

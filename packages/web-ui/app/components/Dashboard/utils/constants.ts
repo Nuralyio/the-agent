@@ -6,7 +6,7 @@ import {
 } from '@fluentui/react-icons';
 
 export const DEFAULT_ENGINE = 'playwright';
-export const DEFAULT_TIMEOUT = 30;
+export const DEFAULT_TIMEOUT = 10;
 export const DEFAULT_BROWSER_MODE = 'headed';
 export const DEFAULT_VIEWPORT_SIZE = '1920x1080';
 export const DEFAULT_USER_AGENT = 'default';
