@@ -1,9 +1,9 @@
-import { executionStream } from '../../../../streaming/execution-stream';
-import { ActionPlan, Plan } from '../../../../types';
+import { executionStream } from '../../streaming/execution-stream';
+import { ActionPlan, Plan } from '../../types';
 import {
   HierarchicalExecutionContext,
   PlanExecutionResult
-} from '../types/hierarchical-planning.types';
+} from './types/hierarchical-planning.types';
 
 /**
  * Manages execution of hierarchical plans with streaming support
@@ -64,7 +64,7 @@ export class HierarchicalExecutionManager {
     // Calculate overall success based on at least some sub-plans succeeding
     const successfulSubPlans = results.filter(r => r.success).length;
     const overallSuccess = successfulSubPlans > 0; // Success if at least one sub-plan succeeded
-    
+
     console.log(`🎯 Execution complete: ${successfulSubPlans}/${results.length} sub-plans succeeded`);
 
     return this.createExecutionResult(overallSuccess, results, hierarchicalPlan);

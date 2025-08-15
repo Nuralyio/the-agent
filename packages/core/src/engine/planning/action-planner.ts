@@ -1,6 +1,6 @@
 import { AIEngine } from '../../ai/ai-engine';
 import { PromptTemplate } from '../../prompt-template';
-import { ActionPlan, PageState, TaskContext } from '../types';
+import { ActionPlan, PageState, TaskContext } from './types/types';
 import {
   AIResponseParser,
   AIService,

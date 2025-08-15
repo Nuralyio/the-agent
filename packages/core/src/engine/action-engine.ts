@@ -12,7 +12,6 @@ import { ExecutionLogger } from '../utils/execution-logger';
 import { ContextualStepAnalyzer } from './analysis/contextual-analyzer';
 import { StepContextManager } from './analysis/step-context';
 import { ActionExecutor } from './execution/action-executor';
-import { NavigationHandler } from './execution/navigation-handler';
 import { PlanExecutionManager } from './execution/plan-execution-manager';
 import { StepRefinementManager } from './execution/step-refinement';
 import { Planner } from './planning/planner';
@@ -28,8 +27,7 @@ import { Planner } from './planning/planner';
  * 1. Receive natural language instruction
  * 2. Capture current page state for context
  * 3. Use Planner.planAndExecute() for planning and execution
- * 4. Handle navigation-aware tasks through NavigationHandler when needed
- * 5. Return structured results with logging and streaming
+ * 4. Return structured results with logging and streaming
  */
 export class ActionEngine implements IActionEngine {
   private browserManager: BrowserManager;
@@ -41,7 +39,6 @@ export class ActionEngine implements IActionEngine {
   // Execution modules
   private actionExecutor: ActionExecutor;
   private stepRefinementManager: StepRefinementManager;
-  private navigationHandler: NavigationHandler;
   private planExecutionManager: PlanExecutionManager;
 
   constructor(
@@ -68,7 +65,6 @@ export class ActionEngine implements IActionEngine {
       this.stepContextManager,
       this.contextualAnalyzer
     );
-    this.navigationHandler = new NavigationHandler(this.planner.getActionPlanner(), aiEngine);
     this.planExecutionManager = new PlanExecutionManager(
       browserManager,
       this.planner.getActionPlanner(),
@@ -257,10 +253,4 @@ export class ActionEngine implements IActionEngine {
     return this.actionExecutor.captureState();
   }
 
-  /**
-   * Check if an instruction contains navigation requirements
-   */
-  async checkNavigationRequired(instruction: string): Promise<boolean> {
-    return this.navigationHandler.instructionContainsNavigation(instruction);
-  }
 }

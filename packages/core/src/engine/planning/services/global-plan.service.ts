@@ -1,5 +1,5 @@
-import { AIEngine } from '../../../../ai/ai-engine';
-import { PromptTemplate } from '../../../../prompt-template';
+import { AIEngine } from '../../../ai/ai-engine';
+import { PromptTemplate } from '../../../prompt-template';
 import { HierarchicalResponseParser } from '../parsers/response-parser';
 import { GlobalPlanConfig, GlobalPlanInstruction } from '../types/hierarchical-planning.types';
 

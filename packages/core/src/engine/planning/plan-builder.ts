@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import { ActionPlan, ActionStep, PageState, TaskContext } from '../../types';
+import { ActionPlan, ActionStep, PageState, TaskContext } from './types/types';
 
 export interface PlanBuilderOptions {
   estimatedStepDuration?: number;

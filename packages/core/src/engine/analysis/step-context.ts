@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ActionStep, PageState } from '../types';
+import { ActionStep, PageState } from '../planning/types/types';
 
 /**
  * Represents the execution result of a step

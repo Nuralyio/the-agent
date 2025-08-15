@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
-import { SubPlan, TaskContext } from '../../../../types';
-import { ActionPlanner } from '../../action-planner';
+import { SubPlan, TaskContext } from '../../../types';
+import { ActionPlanner } from '../action-planner';
 import { SubPlanConfig } from '../types/hierarchical-planning.types';
 
 /**

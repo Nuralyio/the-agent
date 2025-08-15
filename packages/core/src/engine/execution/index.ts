@@ -5,5 +5,4 @@
 
 export { ActionExecutor } from './action-executor';
 export { StepRefinementManager } from './step-refinement';
-export { NavigationHandler } from './navigation-handler';
 export { PlanExecutionManager } from './plan-execution-manager';
