@@ -37,6 +37,7 @@ export default function RightPanel({
       <ExecutionPlan
         currentHierarchicalPlan={currentHierarchicalPlan}
         isLoading={isLoading}
+        handleStepClick={handleStepClick}
       />
 
       {/* Tab Section */}

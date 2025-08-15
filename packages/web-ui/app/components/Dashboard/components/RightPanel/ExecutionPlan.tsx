@@ -1,17 +1,19 @@
 import React from 'react';
 import { OrganizationRegular } from '@fluentui/react-icons';
-import type { HierarchicalPlan } from '../../Dashboard.types';
+import type { HierarchicalPlan, ExecutionStep } from '../../Dashboard.types';
 import { styles } from '../../Dashboard.styles';
 import { HierarchicalPlanDisplay } from '../HierarchicalPlanDisplay';
 
 interface ExecutionPlanProps {
   currentHierarchicalPlan?: HierarchicalPlan | null;
   isLoading?: boolean;
+  handleStepClick?: (stepIndex: number, step: ExecutionStep) => void;
 }
 
 export const ExecutionPlan: React.FC<ExecutionPlanProps> = ({
   currentHierarchicalPlan,
   isLoading = false,
+  handleStepClick,
 }) => {
   return (
     <div style={styles.executionPlanSection}>
@@ -44,6 +46,7 @@ export const ExecutionPlan: React.FC<ExecutionPlanProps> = ({
             onSubPlanClick={(subPlanIndex, subPlan) => {
               // Handle sub-plan click if needed
             }}
+            onStepClick={handleStepClick}
           />
         ) : (
           <div style={styles.planEmptyState}>
