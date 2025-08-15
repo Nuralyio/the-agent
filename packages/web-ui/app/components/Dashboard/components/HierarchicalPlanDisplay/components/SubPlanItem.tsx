@@ -68,18 +68,19 @@ export const SubPlanItem: React.FC<SubPlanItemProps> = ({ subPlan, index, isActi
       alignItems: 'center',
       gap: '8px',
     },
-    expandButton: {
-      padding: '4px 8px',
-      fontSize: '11px',
-      backgroundColor: 'transparent',
-      border: '1px solid #4b5563',
-      borderRadius: '4px',
-      color: '#9ca3af',
+    viewMoreLink: {
+      padding: '8px 0',
+      fontSize: '12px',
+      color: '#60a5fa',
       cursor: 'pointer',
-      transition: 'all 0.2s ease',
+      textDecoration: 'none',
+      borderTop: '1px solid #374151',
+      marginTop: '8px',
       display: 'flex',
       alignItems: 'center',
+      justifyContent: 'center',
       gap: '4px',
+      transition: 'color 0.2s ease',
     },
   };
 
@@ -114,22 +115,6 @@ export const SubPlanItem: React.FC<SubPlanItemProps> = ({ subPlan, index, isActi
           Sub-plan {index + 1}: {subPlan.objective}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {isCompleted && subPlan.steps.length > 0 && (
-            <button
-              style={styles.expandButton}
-              onClick={handleExpandToggle}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#4b5563';
-                e.currentTarget.style.borderColor = '#6b7280';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.borderColor = '#4b5563';
-              }}
-            >
-              {isExpanded ? '▲' : '▼'} {isExpanded ? 'Hide' : 'Show'} Actions
-            </button>
-          )}
           <StatusBadge status={subPlan.status} />
         </div>
       </div>
@@ -156,6 +141,25 @@ export const SubPlanItem: React.FC<SubPlanItemProps> = ({ subPlan, index, isActi
         </div>
       )}
 
+      {/* Show View More link for completed sub-plans */}
+      {isCompleted && subPlan.steps.length > 0 && (
+        <div 
+          style={styles.viewMoreLink}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(!isExpanded);
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = '#93c5fd';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = '#60a5fa';
+          }}
+        >
+          {isExpanded ? '▲ Hide actions' : `▼ View ${subPlan.steps.length} actions`}
+        </div>
+      )}
+
       {/* Show expanded steps for completed sub-plan when toggled */}
       {isCompleted && isExpanded && subPlan.steps.length > 0 && (
         <div style={styles.stepsList}>
@@ -173,9 +177,19 @@ export const SubPlanItem: React.FC<SubPlanItemProps> = ({ subPlan, index, isActi
         </div>
       )}
 
-      {/* Show step count for non-active, non-completed sub-plans */}
+      {/* Show View More link for non-active, non-completed sub-plans */}
       {!isActive && !isCompleted && subPlan.steps.length > 0 && (
-        <div style={styles.clickPrompt}>Click to view {subPlan.steps.length} detailed steps</div>
+        <div 
+          style={styles.clickPrompt}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = '#93c5fd';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = '#60a5fa';
+          }}
+        >
+          View {subPlan.steps.length} actions →
+        </div>
       )}
     </div>
   );
