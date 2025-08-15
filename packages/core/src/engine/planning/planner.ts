@@ -2,7 +2,7 @@ import { AIEngine } from '../../ai/ai-engine';
 import { executionStream } from '../../streaming/execution-stream';
 import { ActionPlan, PageState, Plan, TaskContext } from '../../types';
 import { ActionPlanner } from './action-planner';
-import { HierarchicalPlanManager } from './hierarchical/managers/hierarchical-plan-manager';
+import { HierarchicalPlanManager } from './hierarchical-plan-manager';
 
 /**
  * Main Planner class that handles all planning and execution

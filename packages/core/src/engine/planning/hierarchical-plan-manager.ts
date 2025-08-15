@@ -1,11 +1,11 @@
 import * as crypto from 'crypto';
-import { AIEngine } from '../../../../ai/ai-engine';
-import { PageState, Plan, TaskContext } from '../../../../types';
-import { ActionPlanner } from '../../action-planner';
-import { HierarchicalExecutionManager } from '../../execution-manager';
-import { GlobalPlanService } from '../../services/global-plan.service';
-import { PlanAssemblyService } from '../../services/plan-assembly.service';
-import { SubPlanService } from '../../services/sub-plan.service';
+import { AIEngine } from '../../ai/ai-engine';
+import { PageState, Plan, TaskContext } from '../../types';
+import { ActionPlanner } from './action-planner';
+import { HierarchicalExecutionManager } from './execution-manager';
+import { GlobalPlanService } from './services/global-plan.service';
+import { PlanAssemblyService } from './services/plan-assembly.service';
+import { SubPlanService } from './services/sub-plan.service';
 
 /**
  * Main manager for hierarchical planning that orchestrates all services
