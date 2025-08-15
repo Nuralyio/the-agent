@@ -18,7 +18,7 @@ export class ClientManager {
    * Add a new SSE client
    */
   addClient(clientId: string, response: any): void {
-    console.log(`📺 New visualization client connected: ${clientId}`);
+    console.log(`📺 New monitor client connected: ${clientId}`);
 
     this.clients.set(clientId, {
       id: clientId,
@@ -40,7 +40,7 @@ export class ClientManager {
   removeClient(clientId: string): void {
     const client = this.clients.get(clientId);
     if (client) {
-      console.log(`📺 Visualization client disconnected: ${clientId}`);
+      console.log(`📺 Monitor client disconnected: ${clientId}`);
       this.clients.delete(clientId);
     }
   }

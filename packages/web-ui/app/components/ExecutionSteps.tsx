@@ -6,7 +6,7 @@ import {
   ErrorCircle24Regular,
   Play24Regular,
 } from '@fluentui/react-icons';
-import { ExecutionSession, ExecutionStep } from '../hooks/useVisualization';
+import { ExecutionSession, ExecutionStep } from '../hooks/useMonitor';
 
 interface ExecutionStepsProps {
   session?: ExecutionSession;

@@ -7,7 +7,7 @@ import { EventProcessor } from './processors/event-processor';
 import { ExecutionEvent } from './types/streaming.types';
 
 /**
- * ExecutionStream - Provides real-time execution visualization for web integration
+ * ExecutionStream - Provides real-time execution monitor for web integration
  */
 export class ExecutionStream extends EventEmitter {
   private sessionManager: SessionManager;
@@ -289,7 +289,7 @@ export class ExecutionStream extends EventEmitter {
    * Add a client connection
    */
   addClient(clientId: string, response: any): void {
-    console.log(`📺 New visualization client connected: ${clientId}`);
+    console.log(`📺 New monitor client connected: ${clientId}`);
 
     this.clientManager.addClient(clientId, response);
 
@@ -317,7 +317,7 @@ export class ExecutionStream extends EventEmitter {
    */
   removeClient(clientId: string): void {
     this.clientManager.removeClient(clientId);
-    console.log(`📺 Visualization client disconnected: ${clientId}`);
+    console.log(`📺 Monitor client disconnected: ${clientId}`);
   }
 
   /**

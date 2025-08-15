@@ -11,7 +11,7 @@ import { DEFAULT_TABS } from './utils/constants';
 export const meta: MetaFunction = () => {
   return [
     { title: 'Browser Automation Dashboard' },
-    { name: 'description', content: 'Real-time browser automation visualization and control' },
+    { name: 'description', content: 'Real-time browser automation monitor and control' },
   ];
 };
 

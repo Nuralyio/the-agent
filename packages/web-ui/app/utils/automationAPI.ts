@@ -1,4 +1,4 @@
-// API utility functions for communicating with the visualization server
+// API utility functions for communicating with the monitor server
 export interface AutomationServerConfig {
   baseUrl: string;
   timeout?: number;
