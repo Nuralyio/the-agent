@@ -15,25 +15,25 @@ import { ActionExecutor } from './execution/action-executor';
 import { NavigationHandler } from './execution/navigation-handler';
 import { PlanExecutionManager } from './execution/plan-execution-manager';
 import { StepRefinementManager } from './execution/step-refinement';
-import { UnifiedPlanner } from './planning/unified-planner';
+import { Planner } from './planning/planner';
 
 /**
  * Core ActionEngine implementation that orchestrates task execution
  *
  * PLANNING ARCHITECTURE:
- * - Uses UnifiedPlanner for ALL task execution
+ * - Uses Planner for ALL task execution
  * - Consistent behavior across all interfaces (API, MCP, CLI, Direct)
  *
  * EXECUTION FLOW:
  * 1. Receive natural language instruction
  * 2. Capture current page state for context
- * 3. Use UnifiedPlanner.planAndExecute() for planning and execution
+ * 3. Use Planner.planAndExecute() for planning and execution
  * 4. Handle navigation-aware tasks through NavigationHandler when needed
  * 5. Return structured results with logging and streaming
  */
 export class ActionEngine implements IActionEngine {
   private browserManager: BrowserManager;
-  private unifiedPlanner: UnifiedPlanner;
+  private planner: Planner;
   private aiEngine: AIEngine;
   private stepContextManager: StepContextManager;
   private contextualAnalyzer?: ContextualStepAnalyzer;
@@ -50,7 +50,7 @@ export class ActionEngine implements IActionEngine {
   ) {
     this.browserManager = browserManager;
     this.aiEngine = aiEngine;
-    this.unifiedPlanner = new UnifiedPlanner(aiEngine);
+    this.planner = new Planner(aiEngine);
     this.stepContextManager = new StepContextManager();
 
     // Initialize contextual analyzer
@@ -64,14 +64,14 @@ export class ActionEngine implements IActionEngine {
     // Initialize execution modules
     this.actionExecutor = new ActionExecutor(browserManager);
     this.stepRefinementManager = new StepRefinementManager(
-      this.unifiedPlanner.getActionPlanner(),
+      this.planner.getActionPlanner(),
       this.stepContextManager,
       this.contextualAnalyzer
     );
-    this.navigationHandler = new NavigationHandler(this.unifiedPlanner.getActionPlanner(), aiEngine);
+    this.navigationHandler = new NavigationHandler(this.planner.getActionPlanner(), aiEngine);
     this.planExecutionManager = new PlanExecutionManager(
       browserManager,
-      this.unifiedPlanner.getActionPlanner(),
+      this.planner.getActionPlanner(),
       this.stepContextManager,
       this.actionExecutor,
       this.stepRefinementManager
@@ -93,12 +93,10 @@ export class ActionEngine implements IActionEngine {
     executionStream.startSession(logger.getSessionId());
 
     try {
-
-
-      // Use UnifiedPlanner for all tasks
-      console.log(`🧠 Using UnifiedPlanner with planning (always default)`);
+      // Use Planner for all tasks
+      console.log(`🧠 Using Planner with planning (always default)`);
       console.log(`🔍 ActionEngine: Starting planning for: "${objective}"`);
-      return await this.executeWithUnifiedPlanning(objective, context, logger);
+      return await this.executeWithPlanning(objective, context, logger);
 
     } catch (error) {
       console.error('❌ Task execution failed:', error);
@@ -124,9 +122,9 @@ export class ActionEngine implements IActionEngine {
   }
 
   /**
-   * Execute task using UnifiedPlanner
+   * Execute task using Planner
    */
-  private async executeWithUnifiedPlanning(
+  private async executeWithPlanning(
     objective: string,
     context?: TaskContext,
     logger?: ExecutionLogger
@@ -137,7 +135,7 @@ export class ActionEngine implements IActionEngine {
       try {
         pageState = await this.actionExecutor.captureState();
       } catch (error) {
-        console.log('� No active page available for context, proceeding with planning');
+        console.log('ℹ️ No active page available for context, proceeding with planning');
       }
 
       // Create context from page state (or empty context if no page)
@@ -160,15 +158,15 @@ export class ActionEngine implements IActionEngine {
         pageTitle: pageState?.title || ''
       };
 
-      // 1. Use UnifiedPlanner for end-to-end planning and execution
-      console.log(`🧠 UnifiedPlanner: Creating and executing plan`);
-      const result = await this.unifiedPlanner.planAndExecute(
+      // Use Planner for end-to-end planning and execution
+      console.log(`🧠 Planner: Creating and executing plan`);
+      const result = await this.planner.planAndExecute(
         objective,
         taskContext,
         (plan: ActionPlan) => this.planExecutionManager.executeActionPlan(plan, logger)
       );
 
-      // 2. Finalize logging
+      // Finalize logging
       if (logger) {
         const logPath = await logger.completeSession(result.success);
         console.log(`📋 Complete execution log saved to: ${logPath}`);
@@ -187,14 +185,14 @@ export class ActionEngine implements IActionEngine {
       };
 
     } catch (error) {
-      console.error('❌ UnifiedPlanner execution failed:', error);
+      console.error('❌ Planner execution failed:', error);
       throw error;
     }
   }
 
   /**
    * Parse natural language instruction into structured action plan
-   * Uses UnifiedPlanner for consistent planning
+   * Uses Planner for consistent planning
    */
   async parseInstruction(instruction: string): Promise<ActionPlan> {
     // Try to capture current page state for context, but handle case where no page is loaded
@@ -225,8 +223,8 @@ export class ActionEngine implements IActionEngine {
       pageTitle: pageState?.title || ''
     };
 
-    // Use the UnifiedPlanner to generate action plan with current page content
-    const actionPlan = await this.unifiedPlanner.createActionPlan(instruction, context);
+    // Use the Planner to generate action plan with current page content
+    const actionPlan = await this.planner.createActionPlan(instruction, context);
 
     return actionPlan;
   }

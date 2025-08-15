@@ -141,7 +141,7 @@ export class TheAgent {
   async executeTask(instruction: string): Promise<TaskResult> {
     if (this.actionEngine) {
       console.log('🎯 Using ActionEngine.executeTask for intelligent task planning');
-      console.log('🧠 ActionEngine will use UnifiedPlanner for planning');
+      console.log('🧠 ActionEngine will use Planner for planning');
       console.log(`📝 Task instruction: "${instruction}"`);
       return await this.actionEngine.executeTask(instruction);
     } else {
@@ -293,7 +293,7 @@ export { PlaywrightAdapter } from './adapters/playwright/adapter';
 export { PuppeteerAdapter } from './adapters/puppeteer/adapter';
 export { AIEngine } from './ai/ai-engine';
 export { ActionEngine } from './engine/action-engine';
-export { UnifiedPlanner } from './engine/planning/unified-planner';
+export { Planner } from './engine/planning/planner';
 export { ExecutionStream, executionStream } from './streaming/execution-stream';
 export * from './types';
 
