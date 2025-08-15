@@ -6,7 +6,7 @@ const defaultConfig: CLIConfig = {
   adapter: 'playwright',
   browser: 'chrome',
   headless: false,
-  timeout: 30000,
+  timeout: 10000,
   retries: 3,
   ai: {
     provider: 'openai',

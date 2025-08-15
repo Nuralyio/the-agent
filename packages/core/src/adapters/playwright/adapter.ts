@@ -28,7 +28,7 @@ export class PlaywrightAdapter implements BrowserAdapter {
   getDefaultOptions(): LaunchOptions {
     return {
       headless: true,
-      timeout: 30000,
+      timeout: 10000,
       args: []
     };
   }
