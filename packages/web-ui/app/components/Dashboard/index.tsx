@@ -1,7 +1,7 @@
 import React from 'react';
 import type { MetaFunction } from '@remix-run/node';
 import { LeftSidebar } from './components/LeftSidebar/index';
-import { RightPanel } from './components/RightPanel/index';
+import RightPanel from './components/RightPanel/index';
 import { useChatMessages } from './hooks/useChatMessages';
 import { useEventStreamSimple } from './hooks/useEventStreamSimple';
 import { useAutomationState } from './hooks/useAutomationState';
@@ -45,6 +45,8 @@ export const Dashboard: React.FC = () => {
     setCurrentScreenshot,
     selectedStepIndex,
     setSelectedStepIndex,
+    isLoading,
+    setIsLoading,
     headlessMode,
     setHeadlessMode,
     handleRunTask,
@@ -65,6 +67,7 @@ export const Dashboard: React.FC = () => {
     setCurrentScreenshot,
     setChatMessages,
     updateLastStepMessage,
+    setIsLoading,
   });
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -97,6 +100,7 @@ export const Dashboard: React.FC = () => {
       <RightPanel
         currentPlan={currentPlan}
         currentHierarchicalPlan={currentHierarchicalPlan}
+        isLoading={isLoading}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         tabs={DEFAULT_TABS}

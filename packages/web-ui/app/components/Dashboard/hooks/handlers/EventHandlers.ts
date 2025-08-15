@@ -44,6 +44,11 @@ export class EventHandlers {
     const planSteps = createPlanSteps(steps);
     this.props.setCurrentPlan(planSteps);
 
+    // Turn off loading state when regular plan is received
+    if (this.props.setIsLoading) {
+      this.props.setIsLoading(false);
+    }
+
     const planMessage = createPlanMessage(planSteps);
     this.props.setChatMessages(prev => [...prev, planMessage]);
   };
@@ -57,6 +62,11 @@ export class EventHandlers {
     // Update hierarchical plan state
     if (this.props.setCurrentHierarchicalPlan) {
       this.props.setCurrentHierarchicalPlan(hierarchicalPlan);
+    }
+
+    // Turn off loading state when hierarchical plan is received
+    if (this.props.setIsLoading) {
+      this.props.setIsLoading(false);
     }
 
     // Create sub-plan overview steps for main plan display

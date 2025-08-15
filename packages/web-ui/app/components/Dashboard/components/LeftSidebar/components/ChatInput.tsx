@@ -1,5 +1,5 @@
+import { Clock20Regular, Lightbulb20Regular, Send20Regular } from '@fluentui/react-icons';
 import React from 'react';
-import { Lightbulb20Regular, Send20Regular, Clock20Regular } from '@fluentui/react-icons';
 import { styles } from '../../../Dashboard.styles';
 
 interface ChatInputProps {
@@ -10,19 +10,11 @@ interface ChatInputProps {
 }
 
 const EXAMPLE_PROMPTS = [
-  "Go to google.com and search for 'OpenAI'",
-  "Navigate to github.com and find trending repositories",
   "Visit amazon.com and search for 'wireless headphones'",
   "Go to wikipedia.org and search for 'artificial intelligence'",
-  "Open linkedin.com and scroll through the feed",
 ];
 
-export const ChatInput: React.FC<ChatInputProps> = ({
-  taskDescription,
-  setTaskDescription,
-  onRunTask,
-  isLoading,
-}) => {
+export const ChatInput: React.FC<ChatInputProps> = ({ taskDescription, setTaskDescription, onRunTask, isLoading }) => {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.ctrlKey && e.key === 'Enter') {
       e.preventDefault();
@@ -59,7 +51,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       {/* Suggestion Bubbles */}
       {!taskDescription && (
         <div style={{ padding: '0 16px 12px 16px' }}>
-          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '8px', display: 'flex', alignItems: 'center' }}>
+          <div
+            style={{ fontSize: '11px', color: '#6b7280', marginBottom: '8px', display: 'flex', alignItems: 'center' }}
+          >
             <Lightbulb20Regular style={{ marginRight: '4px', fontSize: '14px' }} />
             Quick examples:
           </div>
@@ -69,10 +63,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 key={index}
                 style={suggestionStyle}
                 onClick={() => handleSuggestionClick(prompt)}
-                onMouseOver={(e) => {
+                onMouseOver={e => {
                   Object.assign(e.currentTarget.style, suggestionHoverStyle);
                 }}
-                onMouseOut={(e) => {
+                onMouseOut={e => {
                   Object.assign(e.currentTarget.style, suggestionStyle);
                 }}
               >

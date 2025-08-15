@@ -25,6 +25,7 @@ export const SubPlanItem: React.FC<SubPlanItemProps> = ({ subPlan, index, isActi
       alignItems: 'center',
       justifyContent: 'space-between',
       marginBottom: '8px',
+      gap: '8px', // Add gap to ensure spacing
     },
     title: {
       fontSize: '14px',
@@ -33,6 +34,11 @@ export const SubPlanItem: React.FC<SubPlanItemProps> = ({ subPlan, index, isActi
       display: 'flex',
       alignItems: 'center',
       gap: '8px',
+      flex: 1, // Allow title to take available space
+      minWidth: 0, // Allow text to truncate if needed
+      overflow: 'hidden', // Hide overflow
+      textOverflow: 'ellipsis', // Add ellipsis for long text
+      whiteSpace: 'nowrap', // Prevent line breaks
     },
     info: {
       fontSize: '12px',

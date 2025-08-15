@@ -453,3 +453,15 @@ export const styles = {
     padding: '32px 16px',
   },
 };
+
+// Add keyframe animation for spinner - safe for SSR
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  `;
+  document.head.appendChild(style);
+}

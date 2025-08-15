@@ -40,8 +40,7 @@ export const PlanHeader: React.FC<PlanHeaderProps> = ({ hierarchicalPlan, comple
 
   return (
     <div style={styles.header}>
-      <div style={styles.title}>🧠 Hierarchical Plan</div>
-      <div style={styles.objective}>{hierarchicalPlan.globalObjective}</div>
+      {/* <div style={styles.objective}>{hierarchicalPlan.globalObjective}</div> */}
       <div style={styles.metadata}>
         Strategy: {hierarchicalPlan.planningStrategy} | Progress: {completedSubPlans}/{totalSubPlans} sub-plans
         completed ({progressPercentage.toFixed(0)}%) | Est. Duration:{' '}
