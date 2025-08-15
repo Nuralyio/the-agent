@@ -28,7 +28,7 @@ export class EventFactory {
   }
 
   /**
-   * Create hierarchical plan created event
+   * Create plan created event
    */
   static createHierarchicalPlanCreatedEvent(
     sessionId: string,

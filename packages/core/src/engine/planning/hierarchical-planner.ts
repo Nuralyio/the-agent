@@ -1,10 +1,10 @@
 import { AIEngine } from '../../ai/ai-engine';
-import { HierarchicalPlan, TaskContext, PageState, ActionPlan } from '../types';
+import { Plan, TaskContext, PageState, ActionPlan } from '../types';
 import { ActionPlanner } from './action-planner';
 import { HierarchicalPlanManager } from './hierarchical';
 
 /**
- * HierarchicalPlanner - Creates multi-level plans with global planning and sub-plan refinement
+ * Planner - Creates multi-level plans with global planning and sub-plan refinement
  * 
  * This is a refactored version that uses modular components for better maintainability
  * and separation of concerns.
@@ -17,29 +17,29 @@ export class HierarchicalPlanner {
   }
 
   /**
-   * Create a hierarchical plan from a complex instruction
+   * Create a plan from a complex instruction
    */
   async createHierarchicalPlan(
     instruction: string, 
     context: TaskContext, 
     pageState?: PageState
-  ): Promise<HierarchicalPlan> {
+  ): Promise<Plan> {
     return await this.planManager.createHierarchicalPlan(instruction, context, pageState);
   }
 
   /**
-   * Execute a hierarchical plan step by step
+   * Execute a plan step by step
    */
   async executeHierarchicalPlan(
-    hierarchicalPlan: HierarchicalPlan,
+    hierarchicalPlan: Plan,
     executeActionPlan: (plan: ActionPlan) => Promise<any>
   ): Promise<any> {
     return await this.planManager.executeHierarchicalPlan(hierarchicalPlan, executeActionPlan);
   }
 
   /**
-   * Check if an instruction should use hierarchical planning
-   * Note: This method is deprecated as hierarchical planning is now the default
+   * Check if an instruction should use structured planning
+   * Note: This method is deprecated as structured planning is now the default
    */
   async shouldUseHierarchicalPlanning(instruction: string): Promise<boolean> {
     return await this.planManager.shouldUseHierarchicalPlanning(instruction);

@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 import { AIEngine } from '../../../../ai/ai-engine';
-import { HierarchicalPlan, PageState, TaskContext } from '../../../../types';
+import { Plan, PageState, TaskContext } from '../../../../types';
 import { ActionPlanner } from '../../action-planner';
 import { GlobalPlanService } from '../services/global-plan.service';
 import { PlanAssemblyService } from '../services/plan-assembly.service';
@@ -30,9 +30,9 @@ export class HierarchicalPlanManager {
     instruction: string,
     context: TaskContext,
     pageState?: PageState
-  ): Promise<HierarchicalPlan> {
+  ): Promise<Plan> {
     const startTime = Date.now();
-    console.log(`🧠 Creating hierarchical plan for: "${instruction}"`);
+    console.log(`🧠 Creating plan for: "${instruction}"`);
 
     try {
       // Step 1: Create global plan breakdown
@@ -65,7 +65,7 @@ export class HierarchicalPlanManager {
       });
 
       // Step 4: Assemble the complete hierarchical plan
-      const hierarchicalPlan: HierarchicalPlan = {
+      const hierarchicalPlan: Plan = {
         id: crypto.randomUUID(),
         globalObjective: instruction,
         globalPlan: mainActionPlan,
@@ -80,7 +80,7 @@ export class HierarchicalPlanManager {
       };
 
       const totalTime = Date.now() - startTime;
-      console.log(`🎯 Hierarchical plan completed: ${subPlans.length} sub-plans, ${hierarchicalPlan.totalEstimatedDuration}ms estimated (Planning took ${totalTime}ms total: ${globalPlanTime}ms global + ${subPlanTime}ms sub-plans)`);
+      console.log(`🎯 Plan completed: ${subPlans.length} sub-plans, ${hierarchicalPlan.totalEstimatedDuration}ms estimated (Planning took ${totalTime}ms total: ${globalPlanTime}ms global + ${subPlanTime}ms sub-plans)`);
 
       return hierarchicalPlan;
 
@@ -94,7 +94,7 @@ export class HierarchicalPlanManager {
    * Execute a hierarchical plan
    */
   async executeHierarchicalPlan(
-    hierarchicalPlan: HierarchicalPlan,
+    hierarchicalPlan: Plan,
     executeActionPlan: (plan: any) => Promise<any>
   ): Promise<any> {
     return await this.executionManager.executeHierarchicalPlan(
@@ -104,12 +104,9 @@ export class HierarchicalPlanManager {
   }
 
   /**
-   * Check if an instruction should use hierarchical planning
-   * Note: This method is deprecated as hierarchical planning is now the default
+   * Check if instruction should use structured planning (always true now)
    */
   async shouldUseHierarchicalPlanning(instruction: string): Promise<boolean> {
-    // Always return true since hierarchical planning is now the default
-    console.log(`🧠 Using hierarchical planning (always default)`);
-    return true;
+    return true; // Always use structured planning
   }
 }

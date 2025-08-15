@@ -163,7 +163,7 @@ export async function executeTestInstruction(
       };
     } else {
       // Fallback to executeTask if no automation instance provided
-      console.log(`🔄 Using ActionEngine.executeTask() (hierarchical planning)`);
+      console.log(`🔄 Using ActionEngine.executeTask() (structured planning)`);
       const result = await actionEngine.executeTask(localInstruction);
       console.log(`${result.success ? '✅' : '❌'} Execution result: ${result.success ? 'Success' : 'Failed'}`);
 
