@@ -6,6 +6,7 @@ import { ActionDetails } from './ActionDetails';
 interface StepItemProps {
   step: ExecutionStep;
   isActive?: boolean;
+  onStepClick?: (step: ExecutionStep) => void;
 }
 
 const getStatusColor = (status: string): string => {
@@ -16,8 +17,10 @@ const getStepStatusIcon = (status: string): string => {
   return STEP_STATUS_ICONS[status as StatusType] || STEP_STATUS_ICONS.default;
 };
 
-export const StepItem: React.FC<StepItemProps> = ({ step, isActive = false }) => {
+export const StepItem: React.FC<StepItemProps> = ({ step, isActive = false, onStepClick }) => {
   const statusColor = getStatusColor(step.status);
+  const hasScreenshot = step.screenshot && step.screenshot !== '';
+  const isClickable = hasScreenshot && onStepClick;
 
   const styles = {
     container: {
@@ -27,6 +30,12 @@ export const StepItem: React.FC<StepItemProps> = ({ step, isActive = false }) =>
       display: 'flex',
       alignItems: 'center',
       gap: '8px',
+      cursor: isClickable ? 'pointer' : 'default',
+      transition: 'background-color 0.2s ease',
+      borderRadius: '4px',
+      ':hover': isClickable ? {
+        backgroundColor: '#374151',
+      } : {},
     },
     icon: {
       width: '16px',
@@ -55,13 +64,45 @@ export const StepItem: React.FC<StepItemProps> = ({ step, isActive = false }) =>
     actionDetails: {
       marginTop: '4px',
     },
+    screenshotIndicator: {
+      fontSize: '10px',
+      color: '#60a5fa',
+      marginLeft: '4px',
+    },
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (isClickable) {
+      e.stopPropagation(); // Prevent sub-plan click when clicking on action
+      onStepClick(step);
+    }
+  };
+
+  const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isClickable) {
+      e.currentTarget.style.backgroundColor = '#374151';
+    }
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isClickable) {
+      e.currentTarget.style.backgroundColor = 'transparent';
+    }
   };
 
   return (
-    <div style={styles.container}>
+    <div 
+      style={styles.container}
+      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <div style={styles.icon}>{getStepStatusIcon(step.status)}</div>
       <div style={styles.content}>
-        <div style={styles.title}>{step.title}</div>
+        <div style={styles.title}>
+          {step.title}
+          {hasScreenshot && <span style={styles.screenshotIndicator}>📷</span>}
+        </div>
         {step.status === 'running' && step.description && <div style={styles.description}>{step.description}</div>}
         {step.actionType && (
           <div style={styles.actionDetails}>
