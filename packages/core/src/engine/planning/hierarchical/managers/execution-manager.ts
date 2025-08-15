@@ -49,19 +49,25 @@ export class HierarchicalExecutionManager {
       // Mark sub-plan as completed
       const isSuccess = this.processSubPlanResult(result, i, subPlan, hierarchicalPlan.subPlans.length);
 
-      // Check if sub-plan failed and handle early exit
+      // Check if sub-plan failed but continue execution unless critical
       if (!isSuccess) {
-        console.warn(`⚠️ Sub-plan ${i + 1} failed, stopping hierarchical execution`);
-        return this.createExecutionResult(false, results, hierarchicalPlan, i);
+        console.warn(`⚠️ Sub-plan ${i + 1} failed, but continuing with remaining sub-plans`);
+        console.log(`🔄 Continuing execution of remaining ${hierarchicalPlan.subPlans.length - i - 1} sub-plans`);
+      } else {
+        console.log(`✅ Sub-plan ${i + 1} completed successfully, continuing to next sub-plan`);
       }
-
-      console.log(`✅ Sub-plan ${i + 1} completed successfully, continuing to next sub-plan`);
     }
 
     // Mark overall execution as complete
     this.completeExecution(context);
 
-    return this.createExecutionResult(true, results, hierarchicalPlan);
+    // Calculate overall success based on at least some sub-plans succeeding
+    const successfulSubPlans = results.filter(r => r.success).length;
+    const overallSuccess = successfulSubPlans > 0; // Success if at least one sub-plan succeeded
+    
+    console.log(`🎯 Execution complete: ${successfulSubPlans}/${results.length} sub-plans succeeded`);
+
+    return this.createExecutionResult(overallSuccess, results, hierarchicalPlan);
   }
 
   /**

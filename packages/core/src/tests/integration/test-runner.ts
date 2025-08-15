@@ -1,6 +1,6 @@
 import { DynamicPlanningTest } from './dynamic-planning.test';
 import { FormFillingTest } from './form-filling.test';
-import { HierarchicalPlannerTest } from './hierarchical-planner.test';
+import { PlannerTest } from './planner.test';
 import { InteractionTest } from './interaction.test';
 import { NavigationTest } from './navigation.test';
 import { OrangeHRMLoginTest } from './orangehrm-login.test';
@@ -45,8 +45,8 @@ export class TestRunner {
         enabled: true
       },
       {
-        name: 'Hierarchical Planner Tests',
-        instance: new HierarchicalPlannerTest(),
+        name: 'Planner Tests',
+        instance: new PlannerTest(),
         enabled: true
       },
       {
