@@ -102,9 +102,9 @@ export class TheAgent {
 
     // If we have an ActionEngine (AI is configured), use it for intelligent planning
     if (this.actionEngine) {
-      console.log('🎯 Using ActionEngine with hierarchical planning (unified approach)');
+      console.log('🎯 Using ActionEngine with planning (unified approach)');
       try {
-        // Use executeTask for hierarchical planning (same as executeTask method)
+        // Use executeTask for planning (same as executeTask method)
         return await this.actionEngine.executeTask(instruction);
       } catch (error) {
         console.error('❌ AI execution failed, falling back to basic execution:', error);
@@ -137,13 +137,13 @@ export class TheAgent {
 
   /**
    * Execute a task using the smart ActionEngine (same as execute())
-   * This method is identical to execute() - both use hierarchical planning
+   * This method is identical to execute() - both use planning
    * Kept for backward compatibility with existing code
    */
   async executeTask(instruction: string): Promise<TaskResult> {
     if (this.actionEngine) {
       console.log('🎯 Using ActionEngine.executeTask for intelligent task planning');
-      console.log('🧠 ActionEngine will use UnifiedPlanner for hierarchical planning');
+      console.log('🧠 ActionEngine will use UnifiedPlanner for planning');
       console.log(`📝 Task instruction: "${instruction}"`);
       return await this.actionEngine.executeTask(instruction);
     } else {

@@ -4,7 +4,7 @@ import type { EventSourceHookReturn, UseEventStreamProps } from './types/eventSt
 
 /**
  * Main hook for managing EventSource communication with automation server
- * Handles real-time updates for execution plans, steps, and hierarchical plans
+ * Handles real-time updates for execution plans, steps, and plans
  *
  * Features:
  * - Automatic connection management with cleanup
