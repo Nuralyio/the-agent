@@ -207,7 +207,7 @@ export class TheAgent {
   /**
    * Wait for an element to be visible
    */
-  async waitForElement(selector: string, timeout = 30000): Promise<void> {
+  async waitForElement(selector: string, timeout = 10000): Promise<void> {
     const currentPage = await this.browserManager.getCurrentPage();
     if (!currentPage) {
       throw new Error('No active page available');

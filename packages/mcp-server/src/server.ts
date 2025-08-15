@@ -85,7 +85,7 @@ class TheAgentMCPServer {
         baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
         model: process.env.OLLAMA_MODEL || 'llama3.2',
         temperature: parseFloat(process.env.OLLAMA_TEMPERATURE || '0.3'),
-        timeout: parseInt(process.env.DEFAULT_TIMEOUT || '60000'),
+        timeout: parseInt(process.env.DEFAULT_TIMEOUT || '10000'),
       }
     };
 

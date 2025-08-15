@@ -135,7 +135,7 @@ export async function quickExecute(instruction: string): Promise<TaskExecutionRe
     options: {
       headless: true,
       browserType: 'chromium',
-      timeout: 30000,
+      timeout: 10000,
     },
   });
 }

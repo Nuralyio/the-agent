@@ -77,11 +77,22 @@ export class ActionPlanner {
   private async parseInstructionWithAI(instruction: string, pageState: PageState): Promise<ParsedInstruction> {
     // Extract relevant content from page for better selector identification
     const pageContent = this.contentExtractor.extractRelevantContent(pageState.content || '');
+    
+    // Extract structured form and interactive elements
+    const structuredContent = this.contentExtractor.extractStructuredContent(pageState.content || '');
+    
+    // Combine form fields and select elements into formElements
+    const formElements = {
+      formFields: structuredContent.formFields,
+      selectElements: structuredContent.selectElements
+    };
 
     const systemPrompt = this.promptTemplate.render('action-planning', {
       pageUrl: pageState.url,
       pageTitle: pageState.title,
-      pageContent: pageContent
+      pageContent: pageContent,
+      formElements: JSON.stringify(formElements, null, 2),
+      interactiveElements: JSON.stringify(structuredContent.interactableElements, null, 2)
     });
 
     const userPrompt = `Instruction: "${instruction}"

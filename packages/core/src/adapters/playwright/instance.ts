@@ -26,14 +26,14 @@ export class PlaywrightBrowserInstance implements BrowserInstance {
   async pages(): Promise<PageInstance[]> {
     const contexts = this.browser.contexts();
     const allPages: PageInstance[] = [];
-    
+
     for (const context of contexts) {
       const pages = context.pages();
       for (const page of pages) {
         allPages.push(new PlaywrightPageInstance(page, context));
       }
     }
-    
+
     return allPages;
   }
 
@@ -49,7 +49,7 @@ export class PlaywrightBrowserInstance implements BrowserInstance {
    */
   async createPage(url?: string): Promise<PageInstance> {
     const contextOptions: BrowserContextOptions = {};
-    
+
     if (this.options.viewport) {
       contextOptions.viewport = this.options.viewport;
     }
