@@ -6,7 +6,7 @@ import { FileManagementService } from './services/file-management.service';
 import { StatisticsService } from './services/statistics.service';
 import { ScreenshotHandler } from './handlers/screenshot-handler';
 import { EntryBuilderService } from './services/entry-builder.service';
-import { VisualizationGeneratorService } from './services/visualization-generator.service';
+import { MonitorGeneratorService } from './services/monitor-generator.service';
 
 /**
  * Handles execution logging with session tracking, screenshots, and statistics
@@ -95,10 +95,10 @@ export class ExecutionLogger {
       // Write final log file
       await this.writeLogFile();
 
-      // Generate and save HTML visualization
-      const visualizationPath = await this.generateVisualization();
+      // Generate and save HTML monitor
+      const monitorPath = await this.generateMonitor();
 
-      return visualizationPath;
+      return monitorPath;
 
     } catch (error) {
       console.error('Failed to complete session:', error);
@@ -156,10 +156,10 @@ export class ExecutionLogger {
   }
 
   /**
-   * Generate HTML visualization
+   * Generate HTML monitor
    */
-  private async generateVisualization(): Promise<string> {
-    const html = VisualizationGeneratorService.generateVisualization(this.sessionLog);
+  private async generateMonitor(): Promise<string> {
+    const html = MonitorGeneratorService.generateMonitor(this.sessionLog);
     const filename = `execution-${this.sessionLog.sessionId}.html`;
     const filePath = path.join(this.baseDir, filename);
     

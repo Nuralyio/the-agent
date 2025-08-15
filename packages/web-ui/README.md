@@ -5,7 +5,7 @@ controlling browser automation tasks in real-time.
 
 ## 🚀 Features
 
-- **Real-time Visualization**: Live updates of browser automation execution via
+- **Real-time Monitor**: Live updates of browser automation execution via
   Server-Sent Events
 - **Chat-based Control**: Natural language interface to trigger automation tasks
 - **Step-by-Step Tracking**: Visual progression of automation steps with status
@@ -24,7 +24,7 @@ agent-ui/
 │   │   ├── ExecutionSteps.tsx
 │   │   └── ScreenshotViewer.tsx
 │   ├── hooks/              # Custom React hooks
-│   │   └── useVisualization.ts
+│   │   └── useMonitor.ts
 │   ├── routes/             # Remix routes
 │   │   └── _index.tsx
 │   ├── utils/              # Utility functions
@@ -209,8 +209,8 @@ eventSource.onmessage = event => {
 React hooks manage application state:
 
 ```typescript
-const { state, currentScreenshot } = useVisualizationStream(serverUrl);
-const { loading, error, executeTask } = useVisualizationAPI(serverUrl);
+const { state, currentScreenshot } = useMonitorStream(serverUrl);
+const { loading, error, executeTask } = useMonitorAPI(serverUrl);
 ```
 
 ### Responsive Design

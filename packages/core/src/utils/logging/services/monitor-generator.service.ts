@@ -1,13 +1,13 @@
 import { ExecutionSessionLog, ExecutionLogEntry } from '../types/logging.types';
 
 /**
- * Generates HTML visualization reports from execution session logs
+ * Generates HTML monitor reports from execution session logs
  */
-export class VisualizationGeneratorService {
+export class MonitorGeneratorService {
   /**
-   * Generate HTML visualization for an execution session
+   * Generate HTML monitor for an execution session
    */
-  static generateVisualization(sessionLog: ExecutionSessionLog): string {
+  static generateMonitor(sessionLog: ExecutionSessionLog): string {
     const stats = sessionLog.summary;
     
     return `
@@ -16,7 +16,7 @@ export class VisualizationGeneratorService {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Execution Session Visualization - ${sessionLog.sessionId}</title>
+    <title>Execution Session Monitor - ${sessionLog.sessionId}</title>
     <style>
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 

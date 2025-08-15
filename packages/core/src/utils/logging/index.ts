@@ -15,7 +15,7 @@ export type {
 export { FileManagementService } from './services/file-management.service';
 export { StatisticsService } from './services/statistics.service';
 export { EntryBuilderService } from './services/entry-builder.service';
-export { VisualizationGeneratorService } from './services/visualization-generator.service';
+export { MonitorGeneratorService } from './services/monitor-generator.service';
 
 // Handlers
 export { ScreenshotHandler } from './handlers/screenshot-handler';

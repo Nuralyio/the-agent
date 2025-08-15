@@ -15,7 +15,7 @@
 A comprehensive, AI-powered browser automation framework that understands
 natural language instructions and executes web automation tasks intelligently.
 the agent provides multi-adapter support for different browser engines with
-real-time visualization and monitoring capabilities.
+real-time monitor and monitoring capabilities.
 
 ### 📊 Project Completion Status
 
@@ -33,7 +33,7 @@ real-time visualization and monitoring capabilities.
 <div align="center">
   <img src="./assets/webui.png" alt="The Agent Web Dashboard" width="800"/>
   <br/>
-  <em>Real-time browser automation dashboard with hierarchical planning visualization</em>
+  <em>Real-time browser automation dashboard with hierarchical planning monitor</em>
 </div>
 
 
@@ -55,7 +55,7 @@ real-time visualization and monitoring capabilities.
 
 - **Live Execution Monitoring** - Watch your automation tasks execute in
   real-time
-- **Hierarchical Plan Visualization** - See complex tasks broken down into
+- **Hierarchical Plan Monitor** - See complex tasks broken down into
   manageable sub-plans
 - **Action Detail Display** - View target selectors, action types, and execution
   values

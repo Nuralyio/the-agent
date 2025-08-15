@@ -34,7 +34,7 @@ src/
 
 - 🌐 **REST API**: Complete HTTP API for automation control
 - � **Real-time Streaming**: Server-Sent Events for live updates
-- 📊 **Visualization**: Live automation monitoring and screenshots
+- 📊 **Monitor**: Live automation monitoring and screenshots
 - 🎯 **Session Management**: Multiple automation sessions
 - 📝 **Logging**: Comprehensive execution logging
 - 🔒 **CORS Support**: Cross-origin resource sharing

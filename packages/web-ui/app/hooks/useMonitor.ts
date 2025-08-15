@@ -33,15 +33,15 @@ export interface ExecutionSession {
   steps: ExecutionStep[];
 }
 
-export interface VisualizationState {
+export interface MonitorState {
   currentSession?: ExecutionSession;
   sessions: ExecutionSession[];
   connectedClients: number;
   serverStatus: 'starting' | 'running' | 'stopping' | 'stopped';
 }
 
-export function useVisualizationStream(serverUrl: string = 'http://localhost:3002') {
-  const [state, setState] = useState<VisualizationState>({
+export function useMonitorStream(serverUrl: string = 'http://localhost:3002') {
+  const [state, setState] = useState<MonitorState>({
     sessions: [],
     connectedClients: 0,
     serverStatus: 'stopped'
@@ -76,7 +76,7 @@ export function useVisualizationStream(serverUrl: string = 'http://localhost:300
         };
 
       } catch (error) {
-        console.error('Failed to connect to visualization stream:', error);
+        console.error('Failed to connect to monitor stream:', error);
         setTimeout(connectToStream, 3000);
       }
     };
@@ -185,7 +185,7 @@ export function useVisualizationStream(serverUrl: string = 'http://localhost:300
   };
 }
 
-export function useVisualizationAPI(serverUrl: string = 'http://localhost:3002') {
+export function useMonitorAPI(serverUrl: string = 'http://localhost:3002') {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

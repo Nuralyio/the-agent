@@ -3,7 +3,7 @@ import { join } from 'path';
 import { ExecutionSessionLog } from './execution-logger';
 
 /**
- * HTML visualization generator for execution logs
+ * HTML monitor generator for execution logs
  */
 export class ExecutionVisualizer {
   /**
