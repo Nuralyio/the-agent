@@ -36,8 +36,6 @@ real-time monitor and monitoring capabilities.
   <em>Real-time browser automation dashboard with plan monitor</em>
 </div>
 
-
-
 ## ✨ Key Features
 
 - 🤖 **AI-Powered Automation**: Natural language instruction processing using
@@ -55,8 +53,7 @@ real-time monitor and monitoring capabilities.
 
 - **Live Execution Monitoring** - Watch your automation tasks execute in
   real-time
-- **Plan Monitor** - See complex tasks broken down into
-  manageable sub-plans
+- **Plan Monitor** - See complex tasks broken down into manageable sub-plans
 - **Action Detail Display** - View target selectors, action types, and execution
   values
 - **Browser Preview** - Live browser screenshots and page state

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { ChatMessage, ExecutionStep, HierarchicalPlan } from '../Dashboard.types';
 import { executeAutomationTask } from '../utils/api';
 
@@ -42,7 +42,7 @@ export const useAutomationState = ({
         if (!currentHierarchicalPlan) {
           setCurrentHierarchicalPlan(latestPlanMessage.hierarchicalPlan);
         }
-        
+
         // Set current plan to sub-plan overview if currentPlan is empty
         if (currentPlan.length === 0) {
           const subPlanSteps: ExecutionStep[] = latestPlanMessage.hierarchicalPlan.subPlans.map((subPlan, index) => ({
@@ -96,7 +96,7 @@ export const useAutomationState = ({
     if (!taskDescription.trim()) return;
 
     setIsLoading(true);
-    
+
     // Clear existing plans to show loading state immediately
     setCurrentPlan([]);
     setCurrentHierarchicalPlan(null);
