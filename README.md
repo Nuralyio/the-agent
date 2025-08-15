@@ -158,9 +158,9 @@ first before running development servers.
 ### Basic Automation
 
 ```typescript
-import { BrowserAutomation } from '@theagent/core';
+import { TheAgent } from '@theagent/core';
 
-const automation = new BrowserAutomation({
+const automation = new TheAgent({
   adapter: 'playwright',
   browserType: 'chromium',
   headless: false,

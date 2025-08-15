@@ -1,3 +1,3 @@
 // Main automation exports
-export { BrowserAutomation } from './browser-automation';
+export { TheAgent } from './the-agent';
 export { SessionManager } from './session-manager';

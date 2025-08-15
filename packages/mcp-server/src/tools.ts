@@ -1,4 +1,4 @@
-import { BrowserAutomation } from '@theagent/core';
+import { TheAgent } from '@theagent/core';
 import { Tool } from '@modelcontextprotocol/sdk/types';
 
 export class BrowserMCPTools {
@@ -138,7 +138,7 @@ export class BrowserMCPTools {
     ];
   }
 
-  async executeTool(name: string, args: any, automation: BrowserAutomation): Promise<any> {
+  async executeTool(name: string, args: any, automation: TheAgent): Promise<any> {
     switch (name) {
       case 'browser_navigate':
         return await this.navigate(automation, args.url);
@@ -172,7 +172,7 @@ export class BrowserMCPTools {
     }
   }
 
-  private async navigate(automation: BrowserAutomation, url: string) {
+  private async navigate(automation: TheAgent, url: string) {
     await automation.navigate(url);
     return {
       content: [
@@ -184,7 +184,7 @@ export class BrowserMCPTools {
     };
   }
 
-  private async execute(automation: BrowserAutomation, instruction: string, takeScreenshot = false) {
+  private async execute(automation: TheAgent, instruction: string, takeScreenshot = false) {
     const result = await automation.execute(instruction);
     
     const content: any[] = [
@@ -207,7 +207,7 @@ export class BrowserMCPTools {
     return { content };
   }
 
-  private async screenshot(automation: BrowserAutomation, selector?: string, path?: string) {
+  private async screenshot(automation: TheAgent, selector?: string, path?: string) {
     const screenshotPath = path || `/tmp/screenshot-${Date.now()}.png`;
     
     if (selector) {
@@ -233,7 +233,7 @@ export class BrowserMCPTools {
     };
   }
 
-  private async extractText(automation: BrowserAutomation, selector?: string) {
+  private async extractText(automation: TheAgent, selector?: string) {
     // This functionality would need to be added to the core package
     // For now, we'll use a workaround
     const result = await automation.execute(
@@ -252,7 +252,7 @@ export class BrowserMCPTools {
     };
   }
 
-  private async getPageInfo(automation: BrowserAutomation) {
+  private async getPageInfo(automation: TheAgent) {
     // This would need to be implemented in the core package
     const result = await automation.execute('Get the current page title and URL');
 
@@ -266,7 +266,7 @@ export class BrowserMCPTools {
     };
   }
 
-  private async click(automation: BrowserAutomation, selector: string) {
+  private async click(automation: TheAgent, selector: string) {
     await automation.click(selector);
     return {
       content: [
@@ -278,7 +278,7 @@ export class BrowserMCPTools {
     };
   }
 
-  private async type(automation: BrowserAutomation, selector: string, text: string) {
+  private async type(automation: TheAgent, selector: string, text: string) {
     await automation.type(selector, text);
     return {
       content: [
@@ -290,7 +290,7 @@ export class BrowserMCPTools {
     };
   }
 
-  private async wait(automation: BrowserAutomation, selector: string, timeout = 30000) {
+  private async wait(automation: TheAgent, selector: string, timeout = 30000) {
     // This would need to be implemented in the core package
     await automation.execute(`Wait for element with selector: ${selector}`, { timeout });
     return {
@@ -303,7 +303,7 @@ export class BrowserMCPTools {
     };
   }
 
-  private async close(automation: BrowserAutomation) {
+  private async close(automation: TheAgent) {
     await automation.close();
     return {
       content: [

@@ -6,7 +6,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types';
-import { BrowserAutomation, BrowserType } from '@theagent/core';
+import { TheAgent, BrowserType } from '@theagent/core';
 import * as dotenv from 'dotenv';
 import { BrowserMCPTools } from './tools';
 
@@ -15,7 +15,7 @@ dotenv.config();
 
 class TheAgentMCPServer {
   private server: Server;
-  private browserAutomation: BrowserAutomation | null = null;
+  private theAgent: TheAgent | null = null;
   private tools: BrowserMCPTools;
 
   constructor() {
@@ -50,17 +50,17 @@ class TheAgentMCPServer {
       const { name, arguments: args } = request.params;
       
       // Initialize browser if needed
-      if (!this.browserAutomation && name !== 'browser_close') {
+      if (!this.theAgent && name !== 'browser_close') {
         await this.initializeBrowser();
       }
 
       // Execute the tool
-      const result = await this.tools.executeTool(name, args || {}, this.browserAutomation!);
+      const result = await this.tools.executeTool(name, args || {}, this.theAgent!);
       
       // Close browser if requested
-      if (name === 'browser_close' && this.browserAutomation) {
-        await this.browserAutomation.close();
-        this.browserAutomation = null;
+      if (name === 'browser_close' && this.theAgent) {
+        await this.theAgent.close();
+        this.theAgent = null;
       }
 
       return result;
@@ -68,7 +68,7 @@ class TheAgentMCPServer {
   }
 
   private async initializeBrowser(): Promise<void> {
-    if (this.browserAutomation) {
+    if (this.theAgent) {
       return;
     }
 
@@ -89,8 +89,8 @@ class TheAgentMCPServer {
       }
     };
 
-    this.browserAutomation = new BrowserAutomation(config);
-    await this.browserAutomation.initialize();
+    this.theAgent = new TheAgent(config);
+    await this.theAgent.initialize();
   }
 
   private getBrowserType(browser: string): BrowserType {
@@ -116,8 +116,8 @@ class TheAgentMCPServer {
     
     // Handle graceful shutdown
     process.on('SIGINT', async () => {
-      if (this.browserAutomation) {
-        await this.browserAutomation.close();
+      if (this.theAgent) {
+        await this.theAgent.close();
       }
       process.exit(0);
     });

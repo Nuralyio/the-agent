@@ -1,4 +1,4 @@
-import { BrowserAutomation } from '@theagent/core/dist/index';
+import { TheAgent } from '@theagent/core/dist/index';
 import { executionStream } from '@theagent/core/dist/streaming/execution-stream';
 import { BrowserType } from '@theagent/core/dist/types';
 import { v4 as uuidv4 } from 'uuid';
@@ -26,7 +26,7 @@ export class AutomationService {
         };
 
         // Create new automation instance with config
-        const automation = new BrowserAutomation(automationConfig);
+        const automation = new TheAgent(automationConfig);
 
         try {
             // Initialize automation

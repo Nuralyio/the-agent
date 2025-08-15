@@ -6,11 +6,11 @@ import {
   validateDefaultProvider
 } from '../../config/environment';
 import { ActionEngine } from '../../engine/action-engine';
-import { BrowserAutomation } from '../../index';
+import { TheAgent } from '../../index';
 import { getTestServer, replaceHttpbinUrls, TestServer } from '../test-server';
 
 export interface TestContext {
-  automation: BrowserAutomation;
+  automation: TheAgent;
   actionEngine: ActionEngine;
   aiEngine: AIEngine;
   testServer: TestServer;
@@ -34,7 +34,7 @@ export async function setupTestContext(): Promise<TestContext> {
     temperature: envConfig.ollama.temperature
   };
 
-  const automation = new BrowserAutomation({
+  const automation = new TheAgent({
     adapter: envConfig.browser.adapter as any,
     headless: envConfig.browser.headless,
     browserType: envConfig.browser.type,
@@ -106,7 +106,7 @@ export async function teardownTestContext(context: TestContext): Promise<void> {
 /**
  * Initialize page for testing
  */
-export async function initializePage(automation: BrowserAutomation): Promise<void> {
+export async function initializePage(automation: TheAgent): Promise<void> {
   console.log('🔧 Initializing automation framework...');
 
   // Initialize the automation framework to apply configuration
@@ -137,7 +137,7 @@ export async function executeTestInstruction(
   actionEngine: ActionEngine,
   instruction: string,
   testName: string,
-  automation?: BrowserAutomation
+  automation?: TheAgent
 ): Promise<{ success: boolean; steps: any[] }> {
   console.log(`\n📋 ${testName}`);
 
@@ -153,7 +153,7 @@ export async function executeTestInstruction(
   try {
     // Use execute from automation instead of executeTask to see the difference in planning
     if (automation) {
-      console.log(`🔄 Using BrowserAutomation.execute() instead of ActionEngine.executeTask()`);
+      console.log(`🔄 Using TheAgent.execute() instead of ActionEngine.executeTask()`);
       const result = await automation.execute(localInstruction);
       console.log(`${result.success ? '✅' : '❌'} Execution result: ${result.success ? 'Success' : 'Failed'}`);
 
