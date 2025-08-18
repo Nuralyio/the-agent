@@ -4,7 +4,7 @@ import {
   loadEnvironmentConfig,
   logConfigurationStatus,
   validateDefaultProvider
-} from '../../config/environment';
+} from '../../environment';
 import { ActionEngine } from '../../engine/action-engine';
 import { TheAgent } from '../../index';
 import { getTestServer, replaceHttpbinUrls, TestServer } from '../test-server';

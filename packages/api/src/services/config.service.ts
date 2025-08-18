@@ -1,5 +1,5 @@
-import { createAIProviderConfigs, isProviderAvailable, loadEnvironmentConfig } from '@theagent/core/dist/config/environment';
 import { AIConfig } from '@theagent/core/dist/types';
+import { createAIProviderConfigs, isProviderAvailable, loadEnvironmentConfig } from '@theagent/core/src/environment';
 
 /**
  * Configuration service for handling environment and AI configuration
@@ -23,7 +23,7 @@ export class ConfigService {
      */
     getAIConfig(requestedProvider?: string): AIConfig | undefined {
         const provider = requestedProvider || this.envConfig.defaultProvider;
-        
+
         console.log('🔍 Checking AI configuration...');
         console.log('Environment config:', {
             requestedProvider,

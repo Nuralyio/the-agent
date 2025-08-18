@@ -1,8 +1,13 @@
 import { AIEngine } from '../../ai/ai-engine';
 import { executionStream } from '../../streaming/execution-stream';
 import { ActionPlan, PageState, Plan, TaskContext } from '../../types';
+// Removed duplicate import of ActionPlanner
+import * as crypto from 'crypto';
 import { ActionPlanner } from './action-planner';
-import { HierarchicalPlanManager } from './hierarchical-plan-manager';
+import { HierarchicalExecutionManager } from './execution-manager';
+import { GlobalPlanService } from './services/global-plan.service';
+import { PlanAssemblyService } from './services/plan-assembly.service';
+import { SubPlanService } from './services/sub-plan.service';
 
 /**
  * Main Planner class that handles all planning and execution
@@ -19,12 +24,85 @@ import { HierarchicalPlanManager } from './hierarchical-plan-manager';
  * - Direct usage
  */
 export class Planner {
-  private planManager: HierarchicalPlanManager;
+  private globalPlanService: GlobalPlanService;
+  private subPlanService: SubPlanService;
+  private planAssemblyService: PlanAssemblyService;
+  private executionManager: HierarchicalExecutionManager;
   private actionPlanner: ActionPlanner;
 
   constructor(aiEngine: AIEngine) {
     this.actionPlanner = new ActionPlanner(aiEngine);
-    this.planManager = new HierarchicalPlanManager(aiEngine, this.actionPlanner);
+    this.globalPlanService = new GlobalPlanService(aiEngine);
+    this.subPlanService = new SubPlanService(this.actionPlanner);
+    this.planAssemblyService = new PlanAssemblyService();
+    this.executionManager = new HierarchicalExecutionManager();
+  }
+
+  /**
+   * Create a complete hierarchical plan
+   */
+  async createHierarchicalPlan(
+    instruction: string,
+    context: TaskContext,
+    pageState?: PageState
+  ): Promise<Plan> {
+    const startTime = Date.now();
+    console.log(`🧠 Creating plan for: "${instruction}"`);
+
+    try {
+      // Step 1: Create global plan breakdown
+      const globalPlanStart = Date.now();
+      const globalPlan = await this.globalPlanService.createGlobalPlan({
+        instruction,
+        context,
+        pageState
+      });
+      const globalPlanTime = Date.now() - globalPlanStart;
+      console.log(`📋 Global plan created with ${globalPlan.subObjectives.length} sub-objectives (${globalPlanTime}ms)`);
+
+      // Step 2: Create detailed sub-plans for each sub-objective (in parallel)
+      const subPlanStart = Date.now();
+      const subPlans = await this.subPlanService.createSubPlansInParallel(
+        globalPlan.subObjectives,
+        instruction,
+        context,
+        pageState
+      );
+      const subPlanTime = Date.now() - subPlanStart;
+      console.log(`✅ All ${subPlans.length} sub-plans created in parallel (${subPlanTime}ms)`);
+
+      // Step 3: Create the main action plan with sub-plan references
+      const mainActionPlan = this.planAssemblyService.createMainActionPlan({
+        instruction,
+        context,
+        subPlans,
+        strategy: globalPlan.planningStrategy
+      });
+
+      // Step 4: Assemble the complete hierarchical plan
+      const hierarchicalPlan: Plan = {
+        id: crypto.randomUUID(),
+        globalObjective: instruction,
+        globalPlan: mainActionPlan,
+        subPlans,
+        totalEstimatedDuration: this.planAssemblyService.calculateTotalDuration(subPlans),
+        planningStrategy: globalPlan.planningStrategy,
+        metadata: this.planAssemblyService.createPlanMetadata(
+          subPlans,
+          globalPlan.planningStrategy,
+          globalPlan.reasoning
+        )
+      };
+
+      const totalTime = Date.now() - startTime;
+      console.log(`🎯 Plan completed: ${subPlans.length} sub-plans, ${hierarchicalPlan.totalEstimatedDuration}ms estimated (Planning took ${totalTime}ms total: ${globalPlanTime}ms global + ${subPlanTime}ms sub-plans)`);
+
+      return hierarchicalPlan;
+
+    } catch (error) {
+      console.error('❌ Failed to create hierarchical plan:', error);
+      throw new Error(`Hierarchical planning failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
@@ -34,7 +112,7 @@ export class Planner {
   async planInstruction(instruction: string, context: TaskContext, pageState?: PageState): Promise<Plan> {
     console.log('🧠 Planner: Using structured planning by default');
 
-    const plan = await this.planManager.createHierarchicalPlan(instruction, context, pageState);
+    const plan = await this.createHierarchicalPlan(instruction, context, pageState);
 
     console.log(`📋 Planner: Created plan with ${plan.subPlans.length} sub-plans`);
 
@@ -51,6 +129,19 @@ export class Planner {
   }
 
   /**
+   * Execute a hierarchical plan
+   */
+  async executeHierarchicalPlan(
+    hierarchicalPlan: Plan,
+    executeActionPlan: (plan: any) => Promise<any>
+  ): Promise<any> {
+    return await this.executionManager.executeHierarchicalPlan(
+      hierarchicalPlan,
+      executeActionPlan
+    );
+  }
+
+  /**
    * Execute a plan using ActionPlanner for individual action execution
    */
   async executePlan(
@@ -64,16 +155,13 @@ export class Planner {
       subPlansCount: plan.subPlans.length
     });
 
-    console.log('🔍 DEBUG: planner exists?', !!this.planManager);
-    console.log('🔍 DEBUG: executePlan method exists?', typeof this.planManager.executeHierarchicalPlan);
-
     try {
-      console.log('🔍 DEBUG: About to call planManager.executePlan');
-      const result = await this.planManager.executeHierarchicalPlan(plan, executePlanFunction);
-      console.log('🔍 DEBUG: planManager.executePlan completed successfully');
+      console.log('🔍 DEBUG: About to call executeHierarchicalPlan');
+      const result = await this.executeHierarchicalPlan(plan, executePlanFunction);
+      console.log('🔍 DEBUG: executeHierarchicalPlan completed successfully');
       return result;
     } catch (error) {
-      console.error('🔍 DEBUG: Error in planManager.executePlan:', error);
+      console.error('🔍 DEBUG: Error in executeHierarchicalPlan:', error);
       throw error;
     }
   }
@@ -89,17 +177,8 @@ export class Planner {
   ): Promise<any> {
     console.log(`🎯 Planner: Planning and executing instruction: "${instruction}"`);
 
-    // Create the plan
     const plan = await this.planInstruction(instruction, context);
-
-    // Execute the plan
-    console.log('🔥 CRITICAL: About to call this.executePlan - THIS SHOULD APPEAR!!!');
-    console.log('🔥 CRITICAL: plan object:', { id: plan.id, subPlansCount: plan.subPlans.length });
-    console.log('🔥 CRITICAL: executePlanFunction type:', typeof executePlanFunction);
-
     const result = await this.executePlan(plan, executePlanFunction);
-
-    console.log('🔥 CRITICAL: this.executePlan returned successfully');
     console.log(`✅ Planner: Completed execution with ${plan.subPlans.length} sub-plans`);
 
     // Include the plan in the result for frontend display
@@ -107,7 +186,6 @@ export class Planner {
       result.plan = plan;
       console.log(`📋 Planner: Added plan to result (${plan.subPlans.length} sub-plans)`);
     }
-
     return result;
   }
 
@@ -121,16 +199,6 @@ export class Planner {
   }
 
   /**
-   * Execute a simple action plan using ActionPlanner
-   * This should only be used internally or for simple single-step tasks
-   */
-  async executeActionPlan(plan: ActionPlan): Promise<any> {
-    console.log(`⚙️ Planner: Executing action plan: ${plan.steps.length} steps`);
-    // ActionPlanner doesn't have executeActionPlan method - this should be handled by the caller
-    throw new Error('Direct action plan execution should be handled by the ActionEngine');
-  }
-
-  /**
    * Get the underlying ActionPlanner (for compatibility with existing code)
    */
   getActionPlanner(): ActionPlanner {
@@ -138,26 +206,19 @@ export class Planner {
   }
 
   /**
-   * Get the underlying plan manager (for compatibility with existing code)
+   * Get the underlying plan services (for compatibility with existing code)
    */
-  getPlanManager(): HierarchicalPlanManager {
-    return this.planManager;
+  getGlobalPlanService(): GlobalPlanService {
+    return this.globalPlanService;
+  }
+  getSubPlanService(): SubPlanService {
+    return this.subPlanService;
+  }
+  getPlanAssemblyService(): PlanAssemblyService {
+    return this.planAssemblyService;
+  }
+  getExecutionManager(): HierarchicalExecutionManager {
+    return this.executionManager;
   }
 
-  /**
-   * Check if an instruction would use structured planning
-   * Note: This always returns true now since we always use structured planning
-   * Kept for backward compatibility
-   */
-  async shouldUseStructuredPlanning(instruction: string): Promise<boolean> {
-    console.log('ℹ️ Planner: Always using structured planning (legacy method called)');
-    return true; // Always true - structured planning is now the default
-  }
-
-  /**
-   * Legacy method name for backward compatibility
-   */
-  async shouldUseHierarchicalPlanning(instruction: string): Promise<boolean> {
-    return this.shouldUseStructuredPlanning(instruction);
-  }
 }

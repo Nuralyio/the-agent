@@ -1,10 +1,10 @@
 import dotenv from 'dotenv';
 import path from 'path';
-import { AIConfig } from '../ai/ai-engine';
-import { BrowserType } from '../types';
+import { AIConfig } from './ai/ai-engine';
+import { BrowserType } from './types';
 
 // Load environment variables from .env file in the project root
-dotenv.config({ path: path.join(__dirname, '../../../../.env') });
+dotenv.config({ path: path.join(__dirname, '../../../.env') });
 
 export interface EnvironmentConfig {
   // AI Provider Settings
@@ -133,15 +133,15 @@ export function isProviderAvailable(provider: string, envConfig: EnvironmentConf
  */
 export function getAvailableProviders(envConfig: EnvironmentConfig): string[] {
   const providers: string[] = [];
-  
+
   // Ollama is always available
   providers.push('ollama');
-  
+
   // OpenAI is available if API key is configured
   if (isProviderAvailable('openai', envConfig)) {
     providers.push('openai');
   }
-  
+
   return providers;
 }
 
@@ -151,12 +151,12 @@ export function getAvailableProviders(envConfig: EnvironmentConfig): string[] {
 export function validateDefaultProvider(envConfig: EnvironmentConfig): string {
   const requestedProvider = envConfig.defaultProvider;
   const availableProviders = getAvailableProviders(envConfig);
-  
+
   // Check if the requested provider is available
   if (availableProviders.includes(requestedProvider)) {
     return requestedProvider;
   }
-  
+
   // Fallback to the first available provider
   console.warn(`⚠️ Requested provider '${requestedProvider}' is not available. Available providers: ${availableProviders.join(', ')}`);
   return availableProviders[0] || 'ollama';

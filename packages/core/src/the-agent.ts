@@ -1,7 +1,7 @@
-import { BrowserAdapterRegistry } from '../adapters/adapter-registry';
-import { AIEngine } from '../ai/ai-engine';
-import { BrowserManagerImpl } from '../managers/browser-manager';
-import { ActionEngine } from '../engine/action-engine';
+import { BrowserAdapterRegistry } from './adapters/adapter-registry';
+import { AIEngine } from './ai/ai-engine';
+import { BrowserManagerImpl } from './managers/browser-manager';
+import { ActionEngine } from './engine/action-engine';
 import * as crypto from 'crypto';
 import {
   AIConfig,
@@ -13,8 +13,8 @@ import {
   TaskResult,
   TaskContext,
   PageState
-} from '../types';
-import { executionStream } from '../streaming/execution-stream';
+} from './types';
+import { executionStream } from './streaming/execution-stream';
 
 /**
  * Main TheAgent Framework class
@@ -81,13 +81,13 @@ export class TheAgent {
     if (this.aiConfig) {
       console.log('🤖 Initializing AI engine with config:', this.aiConfig);
       this.aiEngine = new AIEngine();
-      
+
       // Ensure model is provided for the AI engine
       const aiEngineConfig = {
         ...this.aiConfig,
         model: this.aiConfig.model || 'llama3.2'  // Default model if not specified
       };
-      
+
       // Use the provider specified in the config, fallback to 'ollama'
       const providerName = this.aiConfig.provider || 'ollama';
       this.aiEngine.addProvider(providerName, aiEngineConfig);
@@ -109,7 +109,7 @@ export class TheAgent {
     // If we have an ActionEngine (AI is configured), use it for intelligent planning
     if (this.actionEngine) {
       console.log('🎯 Using ActionEngine for intelligent task planning');
-      
+
       // Convert ExecutionOptions to TaskContext if provided
       let taskContext: TaskContext | undefined;
       if (options) {
@@ -125,7 +125,7 @@ export class TheAgent {
           pageTitle: currentState.title
         };
       }
-      
+
       return await this.actionEngine.executeTask(instruction, taskContext);
     }
 
