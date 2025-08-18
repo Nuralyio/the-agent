@@ -47,10 +47,4 @@ export class ActionTypeMapper {
     return mapped || null;
   }
 
-  /**
-   * Get all supported action types
-   */
-  getSupportedTypes(): string[] {
-    return Object.keys(this.typeMap);
-  }
 }

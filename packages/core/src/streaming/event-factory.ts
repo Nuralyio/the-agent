@@ -1,5 +1,5 @@
-import { ActionStep } from '../../types';
-import { ExecutionEvent } from '../types/streaming.types';
+import { ActionStep } from '../types';
+import { ExecutionEvent } from './streaming.types';
 
 /**
  * Factory for creating different types of execution events

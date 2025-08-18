@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 import { ActionPlan, ActionStep, ActionType, SubPlan } from '../../../types';
-import { PlanAssemblyConfig } from '../types/hierarchical-planning.types';
+import { PlanAssemblyConfig } from '../types/planning.types';
 
 /**
  * Service for assembling hierarchical plans from sub-plans
@@ -71,27 +71,6 @@ export class PlanAssemblyService {
    */
   calculateTotalDuration(subPlans: SubPlan[]): number {
     return subPlans.reduce((total, plan) => total + plan.estimatedDuration, 0);
-  }
-
-  /**
-   * Validate plan assembly configuration
-   */
-  validateConfig(config: PlanAssemblyConfig): void {
-    if (!config.instruction || config.instruction.trim().length === 0) {
-      throw new Error('Instruction is required for plan assembly');
-    }
-
-    if (!config.context) {
-      throw new Error('Task context is required for plan assembly');
-    }
-
-    if (!config.subPlans || config.subPlans.length === 0) {
-      throw new Error('Sub-plans are required for plan assembly');
-    }
-
-    if (!['sequential', 'parallel', 'conditional'].includes(config.strategy)) {
-      throw new Error('Invalid planning strategy');
-    }
   }
 
   /**

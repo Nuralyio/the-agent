@@ -1,4 +1,4 @@
-import { StreamClient, StreamMessage } from '../types/streaming.types';
+import { StreamClient, StreamMessage } from './streaming.types';
 
 /**
  * Manages stream client connections and broadcasting

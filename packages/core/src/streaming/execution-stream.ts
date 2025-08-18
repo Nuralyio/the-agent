@@ -1,10 +1,10 @@
 import { EventEmitter } from 'events';
 import { ActionStep } from '../types';
-import { EventFactory } from './factories/event-factory';
-import { ClientManager } from './managers/client-manager';
-import { SessionManager } from './managers/session-manager';
-import { EventProcessor } from './processors/event-processor';
-import { ExecutionEvent } from './types/streaming.types';
+import { EventFactory } from './event-factory';
+import { ClientManager } from './client-manager';
+import { SessionManager } from './session-manager';
+import { EventProcessor } from './event-processor';
+import { ExecutionEvent } from './streaming.types';
 
 /**
  * ExecutionStream - Provides real-time execution monitor for web integration

@@ -1,6 +1,6 @@
-import { ClientManager } from '../managers/client-manager';
-import { SessionManager } from '../managers/session-manager';
-import { ExecutionEvent, StreamMessage } from '../types/streaming.types';
+import { ClientManager } from './client-manager';
+import { SessionManager } from './session-manager';
+import { ExecutionEvent, StreamMessage } from './streaming.types';
 
 /**
  * Handles event processing and broadcasting

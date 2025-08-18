@@ -1,4 +1,4 @@
-import { ActionStep } from '../../types';
+import { ActionStep } from '../types';
 
 /**
  * Event type definitions for execution streaming

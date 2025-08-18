@@ -1,4 +1,4 @@
-import { ExecutionEvent } from '../types/streaming.types';
+import { ExecutionEvent } from './streaming.types';
 
 /**
  * Manages execution session state and history

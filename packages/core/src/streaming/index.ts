@@ -2,14 +2,14 @@
 export { ExecutionStream } from './execution-stream';
 
 // Type definitions
-export * from './types/streaming.types';
+export * from './streaming.types';
 
 // Managers
-export { ClientManager } from './managers/client-manager';
-export { SessionManager } from './managers/session-manager';
+export { ClientManager } from './client-manager';
+export { SessionManager } from './session-manager';
 
 // Processors
-export { EventProcessor } from './processors/event-processor';
+export { EventProcessor } from './event-processor';
 
 // Factories
-export { EventFactory } from './factories/event-factory';
+export { EventFactory } from './event-factory';

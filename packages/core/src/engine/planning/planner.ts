@@ -5,11 +5,11 @@ import { ActionPlan, PageState, Plan, TaskContext } from '../../types';
 // Removed duplicate import of ActionPlanner
 import * as crypto from 'crypto';
 import { ActionPlanner } from './action-planner';
-import { HierarchicalResponseParser } from './parsers/response-parser';
+import { ResponseParser } from './parsers/response-parser';
 import { PlanExecution } from './plan-execution';
 import { PlanAssemblyService } from './services/plan-assembly.service';
 import { SubPlanService } from './services/sub-plan.service';
-import { GlobalPlanConfig, GlobalPlanInstruction } from './types/hierarchical-planning.types';
+import { GlobalPlanConfig, GlobalPlanInstruction } from './types/planning.types';
 
 /**
  * Main Planner class that handles all planning and execution
@@ -32,7 +32,7 @@ export class Planner {
   private actionPlanner: ActionPlanner;
   private aiEngine: AIEngine;
   private promptTemplate: PromptTemplate;
-  private responseParser: HierarchicalResponseParser;
+  private responseParser: ResponseParser;
 
   constructor(aiEngine: AIEngine) {
     this.aiEngine = aiEngine;
@@ -41,7 +41,7 @@ export class Planner {
     this.planAssemblyService = new PlanAssemblyService();
     this.executionManager = new PlanExecution();
     this.promptTemplate = new PromptTemplate();
-    this.responseParser = new HierarchicalResponseParser();
+    this.responseParser = new ResponseParser();
   }
 
   /**

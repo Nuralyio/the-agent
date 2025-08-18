@@ -20,10 +20,10 @@ import { executionStream } from './streaming/execution-stream';
  * Main TheAgent Framework class
  */
 export class TheAgent {
-  private browserManager: BrowserManagerImpl;
+  private readonly browserManager: BrowserManagerImpl;
   private registry: BrowserAdapterRegistry;
   private config: BrowserConfig;
-  private aiConfig?: AIConfig;
+  private readonly aiConfig?: AIConfig;
   private actionEngine?: ActionEngine;
   private aiEngine?: AIEngine;
 

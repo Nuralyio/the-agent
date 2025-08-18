@@ -3,7 +3,7 @@ import { ActionPlan, Plan } from '../../types';
 import {
   ExecutionContext,
   PlanExecutionResult
-} from './types/hierarchical-planning.types';
+} from './types/planning.types';
 
 /**
  * Manages execution of hierarchical plans with streaming support

@@ -1,9 +1,9 @@
-import { GlobalPlanInstruction } from '../types/hierarchical-planning.types';
+import { GlobalPlanInstruction } from '../types/planning.types';
 
 /**
  * Parses AI responses for hierarchical planning
  */
-export class HierarchicalResponseParser {
+export class ResponseParser {
   /**
    * Parse global plan response from AI
    */
@@ -83,14 +83,4 @@ export class HierarchicalResponseParser {
     };
   }
 
-  /**
-   * Validate planning strategy
-   */
-  validatePlanningStrategy(strategy: string): 'sequential' | 'parallel' | 'conditional' {
-    const validStrategies = ['sequential', 'parallel', 'conditional'];
-    if (validStrategies.includes(strategy)) {
-      return strategy as 'sequential' | 'parallel' | 'conditional';
-    }
-    return 'sequential';
-  }
 }
