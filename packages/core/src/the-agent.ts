@@ -1,5 +1,5 @@
 import { BrowserAdapterRegistry } from './adapters/adapter-registry';
-import { AIEngine } from './ai/ai-engine';
+import { AIEngine } from './engine/ai-engine';
 import { BrowserManagerImpl } from './managers/browser-manager';
 import { ActionEngine } from './engine/action-engine';
 import * as crypto from 'crypto';

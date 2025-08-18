@@ -1,4 +1,4 @@
-import { VisionCapabilities } from '../../ai-engine';
+import { VisionCapabilities } from '../../engine/ai-engine';
 
 /**
  * OpenAI Model Utilities
@@ -25,7 +25,7 @@ export class OpenAIModelUtils {
       supportedFormats: ['jpeg', 'jpg', 'png', 'gif', 'webp'],
       maxImageSize: 20 * 1024 * 1024 // 20MB
     },
-    
+
     // Text-only models
     'gpt-4': {
       supportsImages: false,
@@ -99,22 +99,22 @@ export class OpenAIModelUtils {
     if (buffer.length < 4) return 'png'; // Default fallback
 
     const header = buffer.subarray(0, 4);
-    
+
     // PNG: 89 50 4E 47
     if (header[0] === 0x89 && header[1] === 0x50 && header[2] === 0x4E && header[3] === 0x47) {
       return 'png';
     }
-    
+
     // JPEG: FF D8 FF
     if (header[0] === 0xFF && header[1] === 0xD8 && header[2] === 0xFF) {
       return 'jpeg';
     }
-    
+
     // GIF: 47 49 46 38
     if (header[0] === 0x47 && header[1] === 0x49 && header[2] === 0x46 && header[3] === 0x38) {
       return 'gif';
     }
-    
+
     // WebP: Check for RIFF and WEBP
     if (buffer.length >= 12) {
       const riff = buffer.subarray(0, 4);
@@ -123,7 +123,7 @@ export class OpenAIModelUtils {
         return 'webp';
       }
     }
-    
+
     return 'png'; // Default fallback
   }
 
@@ -132,26 +132,26 @@ export class OpenAIModelUtils {
    */
   static validateImage(buffer: Buffer, model: string): { valid: boolean; error?: string } {
     const capabilities = this.getVisionCapabilities(model);
-    
+
     if (!capabilities.supportsImages) {
       return { valid: false, error: `Model ${model} does not support images` };
     }
-    
+
     if (capabilities.maxImageSize && buffer.length > capabilities.maxImageSize) {
-      return { 
-        valid: false, 
-        error: `Image size (${buffer.length} bytes) exceeds maximum allowed (${capabilities.maxImageSize} bytes)` 
+      return {
+        valid: false,
+        error: `Image size (${buffer.length} bytes) exceeds maximum allowed (${capabilities.maxImageSize} bytes)`
       };
     }
-    
+
     const format = this.detectImageFormat(buffer);
     if (!capabilities.supportedFormats.includes(format)) {
-      return { 
-        valid: false, 
-        error: `Image format ${format} is not supported. Supported formats: ${capabilities.supportedFormats.join(', ')}` 
+      return {
+        valid: false,
+        error: `Image format ${format} is not supported. Supported formats: ${capabilities.supportedFormats.join(', ')}`
       };
     }
-    
+
     return { valid: true };
   }
 }

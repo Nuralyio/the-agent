@@ -1,7 +1,7 @@
-import { ActionStep, ActionType } from '../engine/planning/types/types';
+import { ActionStep, ActionType } from './planning/types/types';
 import { PromptTemplate } from '../prompt-template';
 import { PageState } from '../types';
-import { OllamaProvider, OpenAIProvider } from './providers';
+import { OllamaProvider, OpenAIProvider } from '../providers';
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';

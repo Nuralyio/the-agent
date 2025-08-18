@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
-import { AIConfig } from './ai/ai-engine';
+import { AIConfig } from './engine/ai-engine';
 import { BrowserType } from './types';
 
 // Load environment variables from .env file in the project root

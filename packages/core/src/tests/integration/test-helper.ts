@@ -1,4 +1,4 @@
-import { AIEngine } from '../../ai/ai-engine';
+import { AIEngine } from '../../engine/ai-engine';
 import {
   createAIProviderConfigs,
   loadEnvironmentConfig,

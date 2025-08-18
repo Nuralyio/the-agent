@@ -1,9 +1,9 @@
-import { AIConfig, AIEngine, AIProvider, AIResponse } from '../../ai/ai-engine';
-import { OllamaProvider } from '../../ai/providers';
+import { AIConfig, AIEngine, AIProvider, AIResponse } from '../../engine/ai-engine';
+import { OllamaProvider } from '../../providers';
 import { PageState } from '../../types';
 
 // Mock the OllamaProvider
-jest.mock('../../ai/providers');
+jest.mock('../../providers');
 
 describe('AIEngine', () => {
   let aiEngine: AIEngine;

@@ -1,6 +1,6 @@
 import { StructuredOutputParser } from 'langchain/output_parsers';
 import { z } from 'zod';
-import { AIProvider, AIResponse } from '../ai-engine';
+import { AIProvider, AIResponse } from '../../../engine/ai-engine';
 
 /**
  * Generic utility for generating structured JSON responses
@@ -19,7 +19,7 @@ export class StructuredOutputUtil {
    */
   async generateStructuredJSON(
     provider: AIProvider,
-    prompt: string, 
+    prompt: string,
     systemPrompt?: string
   ): Promise<AIResponse> {
     // Get format instructions from the schema
@@ -36,7 +36,7 @@ export class StructuredOutputUtil {
     try {
       // Use the provider's generateText method
       const response = await provider.generateText(enhancedPrompt, enhancedSystemPrompt);
-      
+
       // Try to parse the structured output
       try {
         const parsedOutput = await this.parser.parse(response.content);
@@ -83,7 +83,7 @@ export class StructuredOutputUtil {
 
   private async generateWithFallback(
     provider: AIProvider,
-    prompt: string, 
+    prompt: string,
     systemPrompt?: string
   ): Promise<AIResponse> {
     const enhancedSystemPrompt = systemPrompt

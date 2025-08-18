@@ -1,4 +1,4 @@
-import { AIEngine } from '../../ai/ai-engine';
+import { AIEngine } from '../ai-engine';
 import { PromptTemplate } from '../../prompt-template';
 import { ActionPlan, PageState, TaskContext } from './types/types';
 import {
@@ -77,10 +77,10 @@ export class ActionPlanner {
   private async parseInstructionWithAI(instruction: string, pageState: PageState): Promise<ParsedInstruction> {
     // Extract relevant content from page for better selector identification
     const pageContent = this.contentExtractor.extractRelevantContent(pageState.content || '');
-    
+
     // Extract structured form and interactive elements
     const structuredContent = this.contentExtractor.extractStructuredContent(pageState.content || '');
-    
+
     // Combine form fields and select elements into formElements
     const formElements = {
       formFields: structuredContent.formFields,

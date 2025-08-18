@@ -1,6 +1,6 @@
-import { AIConfig, AIMessage, AIProvider, AIResponse, VisionCapabilities } from '../../ai-engine';
-import { BrowserActionSchema } from '../../schemas/browser-action.schema';
-import { StructuredOutputUtil, createStructuredOutputUtil } from '../../utils/structured-output.util';
+import { AIConfig, AIMessage, AIProvider, AIResponse, VisionCapabilities } from '../../engine/ai-engine';
+import { BrowserActionSchema } from '../shared/schemas/browser-action.schema';
+import { StructuredOutputUtil, createStructuredOutputUtil } from '../shared/utils/structured-output.util';
 import { OllamaApiClient } from './api-client';
 import { OllamaModelUtils } from './model-utils';
 import {
@@ -33,7 +33,7 @@ export class OllamaProvider implements AIProvider {
 
     // Initialize API client
     this.apiClient = new OllamaApiClient(
-      this.config.baseUrl!, 
+      this.config.baseUrl!,
       this.config.timeout
     );
 

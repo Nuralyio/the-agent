@@ -9,4 +9,4 @@ export { ContentExtractor } from './content-extractor';
 export { PlanBuilder, PlanBuilderOptions } from '../plan-builder';
 
 // Services
-export { AIService, AIServiceOptions } from '../../../ai/ai-service';
+export { AIService, AIServiceOptions } from '../../../providers/ai-service';

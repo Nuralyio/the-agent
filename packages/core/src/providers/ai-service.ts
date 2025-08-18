@@ -1,4 +1,4 @@
-import { AIEngine } from './ai-engine';
+import { AIEngine } from '../engine/ai-engine';
 
 export interface AIServiceOptions {
   maxRetries?: number;

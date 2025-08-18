@@ -2,7 +2,7 @@
 
 /**
  * Core Package Structure Analysis & Recommendations
- * 
+ *
  * This script analyzes the current structure and provides actionable recommendations
  */
 
@@ -17,13 +17,13 @@ const coreBase = '/Users/aymen/Desktop/projects/nuraly/TheAgent/Agent/packages/c
 function analyzeDirectory(dir, title) {
   console.log(`\n🗂️  ${title}`);
   console.log('═'.repeat(50));
-  
+
   try {
     const items = fs.readdirSync(dir);
     items.forEach(item => {
       const fullPath = path.join(dir, item);
       const stat = fs.statSync(fullPath);
-      
+
       if (stat.isDirectory()) {
         const subItems = fs.readdirSync(fullPath);
         console.log(`📁 ${item}/ (${subItems.length} files)`);
@@ -53,7 +53,7 @@ const recommendations = [
     description: 'The /core folder has only browser-manager.ts. Add complementary managers.',
     actions: [
       'Create session-manager.ts for session lifecycle',
-      'Create context-manager.ts for browser contexts', 
+      'Create context-manager.ts for browser contexts',
       'Create lifecycle-manager.ts for startup/shutdown coordination'
     ]
   },
@@ -64,7 +64,7 @@ const recommendations = [
     actions: [
       'Create types/browser.ts for browser-related types',
       'Create types/actions.ts for action and execution types',
-      'Create types/ai.ts for AI configuration types',
+      'Create types/providers.ts for AI configuration types',
       'Update main index.ts to re-export from split files'
     ]
   },
@@ -104,7 +104,7 @@ recommendations.forEach((rec, index) => {
 console.log('\n\n✅ COMPLETED IMPROVEMENTS');
 console.log('═'.repeat(50));
 console.log('• ✅ Created session-manager.ts with session lifecycle tracking');
-console.log('• ✅ Started type organization with browser.ts, actions.ts, ai.ts, streaming.ts');
+console.log('• ✅ Started type organization with browser.ts, actions.ts, providers.ts, streaming.ts');
 console.log('• ✅ Created examples/README.md with learning path');
 console.log('• ✅ Created examples/basic/01-simple-navigation.ts');
 

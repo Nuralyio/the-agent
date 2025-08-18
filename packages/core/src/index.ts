@@ -1,5 +1,5 @@
 import { BrowserAdapterRegistry } from './adapters/adapter-registry';
-import { AIEngine } from './ai/ai-engine';
+import { AIEngine } from './engine/ai-engine';
 import { ActionEngine } from './engine/action-engine';
 import { BrowserManagerImpl } from './managers/browser-manager';
 import {
@@ -291,7 +291,7 @@ export class TheAgent {
 export { BrowserAdapterRegistry } from './adapters/adapter-registry';
 export { PlaywrightAdapter } from './adapters/playwright/adapter';
 export { PuppeteerAdapter } from './adapters/puppeteer/adapter';
-export { AIEngine } from './ai/ai-engine';
+export { AIEngine } from './engine/ai-engine';
 export { ActionEngine } from './engine/action-engine';
 export { Planner } from './engine/planning/planner';
 export { ExecutionStream, executionStream } from './streaming/execution-stream';

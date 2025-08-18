@@ -1,10 +1,10 @@
-import { AIEngine, AIResponse } from '../../ai/ai-engine';
+import { AIEngine, AIResponse } from '../../engine/ai-engine';
 import { ActionEngine } from '../../engine/action-engine';
 import { ActionStep, ActionType, TaskContext } from '../../engine/planning/types/types';
 import { BrowserManager, PageInstance } from '../../types';
 
 // Mock dependencies
-jest.mock('../../ai/ai-engine');
+jest.mock('../../engine/ai-engine');
 jest.mock('../../utils/execution-logger');
 jest.mock('../../streaming/execution-stream');
 

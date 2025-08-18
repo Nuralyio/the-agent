@@ -1,4 +1,4 @@
-import { AIEngine } from '../ai/ai-engine';
+import { AIEngine } from './ai-engine';
 import { executionStream } from '../streaming/execution-stream';
 import {
   ActionPlan,

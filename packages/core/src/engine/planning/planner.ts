@@ -1,4 +1,4 @@
-import { AIEngine } from '../../ai/ai-engine';
+import { AIEngine } from '../ai-engine';
 import { PromptTemplate } from '../../prompt-template';
 import { executionStream } from '../../streaming/execution-stream';
 import { ActionPlan, PageState, Plan, TaskContext } from '../../types';
