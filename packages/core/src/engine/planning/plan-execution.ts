@@ -1,73 +1,60 @@
 import { executionStream } from '../../streaming/execution-stream';
 import { ActionPlan, Plan } from '../../types';
 import {
-  HierarchicalExecutionContext,
+  ExecutionContext,
   PlanExecutionResult
 } from './types/hierarchical-planning.types';
 
 /**
  * Manages execution of hierarchical plans with streaming support
  */
-export class HierarchicalExecutionManager {
+export class PlanExecution {
   /**
    * Execute a plan step by step with streaming
    */
-  async executeHierarchicalPlan(
-    hierarchicalPlan: Plan,
+  async executePlan(
+    plan: Plan,
     executeActionPlan: (plan: ActionPlan) => Promise<any>
   ): Promise<PlanExecutionResult> {
-    console.log(`🚀 Executing plan: ${hierarchicalPlan.subPlans.length} sub-plans`);
+    console.log(`🚀 Executing plan: ${plan.subPlans.length} sub-plans`);
 
-    const context = this.createExecutionContext(hierarchicalPlan);
+    const context = this.createExecutionContext(plan);
     const results = [];
 
-    for (let i = 0; i < hierarchicalPlan.subPlans.length; i++) {
-      const subPlan = hierarchicalPlan.subPlans[i];
+    for (let i = 0; i < plan.subPlans.length; i++) {
+      const subPlan = plan.subPlans[i];
 
-      console.log(`📍 Executing sub-plan ${i + 1}/${hierarchicalPlan.subPlans.length}: ${subPlan.objective}`);
+      console.log(`📍 Executing sub-plan ${i + 1}/${plan.subPlans.length}: ${subPlan.objective}`);
       console.log(`🎯 CRITICAL DEBUG: STARTING sub-plan ${i + 1} iteration`);
 
-      // Update execution context
       context.currentSubPlanIndex = i;
 
-      // Set current sub-plan context for streaming
       executionStream.setCurrentSubPlan(i);
 
-      // Stream sub-plan start event
       executionStream.streamSubPlanStart(i, subPlan);
 
-      // Execute the sub-plan
-      const result = await this.executeSubPlan(subPlan, executeActionPlan, hierarchicalPlan.id);
-
-      console.log(`🎯 CRITICAL DEBUG: FINISHED executeActionPlan call for sub-plan ${i + 1}`);
-      console.log(`🎯 CRITICAL DEBUG: Result object keys:`, Object.keys(result));
-      console.log(`🚨 IMMEDIATE: Sub-plan ${i + 1} result received - PROCESSING COMPLETION NOW!`);
+      const result = await this.executeSubPlan(subPlan, executeActionPlan, plan.id);
 
       results.push(result);
       context.results.push(result);
+      const isSuccess = this.processSubPlanResult(result, i, subPlan, plan.subPlans.length);
 
-      // Mark sub-plan as completed
-      const isSuccess = this.processSubPlanResult(result, i, subPlan, hierarchicalPlan.subPlans.length);
-
-      // Check if sub-plan failed but continue execution unless critical
       if (!isSuccess) {
         console.warn(`⚠️ Sub-plan ${i + 1} failed, but continuing with remaining sub-plans`);
-        console.log(`🔄 Continuing execution of remaining ${hierarchicalPlan.subPlans.length - i - 1} sub-plans`);
+        console.log(`🔄 Continuing execution of remaining ${plan.subPlans.length - i - 1} sub-plans`);
       } else {
         console.log(`✅ Sub-plan ${i + 1} completed successfully, continuing to next sub-plan`);
       }
     }
 
-    // Mark overall execution as complete
     this.completeExecution(context);
 
-    // Calculate overall success based on at least some sub-plans succeeding
     const successfulSubPlans = results.filter(r => r.success).length;
     const overallSuccess = successfulSubPlans > 0; // Success if at least one sub-plan succeeded
 
     console.log(`🎯 Execution complete: ${successfulSubPlans}/${results.length} sub-plans succeeded`);
 
-    return this.createExecutionResult(overallSuccess, results, hierarchicalPlan);
+    return this.createExecutionResult(overallSuccess, results, plan);
   }
 
   /**
@@ -119,7 +106,7 @@ export class HierarchicalExecutionManager {
   /**
    * Complete the overall execution
    */
-  private completeExecution(context: HierarchicalExecutionContext): void {
+  private completeExecution(context: ExecutionContext): void {
     const overallSuccess = context.results.every(r => r.success);
     console.log(`🎯 CRITICAL DEBUG: All sub-plans completed. Overall success: ${overallSuccess}`);
 
@@ -135,11 +122,11 @@ export class HierarchicalExecutionManager {
   /**
    * Create execution context
    */
-  private createExecutionContext(hierarchicalPlan: Plan): HierarchicalExecutionContext {
+  private createExecutionContext(plan: Plan): ExecutionContext {
     return {
       currentSubPlanIndex: 0,
-      totalSubPlans: hierarchicalPlan.subPlans.length,
-      strategy: hierarchicalPlan.planningStrategy,
+      totalSubPlans: plan.subPlans.length,
+      strategy: plan.planningStrategy,
       startTime: Date.now(),
       results: []
     };

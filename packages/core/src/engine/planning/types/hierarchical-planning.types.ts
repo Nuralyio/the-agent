@@ -56,7 +56,7 @@ export interface PlanAssemblyConfig {
 /**
  * Execution context for hierarchical plans
  */
-export interface HierarchicalExecutionContext {
+export interface ExecutionContext {
   currentSubPlanIndex: number;
   totalSubPlans: number;
   strategy: string;

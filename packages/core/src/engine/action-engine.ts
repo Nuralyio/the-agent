@@ -12,7 +12,7 @@ import { ExecutionLogger } from '../utils/execution-logger';
 import { ContextualStepAnalyzer } from './analysis/contextual-analyzer';
 import { StepContextManager } from './analysis/step-context';
 import { ActionExecutor } from './execution/action-executor';
-import { PlanExecutionManager } from './execution/plan-execution-manager';
+import { ActionSequenceExecutor } from './execution/action-sequence-executor';
 import { StepRefinementManager } from './execution/step-refinement';
 import { Planner } from './planning/planner';
 
@@ -30,23 +30,16 @@ import { Planner } from './planning/planner';
  * 4. Return structured results with logging and streaming
  */
 export class ActionEngine implements IActionEngine {
-  private browserManager: BrowserManager;
   private planner: Planner;
-  private aiEngine: AIEngine;
-  private stepContextManager: StepContextManager;
-  private contextualAnalyzer?: ContextualStepAnalyzer;
+  private readonly stepContextManager: StepContextManager;
+  private readonly contextualAnalyzer?: ContextualStepAnalyzer;
 
   // Execution modules
-  private actionExecutor: ActionExecutor;
-  private stepRefinementManager: StepRefinementManager;
-  private planExecutionManager: PlanExecutionManager;
+  private readonly actionExecutor: ActionExecutor;
+  private readonly stepRefinementManager: StepRefinementManager;
+  private planExecutionManager: ActionSequenceExecutor;
 
-  constructor(
-    browserManager: BrowserManager,
-    aiEngine: AIEngine
-  ) {
-    this.browserManager = browserManager;
-    this.aiEngine = aiEngine;
+  constructor(browserManager: BrowserManager, aiEngine: AIEngine) {
     this.planner = new Planner(aiEngine);
     this.stepContextManager = new StepContextManager();
 
@@ -63,14 +56,14 @@ export class ActionEngine implements IActionEngine {
     this.stepRefinementManager = new StepRefinementManager(
       this.planner.getActionPlanner(),
       this.stepContextManager,
-      this.contextualAnalyzer
+      this.contextualAnalyzer,
     );
-    this.planExecutionManager = new PlanExecutionManager(
+    this.planExecutionManager = new ActionSequenceExecutor(
       browserManager,
       this.planner.getActionPlanner(),
       this.stepContextManager,
       this.actionExecutor,
-      this.stepRefinementManager
+      this.stepRefinementManager,
     );
   }
 
@@ -93,7 +86,6 @@ export class ActionEngine implements IActionEngine {
       console.log(`🧠 Using Planner with planning (always default)`);
       console.log(`🔍 ActionEngine: Starting planning for: "${objective}"`);
       return await this.executeWithPlanning(objective, context, logger);
-
     } catch (error) {
       console.error('❌ Task execution failed:', error);
 
@@ -112,7 +104,7 @@ export class ActionEngine implements IActionEngine {
         steps: [],
         error: error instanceof Error ? error.message : 'Unknown error',
         screenshots: [],
-        duration: Date.now() - startTime
+        duration: Date.now() - startTime,
       };
     }
   }
@@ -123,7 +115,7 @@ export class ActionEngine implements IActionEngine {
   private async executeWithPlanning(
     objective: string,
     context?: TaskContext,
-    logger?: ExecutionLogger
+    logger?: ExecutionLogger,
   ): Promise<TaskResult> {
     try {
       // Capture current page state for context
@@ -148,18 +140,16 @@ export class ActionEngine implements IActionEngine {
           screenshot: Buffer.alloc(0),
           timestamp: Date.now(),
           viewport: { width: 1280, height: 720 },
-          elements: []
+          elements: [],
         },
         url: pageState?.url || '',
-        pageTitle: pageState?.title || ''
+        pageTitle: pageState?.title || '',
       };
 
       // Use Planner for end-to-end planning and execution
       console.log(`🧠 Planner: Creating and executing plan`);
-      const result = await this.planner.planAndExecute(
-        objective,
-        taskContext,
-        (plan: ActionPlan) => this.planExecutionManager.executeActionPlan(plan, logger)
+      const result = await this.planner.planAndExecute(objective, taskContext, (plan: ActionPlan) =>
+        this.planExecutionManager.executeActionPlan(plan, logger),
       );
 
       // Finalize logging
@@ -177,9 +167,8 @@ export class ActionEngine implements IActionEngine {
         extractedData: null,
         screenshots: result.results?.flatMap((r: any) => r.screenshots || []) || [],
         duration: Date.now() - Date.now(),
-        plan: result.plan
+        plan: result.plan,
       };
-
     } catch (error) {
       console.error('❌ Planner execution failed:', error);
       throw error;
@@ -213,10 +202,10 @@ export class ActionEngine implements IActionEngine {
         screenshot: Buffer.alloc(0),
         timestamp: Date.now(),
         viewport: { width: 1280, height: 720 },
-        elements: []
+        elements: [],
       },
       url: pageState?.url || '',
-      pageTitle: pageState?.title || ''
+      pageTitle: pageState?.title || '',
     };
 
     // Use the Planner to generate action plan with current page content
@@ -252,5 +241,4 @@ export class ActionEngine implements IActionEngine {
   async captureState(): Promise<PageState> {
     return this.actionExecutor.captureState();
   }
-
 }

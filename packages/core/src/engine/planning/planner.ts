@@ -1,13 +1,15 @@
 import { AIEngine } from '../../ai/ai-engine';
+import { PromptTemplate } from '../../prompt-template';
 import { executionStream } from '../../streaming/execution-stream';
 import { ActionPlan, PageState, Plan, TaskContext } from '../../types';
 // Removed duplicate import of ActionPlanner
 import * as crypto from 'crypto';
 import { ActionPlanner } from './action-planner';
-import { HierarchicalExecutionManager } from './execution-manager';
-import { GlobalPlanService } from './services/global-plan.service';
+import { HierarchicalResponseParser } from './parsers/response-parser';
+import { PlanExecution } from './plan-execution';
 import { PlanAssemblyService } from './services/plan-assembly.service';
 import { SubPlanService } from './services/sub-plan.service';
+import { GlobalPlanConfig, GlobalPlanInstruction } from './types/hierarchical-planning.types';
 
 /**
  * Main Planner class that handles all planning and execution
@@ -24,18 +26,22 @@ import { SubPlanService } from './services/sub-plan.service';
  * - Direct usage
  */
 export class Planner {
-  private globalPlanService: GlobalPlanService;
   private subPlanService: SubPlanService;
   private planAssemblyService: PlanAssemblyService;
-  private executionManager: HierarchicalExecutionManager;
+  private executionManager: PlanExecution;
   private actionPlanner: ActionPlanner;
+  private aiEngine: AIEngine;
+  private promptTemplate: PromptTemplate;
+  private responseParser: HierarchicalResponseParser;
 
   constructor(aiEngine: AIEngine) {
+    this.aiEngine = aiEngine;
     this.actionPlanner = new ActionPlanner(aiEngine);
-    this.globalPlanService = new GlobalPlanService(aiEngine);
     this.subPlanService = new SubPlanService(this.actionPlanner);
     this.planAssemblyService = new PlanAssemblyService();
-    this.executionManager = new HierarchicalExecutionManager();
+    this.executionManager = new PlanExecution();
+    this.promptTemplate = new PromptTemplate();
+    this.responseParser = new HierarchicalResponseParser();
   }
 
   /**
@@ -52,7 +58,7 @@ export class Planner {
     try {
       // Step 1: Create global plan breakdown
       const globalPlanStart = Date.now();
-      const globalPlan = await this.globalPlanService.createGlobalPlan({
+      const globalPlan = await this.createGlobalPlan({
         instruction,
         context,
         pageState
@@ -135,7 +141,7 @@ export class Planner {
     hierarchicalPlan: Plan,
     executeActionPlan: (plan: any) => Promise<any>
   ): Promise<any> {
-    return await this.executionManager.executeHierarchicalPlan(
+    return await this.executionManager.executePlan(
       hierarchicalPlan,
       executeActionPlan
     );
@@ -156,12 +162,12 @@ export class Planner {
     });
 
     try {
-      console.log('🔍 DEBUG: About to call executeHierarchicalPlan');
+      console.log('🔍 DEBUG: About to call executePlan');
       const result = await this.executeHierarchicalPlan(plan, executePlanFunction);
-      console.log('🔍 DEBUG: executeHierarchicalPlan completed successfully');
+      console.log('🔍 DEBUG: executePlan completed successfully');
       return result;
     } catch (error) {
-      console.error('🔍 DEBUG: Error in executeHierarchicalPlan:', error);
+      console.error('🔍 DEBUG: Error in executePlan:', error);
       throw error;
     }
   }
@@ -199,26 +205,38 @@ export class Planner {
   }
 
   /**
+   * Create global plan by breaking down instruction into sub-objectives
+   */
+  async createGlobalPlan(config: GlobalPlanConfig): Promise<GlobalPlanInstruction> {
+    const { instruction, context, pageState } = config;
+
+    const systemPrompt = this.promptTemplate.render('hierarchical-planning', {
+      pageUrl: pageState?.url || context.url || 'about:blank',
+      pageTitle: pageState?.title || context.pageTitle || 'Unknown Page',
+    });
+
+    const userPrompt = this.buildGlobalPlanPrompt(instruction);
+
+    console.log(`📋 Creating global plan for: "${instruction}"`);
+
+    const response = await this.aiEngine.generateText(userPrompt, systemPrompt);
+
+    return this.responseParser.parseGlobalPlanResponse(response.content, instruction);
+  }
+
+  /**
+   * Build the user prompt for global planning
+   */
+  private buildGlobalPlanPrompt(instruction: string): string {
+    return this.promptTemplate.render('global-planning', {
+      instruction: instruction
+    });
+  }
+
+  /**
    * Get the underlying ActionPlanner (for compatibility with existing code)
    */
   getActionPlanner(): ActionPlanner {
     return this.actionPlanner;
   }
-
-  /**
-   * Get the underlying plan services (for compatibility with existing code)
-   */
-  getGlobalPlanService(): GlobalPlanService {
-    return this.globalPlanService;
-  }
-  getSubPlanService(): SubPlanService {
-    return this.subPlanService;
-  }
-  getPlanAssemblyService(): PlanAssemblyService {
-    return this.planAssemblyService;
-  }
-  getExecutionManager(): HierarchicalExecutionManager {
-    return this.executionManager;
-  }
-
 }

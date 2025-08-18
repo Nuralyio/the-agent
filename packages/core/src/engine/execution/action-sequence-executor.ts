@@ -15,7 +15,7 @@ import { StepRefinementManager } from './step-refinement';
 /**
  * Manages the execution of action plans with dynamic refinement and context awareness
  */
-export class PlanExecutionManager {
+export class ActionSequenceExecutor {
   constructor(
     private browserManager: BrowserManager,
     private actionPlanner: ActionPlanner,

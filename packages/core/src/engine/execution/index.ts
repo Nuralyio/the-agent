@@ -5,4 +5,4 @@
 
 export { ActionExecutor } from './action-executor';
 export { StepRefinementManager } from './step-refinement';
-export { PlanExecutionManager } from './plan-execution-manager';
+export { ActionSequenceExecutor } from './action-sequence-executor';
