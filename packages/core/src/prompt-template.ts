@@ -1,16 +1,31 @@
 /**
  * Simple prompt template loader
  * Provides basic variable substitution for external prompt files
+ * Optionally logs debug information to ai-debug-logs directory
  */
 
-import { readFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 export class PromptTemplate {
   private readonly promptsDir: string;
+  private readonly debugLogsDir: string;
+  private readonly enableLogging: boolean;
 
-  constructor() {
+  constructor(enableDebugLogging?: boolean) {
     this.promptsDir = join(__dirname, 'prompts');
+    this.debugLogsDir = join(__dirname, '..', '..', 'ai-debug-logs');
+    
+    // Enable logging based on parameter, environment variable, or development mode
+    this.enableLogging = enableDebugLogging ?? (
+      process.env.PROMPT_DEBUG === 'true' || 
+      process.env.NODE_ENV === 'development'
+    );
+
+    // Ensure debug logs directory exists
+    if (this.enableLogging && !existsSync(this.debugLogsDir)) {
+      mkdirSync(this.debugLogsDir, { recursive: true });
+    }
   }
 
   /**
@@ -32,6 +47,9 @@ export class PromptTemplate {
         content = content.replace(new RegExp(placeholder, 'g'), stringValue);
       }
 
+      // Save debug information to log files
+      this.logPromptDebugInfo(templateName, variables, content);
+
       return content.trim();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -51,6 +69,54 @@ export class PromptTemplate {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Log prompt template debug information to files
+   * @param templateName Name of the template used
+   * @param variables Variables passed to the template
+   * @param renderedContent Final rendered content
+   */
+  private logPromptDebugInfo(templateName: string, variables: Record<string, any>, renderedContent: string): void {
+    if (!this.enableLogging) {
+      return;
+    }
+
+    try {
+      const timestamp = new Date().toISOString();
+      
+      // Create metadata as JSON object
+      const metadata = {
+        timestamp,
+        templateName,
+        variables,
+        contentLength: renderedContent.length
+      };
+
+      // Create log filename with timestamp
+      const logFileName = `prompt-template-${timestamp.split('T')[0]}.log`;
+      const logFilePath = join(this.debugLogsDir, logFileName);
+
+      // Format log entry: JSON metadata + plain text content
+      const logEntry = `${JSON.stringify(metadata, null, 2)}\n\n--- RENDERED CONTENT ---\n${renderedContent}\n\n${'='.repeat(80)}\n\n`;
+
+      try {
+        // Try to append to existing file
+        const existingContent = existsSync(logFilePath) ? readFileSync(logFilePath, 'utf8') : '';
+        writeFileSync(logFilePath, existingContent + logEntry);
+      } catch (appendError) {
+        // If append fails, create new file
+        writeFileSync(logFilePath, logEntry);
+      }
+
+      // Optional: Console log for immediate debugging (only if explicitly enabled)
+      if (process.env.NODE_ENV === 'development' || process.env.PROMPT_DEBUG === 'true') {
+        console.log(`🔄 Loaded prompt template '${templateName}' with variables:`, variables);
+      }
+    } catch (error) {
+      // Silently fail logging to not break the main functionality
+      console.warn(`Failed to log prompt debug info: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 }
