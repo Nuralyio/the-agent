@@ -265,15 +265,27 @@ export class AutomationService {
     /**
      * Check if video recording is active
      */
-    isVideoRecording(): boolean {
+    async isVideoRecording(): Promise<boolean> {
         if (!this.currentAutomation) {
             return false;
         }
 
         try {
-            // This would need to be implemented based on the page instance
-            return false; // Placeholder - could check (page as any).isVideoRecording()
+            const browserManager = this.currentAutomation.getBrowserManager();
+            const currentPage = await browserManager.getCurrentPage();
+
+            if (!currentPage) {
+                return false;
+            }
+
+            // Check if page supports video recording status check
+            if (typeof (currentPage as any).isVideoRecording === 'function') {
+                return await (currentPage as any).isVideoRecording();
+            }
+
+            return false;
         } catch (error) {
+            console.error('Error checking video recording status:', error);
             return false;
         }
     }
