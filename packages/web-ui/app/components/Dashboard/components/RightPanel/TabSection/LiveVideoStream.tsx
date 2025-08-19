@@ -48,11 +48,14 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
   const [bytesTransferred, setBytesTransferred] = useState<number>(0);
   const [interactionEnabled, setInteractionEnabled] = useState<boolean>(false);
   const [canvasSize, setCanvasSize] = useState<{width: number, height: number}>({width: 0, height: 0});
+  const [showHoverMessage, setShowHoverMessage] = useState<boolean>(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fpsCounterRef = useRef<number>(0);
   const fpsTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const hoverMessageTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hoverStartedRef = useRef<boolean>(false);
 
   // Calculate actual FPS
   useEffect(() => {
@@ -308,6 +311,45 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
     event.preventDefault();
   }, [interactionEnabled, sendKeyboard]);
 
+  // Handle canvas hover for showing interaction hint
+  const handleCanvasMouseEnter = useCallback(() => {
+    // Only show if ALL conditions are met: not interactive, streaming, connected, and has current frame
+    // And if we haven't already started the hover sequence
+    if (!interactionEnabled && isStreaming && connectionStatus === 'connected' && currentFrame && !hoverStartedRef.current) {
+      hoverStartedRef.current = true;
+      setShowHoverMessage(true);
+      
+      // Clear any existing timeout
+      if (hoverMessageTimeoutRef.current) {
+        clearTimeout(hoverMessageTimeoutRef.current);
+      }
+      
+      // Hide message after 3 seconds
+      const timeout = setTimeout(() => {
+        setShowHoverMessage(false);
+        hoverMessageTimeoutRef.current = null;
+        hoverStartedRef.current = false;
+      }, 3000);
+      hoverMessageTimeoutRef.current = timeout;
+    }
+  }, [interactionEnabled, isStreaming, connectionStatus, currentFrame]);
+
+  const handleCanvasMouseLeave = useCallback(() => {
+    // Only hide on actual mouse leave, let the timeout handle the automatic hiding
+    // Don't interfere if user is hovering over the message itself
+  }, []);
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverMessageTimeoutRef.current) {
+        clearTimeout(hoverMessageTimeoutRef.current);
+        hoverMessageTimeoutRef.current = null;
+      }
+      hoverStartedRef.current = false;
+    };
+  }, []);
+
   // Auto-connect when component becomes visible
   useEffect(() => {
     if (isVisible) {
@@ -345,6 +387,18 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
     img.src = currentFrame;
   }, [currentFrame]);
 
+  // Hide hover message when stream stops or conditions change
+  useEffect(() => {
+    if (showHoverMessage && (!isStreaming || interactionEnabled || connectionStatus !== 'connected' || !currentFrame)) {
+      setShowHoverMessage(false);
+      hoverStartedRef.current = false;
+      if (hoverMessageTimeoutRef.current) {
+        clearTimeout(hoverMessageTimeoutRef.current);
+        hoverMessageTimeoutRef.current = null;
+      }
+    }
+  }, [isStreaming, interactionEnabled, connectionStatus, currentFrame, showHoverMessage]);
+
   if (!isVisible) {
     return null;
   }
@@ -374,6 +428,8 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
         ref={canvasRef}
         onClick={handleCanvasClick}
         onKeyDown={handleCanvasKeyDown}
+        onMouseEnter={handleCanvasMouseEnter}
+        onMouseLeave={handleCanvasMouseLeave}
         tabIndex={interactionEnabled ? 0 : -1}
         style={{
           width: '100%',
@@ -388,6 +444,77 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
         }}
         title={interactionEnabled ? 'Click to interact with the browser' : 'Video display only'}
       />
+
+      {/* Hover Message Overlay with Backdrop - Only show when actively streaming */}
+      {showHoverMessage && isStreaming && !interactionEnabled && connectionStatus === 'connected' && currentFrame && (
+        <>
+          {/* Backdrop */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.4)',
+              borderRadius: '8px',
+              zIndex: 9,
+              pointerEvents: 'none', // Don't interfere with mouse events
+              transition: 'opacity 0.15s ease-out',
+              opacity: showHoverMessage ? 1 : 0
+            }}
+          />
+          
+          {/* Message */}
+          <div
+            onClick={() => {
+              // Toggle interactive mode when message is clicked
+              toggleInteractiveMode();
+              // Hide the message immediately after click
+              setShowHoverMessage(false);
+              hoverStartedRef.current = false;
+              if (hoverMessageTimeoutRef.current) {
+                clearTimeout(hoverMessageTimeoutRef.current);
+                hoverMessageTimeoutRef.current = null;
+              }
+            }}
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              backgroundColor: 'rgba(0, 0, 0, 0.9)',
+              color: 'white',
+              padding: '16px 20px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              textAlign: 'center',
+              zIndex: 10,
+              pointerEvents: 'auto',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              transition: 'opacity 0.15s ease-out, transform 0.1s ease-out',
+              opacity: showHoverMessage ? 1 : 0
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1.02)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1)';
+            }}
+          >
+            <div style={{ marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>🖱️</span>
+              <span>Click to {interactionEnabled ? 'disable' : 'enable'} interactive mode</span>
+            </div>
+            <div style={{ fontSize: '12px', opacity: '0.8' }}>
+              {interactionEnabled ? 'Currently in interactive mode' : 'Click here or anywhere on the video'}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Status Overlay */}
       <div
