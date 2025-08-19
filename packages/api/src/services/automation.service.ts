@@ -1,6 +1,7 @@
 import { TheAgent } from '@theagent/core/dist/index';
 import { executionStream } from '@theagent/core/dist/streaming/execution-stream';
 import { BrowserType } from '@theagent/core/dist/types';
+import { setPauseChecker } from '@theagent/core/dist/engine/execution/action-sequence-executor';
 import { v4 as uuidv4 } from 'uuid';
 import { ExecutionEvent, ExecutionStreamWithClients } from '../types';
 import { configService } from './config.service';
@@ -10,6 +11,26 @@ import { configService } from './config.service';
  */
 export class AutomationService {
     private currentAutomation: TheAgent | null = null;
+    private isPaused: boolean = false;
+    private pauseResolver: (() => void) | null = null;
+    private static instance: AutomationService | null = null;
+
+    constructor() {
+        // Store reference for global pause checking
+        AutomationService.instance = this;
+        
+        // Set up the pause checker for the core execution engine
+        setPauseChecker(async () => {
+            await this.waitForResume();
+        });
+    }
+
+    /**
+     * Get singleton instance for global pause checking
+     */
+    static getInstance(): AutomationService | null {
+        return AutomationService.instance;
+    }
 
     /**
      * Execute automation task and stream events
@@ -92,6 +113,63 @@ export class AutomationService {
      */
     getCurrentAutomation(): TheAgent | null {
         return this.currentAutomation;
+    }
+
+    /**
+     * Pause the current automation execution
+     */
+    pauseExecution(): void {
+        if (!this.isPaused) {
+            this.isPaused = true;
+            console.log('⏸️ Automation execution paused for interactive mode');
+            
+            // Broadcast pause event
+            this.broadcastCustomEvent({
+                type: 'execution_paused',
+                timestamp: new Date().toISOString(),
+                status: 'paused'
+            });
+        }
+    }
+
+    /**
+     * Resume the paused automation execution
+     */
+    resumeExecution(): void {
+        if (this.isPaused) {
+            this.isPaused = false;
+            console.log('▶️ Automation execution resumed');
+            
+            // Resolve the pause promise if waiting
+            if (this.pauseResolver) {
+                this.pauseResolver();
+                this.pauseResolver = null;
+            }
+            
+            // Broadcast resume event
+            this.broadcastCustomEvent({
+                type: 'execution_resumed',
+                timestamp: new Date().toISOString()
+            });
+        }
+    }
+
+    /**
+     * Check if automation is currently paused
+     */
+    isPausedExecution(): boolean {
+        return this.isPaused;
+    }
+
+    /**
+     * Wait for resume if execution is paused (for use in automation tasks)
+     */
+    async waitForResume(): Promise<void> {
+        if (this.isPaused) {
+            return new Promise<void>((resolve) => {
+                this.pauseResolver = resolve;
+            });
+        }
     }
 
     /**

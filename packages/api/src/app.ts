@@ -60,10 +60,10 @@ export class AutomationApiServer {
             const videoService = videoStreamController.getVideoService();
             videoService.addClient(clientId, ws, sessionId);
 
-            ws.on('message', (message: any) => {
+            ws.on('message', async (message: any) => {
                 try {
                     const data = JSON.parse(message.toString());
-                    this.handleWebSocketMessage(clientId, data, videoService);
+                    await this.handleWebSocketMessage(clientId, data, videoService);
                 } catch (error) {
                     console.error('Error parsing WebSocket message:', error);
                     ws.send(JSON.stringify({
@@ -90,18 +90,23 @@ export class AutomationApiServer {
     /**
      * Handle WebSocket messages from clients
      */
-    private handleWebSocketMessage(clientId: string, data: any, videoService: any): void {
+    private async handleWebSocketMessage(clientId: string, data: any, videoService: any): Promise<void> {
         try {
             switch (data.type) {
                 case 'start_stream':
-                    videoService.startVideoStream(clientId, data.options || {});
+                    await videoService.startVideoStream(clientId, data.options || {});
                     break;
                 case 'stop_stream':
                     videoService.stopVideoStream(clientId);
                     break;
+                case 'toggle_interactive':
+                    if (data.enabled !== undefined) {
+                        await videoService.toggleInteractiveMode(clientId, data.enabled);
+                    }
+                    break;
                 case 'click_event':
                     if (data.x !== undefined && data.y !== undefined) {
-                        videoService.handleClickEvent(clientId, data.x, data.y);
+                        await videoService.handleClickEvent(clientId, data.x, data.y);
                     }
                     break;
                 case 'keyboard_event':

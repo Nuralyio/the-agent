@@ -13,6 +13,27 @@ import { ActionExecutor } from './action-executor';
 import { StepRefinementManager } from './step-refinement';
 
 /**
+ * Global pause checker for automation coordination
+ */
+let pauseChecker: (() => Promise<void>) | null = null;
+
+/**
+ * Set the global pause checker function
+ */
+export function setPauseChecker(checker: (() => Promise<void>) | null): void {
+  pauseChecker = checker;
+}
+
+/**
+ * Check for pause if pause checker is available
+ */
+async function checkForPause(): Promise<void> {
+  if (pauseChecker) {
+    await pauseChecker();
+  }
+}
+
+/**
  * Manages the execution of action plans with dynamic refinement and context awareness
  */
 export class ActionSequenceExecutor {
@@ -47,6 +68,9 @@ export class ActionSequenceExecutor {
     for (let i = 0; i < currentPlan.steps.length; i++) {
       const step = currentPlan.steps[i];
       if (!step) continue;
+
+      // Check for pause before executing each step
+      await checkForPause();
 
       console.log(`📍 Step ${i + 1}: ${step.description}`);
 

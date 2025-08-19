@@ -295,5 +295,6 @@ export { AIEngine } from './engine/ai-engine';
 export { ActionEngine } from './engine/action-engine';
 export { Planner } from './engine/planning/planner';
 export { ExecutionStream, executionStream } from './streaming/execution-stream';
+export { setPauseChecker } from './engine/execution/action-sequence-executor';
 export * from './types';
 

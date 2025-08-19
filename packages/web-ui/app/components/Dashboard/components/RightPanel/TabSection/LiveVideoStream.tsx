@@ -23,6 +23,11 @@ interface VideoStreamMessage {
   y?: number;
   text?: string;
   key?: string;
+  success?: boolean;
+  error?: string;
+  // For automation pause/resume
+  automationPaused?: boolean;
+  automationResumed?: boolean;
 }
 
 export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
@@ -166,6 +171,30 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
         setError(message.message || 'Stream error');
         break;
 
+      case 'interactive_mode_enabled':
+        console.log('✅ Interactive mode enabled - automation paused');
+        break;
+
+      case 'interactive_mode_disabled':
+        console.log('✅ Interactive mode disabled - automation resumed');
+        break;
+
+      case 'click_response':
+        if (message.success) {
+          console.log(`✅ Click successful at (${message.x}, ${message.y})`);
+        } else {
+          console.error(`❌ Click failed: ${message.error}`);
+        }
+        break;
+
+      case 'keyboard_response':
+        if (message.success) {
+          console.log(`✅ Keyboard input successful: "${message.text}"`);
+        } else {
+          console.error(`❌ Keyboard input failed: ${message.error}`);
+        }
+        break;
+
       default:
         console.warn('Unknown message type:', message.type);
     }
@@ -226,6 +255,23 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
       text,
       timestamp: Date.now()
     }));
+  }, [interactionEnabled]);
+
+  // Toggle interactive mode
+  const toggleInteractiveMode = useCallback(() => {
+    const newState = !interactionEnabled;
+    setInteractionEnabled(newState);
+
+    // Send toggle message to server
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: 'toggle_interactive',
+        enabled: newState,
+        timestamp: Date.now()
+      }));
+    }
+
+    console.log(`🔄 Interactive mode ${newState ? 'enabled' : 'disabled'}`);
   }, [interactionEnabled]);
 
   // Handle canvas click events
@@ -501,7 +547,7 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
               animation: 'pulse 1.5s infinite'
             }}
           />
-          INTERACTIVE
+          INTERACTIVE (AI PAUSED)
         </div>
       )}
 
@@ -534,7 +580,7 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
           
           {/* Interaction toggle button */}
           <button
-            onClick={() => setInteractionEnabled(!interactionEnabled)}
+            onClick={toggleInteractiveMode}
             style={{
               backgroundColor: interactionEnabled ? '#f97316' : '#6b7280',
               color: 'white',
@@ -545,7 +591,7 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
               cursor: 'pointer',
               fontWeight: 'bold'
             }}
-            title={interactionEnabled ? 'Disable click/type interaction' : 'Enable click/type interaction'}
+            title={interactionEnabled ? 'Disable click/type interaction (resume automation)' : 'Enable click/type interaction (pause automation)'}
           >
             {interactionEnabled ? '🖱 ON' : '🖱 OFF'}
           </button>

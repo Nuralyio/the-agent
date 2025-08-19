@@ -35,6 +35,7 @@ export class VideoStreamService extends EventEmitter {
   private frameIntervals = new Map<string, NodeJS.Timeout>();
   private lastFrameCache = new Map<string, { data: string; timestamp: number }>();
   private frameSkipCounter = new Map<string, number>();
+  private interactiveClients = new Map<string, boolean>(); // Track interactive mode per client
   private performanceMetrics = new Map<string, { 
     framesSent: number; 
     bytesTransferred: number; 
@@ -93,6 +94,8 @@ export class VideoStreamService extends EventEmitter {
     if (client) {
       this.stopVideoStream(id);
       this.clients.delete(id);
+      // Clean up interactive mode state
+      this.interactiveClients.delete(id);
     }
   }
 
@@ -166,6 +169,9 @@ export class VideoStreamService extends EventEmitter {
       this.frameIntervals.delete(clientId);
     }
 
+    // Clean up interactive mode state when stopping stream
+    this.interactiveClients.delete(clientId);
+
     this.sendMessage(clientId, {
       type: 'stream_stopped',
       timestamp: Date.now()
@@ -193,24 +199,28 @@ export class VideoStreamService extends EventEmitter {
         // Convert buffer to base64
         const base64Frame = screenshot.toString('base64');
         const frameSize = Math.round(base64Frame.length * 0.75 / 1024); // Approximate KB size
+        const isInteractive = this.interactiveClients.get(clientId) || false;
 
-        // Check if frame is too large
-        const maxFrameSize = options.maxFrameSize || 500;
-        if (frameSize > maxFrameSize) {
-          console.warn(`Frame size ${frameSize}KB exceeds limit ${maxFrameSize}KB for client ${clientId}`);
-          // Skip this frame to maintain performance
-          this.incrementSkipCounter(clientId);
-          return;
-        }
+        // Skip optimizations in interactive mode for responsive real-time interaction
+        if (!isInteractive) {
+          // Check if frame is too large (only when not interactive)
+          const maxFrameSize = options.maxFrameSize || 500;
+          if (frameSize > maxFrameSize) {
+            console.warn(`Frame size ${frameSize}KB exceeds limit ${maxFrameSize}KB for client ${clientId}`);
+            // Skip this frame to maintain performance
+            this.incrementSkipCounter(clientId);
+            return;
+          }
 
-        // Check for frame similarity to reduce redundant data
-        const lastFrame = this.lastFrameCache.get(clientId);
-        const isSimilarFrame = lastFrame && this.isFrameSimilar(base64Frame, lastFrame.data);
-        
-        if (isSimilarFrame) {
-          // Skip similar frames to save bandwidth
-          this.incrementSkipCounter(clientId);
-          return;
+          // Check for frame similarity to reduce redundant data (only when not interactive)
+          const lastFrame = this.lastFrameCache.get(clientId);
+          const isSimilarFrame = lastFrame && this.isFrameSimilar(base64Frame, lastFrame.data);
+          
+          if (isSimilarFrame) {
+            // Skip similar frames to save bandwidth
+            this.incrementSkipCounter(clientId);
+            return;
+          }
         }
 
         // Cache this frame
@@ -309,6 +319,12 @@ export class VideoStreamService extends EventEmitter {
    * Performance optimization: Check if frame should be skipped based on adaptive FPS
    */
   private shouldSkipFrame(clientId: string): boolean {
+    // Never skip frames in interactive mode for responsive real-time interaction
+    const isInteractive = this.interactiveClients.get(clientId) || false;
+    if (isInteractive) {
+      return false;
+    }
+
     const skipCount = this.frameSkipCounter.get(clientId) || 0;
     const metrics = this.performanceMetrics.get(clientId);
     
@@ -395,6 +411,66 @@ export class VideoStreamService extends EventEmitter {
       };
     }
     return metrics;
+  }
+
+  /**
+   * Toggle interactive mode and pause/resume automation accordingly
+   */
+  async toggleInteractiveMode(clientId: string, enabled: boolean): Promise<void> {
+    const client = this.clients.get(clientId);
+    if (!client) {
+      throw new Error(`Client ${clientId} not found`);
+    }
+
+    try {
+      // Update interactive state tracking
+      this.interactiveClients.set(clientId, enabled);
+      
+      if (enabled) {
+        // Enable interactive mode - pause automation
+        this.automationService.pauseExecution();
+        console.log(`🖱️ Interactive mode enabled for client ${clientId} - automation paused, frame optimizations disabled`);
+        
+        this.sendMessage(clientId, {
+          type: 'interactive_mode_enabled',
+          timestamp: Date.now(),
+          automationPaused: true
+        });
+      } else {
+        // Disable interactive mode - resume automation and ensure stream is running
+        this.automationService.resumeExecution();
+        console.log(`🤖 Interactive mode disabled for client ${clientId} - automation resumed, frame optimizations enabled`);
+        
+        // Always restart the stream to ensure it's working properly after interactive mode
+        console.log(`🔄 Ensuring video stream is active for client ${clientId} after disabling interactive mode`);
+        try {
+          // Stop and restart the stream to ensure it's working
+          this.stopVideoStream(clientId);
+          await this.startVideoStream(clientId, {
+            fps: 10,
+            quality: 70,
+            format: 'jpeg',
+            enableAdaptiveFps: true
+          });
+          console.log(`✅ Video stream restarted successfully for client ${clientId}`);
+        } catch (restartError) {
+          console.error(`❌ Failed to restart stream for client ${clientId}:`, restartError);
+        }
+        
+        this.sendMessage(clientId, {
+          type: 'interactive_mode_disabled',
+          timestamp: Date.now(),
+          automationResumed: true
+        });
+      }
+    } catch (error) {
+      console.error(`Error toggling interactive mode for client ${clientId}:`, error);
+      this.sendMessage(clientId, {
+        type: 'error',
+        message: 'Failed to toggle interactive mode',
+        timestamp: Date.now()
+      });
+    }
   }
 
   /**
