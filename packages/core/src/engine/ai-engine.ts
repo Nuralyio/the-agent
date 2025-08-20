@@ -1,9 +1,9 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { PromptTemplate } from '../prompt-template';
 import { OllamaProvider, OpenAIProvider } from '../providers';
 import { PageState } from '../types';
 import { ActionStep, ActionType } from './planning/types/types';
-import * as fs from 'fs';
-import * as path from 'path';
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -159,15 +159,15 @@ export class AIEngine {
    */
   async generateText(prompt: string, systemPrompt?: string): Promise<AIResponse> {
     const provider = this.getDefaultProvider();
-    
+
     // Log the request
     this.logAIRequest('generateText', prompt, systemPrompt, provider.name);
-    
+
     const response = await provider.generateText(prompt, systemPrompt);
-    
+
     // Log the response
     this.logAIResponse('generateText', response, provider.name, prompt);
-    
+
     return response;
   }
 
@@ -181,7 +181,7 @@ export class AIEngine {
     this.logAIRequest('generateStructuredJSON', prompt, systemPrompt, provider.name);
 
     let response: AIResponse;
-    
+
     // Use provider's structured JSON method if available
     if (provider.generateStructuredJSON) {
       response = await provider.generateStructuredJSON(prompt, systemPrompt);
@@ -194,10 +194,10 @@ export class AIEngine {
 
       response = await this.generateText(prompt, enhancedSystemPrompt);
     }
-    
+
     // Log the response
     this.logAIResponse('generateStructuredJSON', response, provider.name, prompt);
-    
+
     return response;
   }
 
@@ -212,12 +212,12 @@ export class AIEngine {
 
     // Log the request (with image info but not the actual image data)
     this.logAIVisionRequest('generateWithVision', prompt, systemPrompt, provider.name, images);
-    
+
     const response = await provider.generateWithVision(prompt, images, systemPrompt);
-    
+
     // Log the response
     this.logAIResponse('generateWithVision', response, provider.name, prompt);
-    
+
     return response;
   }
 
@@ -241,12 +241,12 @@ export class AIEngine {
 
       // Parse the JSON response
       const cleanedResponse = response.content.trim();
-      
+
       // Use a more secure regex to prevent ReDoS attacks
       // Find the first '[' and the last matching ']' to extract JSON array
       const firstBracket = cleanedResponse.indexOf('[');
       const lastBracket = cleanedResponse.lastIndexOf(']');
-      
+
       if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
         const jsonString = cleanedResponse.substring(firstBracket, lastBracket + 1);
         return JSON.parse(jsonString);
@@ -446,12 +446,12 @@ export class AIEngine {
   private getLogFilePath(fileName: string): string {
     // Use ai-debug-logs directory in packages root
     const logsDir = path.resolve(__dirname, '../../../ai-debug-logs');
-    
+
     // Ensure directory exists
     if (!fs.existsSync(logsDir)) {
       fs.mkdirSync(logsDir, { recursive: true });
     }
-    
+
     return path.join(logsDir, fileName);
   }
 }

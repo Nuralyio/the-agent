@@ -1,6 +1,7 @@
+import { randomBytes } from 'crypto';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { FileConfig, ExecutionSessionLog } from '../types/logging.types';
+import { ExecutionSessionLog, FileConfig } from '../types/logging.types';
 
 /**
  * Manages file operations for execution logging
@@ -121,7 +122,7 @@ export class FileManagementService {
    */
   static generateSessionId(): string {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const random = Math.random().toString(36).substring(2, 8);
+    const random = randomBytes(4).toString('hex');
     return `${timestamp}-${random}`;
   }
 }
