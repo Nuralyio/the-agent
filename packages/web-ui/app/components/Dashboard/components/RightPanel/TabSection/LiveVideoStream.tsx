@@ -18,6 +18,11 @@ interface VideoStreamMessage {
   frameSize?: number;
   format?: string;
   options?: any;
+  // For interaction events
+  x?: number;
+  y?: number;
+  text?: string;
+  key?: string;
 }
 
 export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
@@ -36,6 +41,8 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
   const [frameSize, setFrameSize] = useState<number>(0);
   const [avgFrameSize, setAvgFrameSize] = useState<number>(0);
   const [bytesTransferred, setBytesTransferred] = useState<number>(0);
+  const [interactionEnabled, setInteractionEnabled] = useState<boolean>(false);
+  const [canvasSize, setCanvasSize] = useState<{width: number, height: number}>({width: 0, height: 0});
 
   const wsRef = useRef<WebSocket | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -194,6 +201,67 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
     }));
   }, []);
 
+  // Send click event to server
+  const sendClick = useCallback((x: number, y: number) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN || !interactionEnabled) {
+      return;
+    }
+
+    wsRef.current.send(JSON.stringify({
+      type: 'click_event',
+      x,
+      y,
+      timestamp: Date.now()
+    }));
+  }, [interactionEnabled]);
+
+  // Send keyboard event to server
+  const sendKeyboard = useCallback((text: string) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN || !interactionEnabled) {
+      return;
+    }
+
+    wsRef.current.send(JSON.stringify({
+      type: 'keyboard_event',
+      text,
+      timestamp: Date.now()
+    }));
+  }, [interactionEnabled]);
+
+  // Handle canvas click events
+  const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!interactionEnabled || !canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    
+    // Calculate relative coordinates within the actual browser viewport
+    const scaleX = canvasSize.width / rect.width;
+    const scaleY = canvasSize.height / rect.height;
+    
+    const x = (event.clientX - rect.left) * scaleX;
+    const y = (event.clientY - rect.top) * scaleY;
+    
+    console.log(`📍 Canvas click at: (${Math.round(x)}, ${Math.round(y)})`);
+    sendClick(Math.round(x), Math.round(y));
+  }, [interactionEnabled, canvasSize, sendClick]);
+
+  // Handle keyboard events (when canvas is focused)
+  const handleCanvasKeyDown = useCallback((event: React.KeyboardEvent<HTMLCanvasElement>) => {
+    if (!interactionEnabled) return;
+
+    // Handle special keys
+    if (event.key.length === 1) {
+      // Regular character
+      sendKeyboard(event.key);
+    } else {
+      // Special keys like Enter, Tab, etc.
+      sendKeyboard(`{${event.key}}`);
+    }
+    
+    event.preventDefault();
+  }, [interactionEnabled, sendKeyboard]);
+
   // Auto-connect when component becomes visible
   useEffect(() => {
     if (isVisible) {
@@ -220,6 +288,9 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
       // Resize canvas to match image
       canvas.width = img.width;
       canvas.height = img.height;
+      
+      // Update canvas size state for coordinate calculations
+      setCanvasSize({ width: img.width, height: img.height });
       
       // Draw the frame
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -255,15 +326,21 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
       {/* Video Canvas */}
       <canvas
         ref={canvasRef}
+        onClick={handleCanvasClick}
+        onKeyDown={handleCanvasKeyDown}
+        tabIndex={interactionEnabled ? 0 : -1}
         style={{
           width: '100%',
           height: 'auto',
           borderRadius: '8px',
-          border: '1px solid #374151',
+          border: `1px solid ${interactionEnabled ? '#22c55e' : '#374151'}`,
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
           backgroundColor: '#000000',
-          minHeight: '200px'
+          minHeight: '200px',
+          cursor: interactionEnabled ? 'pointer' : 'default',
+          outline: interactionEnabled ? '2px solid rgba(34, 197, 94, 0.3)' : 'none'
         }}
+        title={interactionEnabled ? 'Click to interact with the browser' : 'Video display only'}
       />
 
       {/* Status Overlay */}
@@ -397,6 +474,37 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
         </div>
       )}
 
+      {/* Interaction mode indicator */}
+      {interactionEnabled && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '32px',
+            right: '8px',
+            backgroundColor: 'rgba(249, 115, 22, 0.9)',
+            color: 'white',
+            padding: '4px 8px',
+            borderRadius: '4px',
+            fontSize: '11px',
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px'
+          }}
+        >
+          <div
+            style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              backgroundColor: '#22c55e',
+              animation: 'pulse 1.5s infinite'
+            }}
+          />
+          INTERACTIVE
+        </div>
+      )}
+
       {/* Control buttons */}
       {isConnected && (
         <div
@@ -422,6 +530,24 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
             }}
           >
             {isStreaming ? '⏹ Stop' : '▶ Start'}
+          </button>
+          
+          {/* Interaction toggle button */}
+          <button
+            onClick={() => setInteractionEnabled(!interactionEnabled)}
+            style={{
+              backgroundColor: interactionEnabled ? '#f97316' : '#6b7280',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '4px 8px',
+              fontSize: '11px',
+              cursor: 'pointer',
+              fontWeight: 'bold'
+            }}
+            title={interactionEnabled ? 'Disable click/type interaction' : 'Enable click/type interaction'}
+          >
+            {interactionEnabled ? '🖱 ON' : '🖱 OFF'}
           </button>
         </div>
       )}

@@ -99,6 +99,16 @@ export class AutomationApiServer {
                 case 'stop_stream':
                     videoService.stopVideoStream(clientId);
                     break;
+                case 'click_event':
+                    if (data.x !== undefined && data.y !== undefined) {
+                        videoService.handleClickEvent(clientId, data.x, data.y);
+                    }
+                    break;
+                case 'keyboard_event':
+                    if (data.text) {
+                        videoService.handleKeyboardEvent(clientId, data.text);
+                    }
+                    break;
                 case 'ping':
                     videoService.sendMessage(clientId, { type: 'pong', timestamp: Date.now() });
                     break;

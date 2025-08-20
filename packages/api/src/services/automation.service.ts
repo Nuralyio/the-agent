@@ -88,6 +88,13 @@ export class AutomationService {
     }
 
     /**
+     * Get current automation instance (for video streaming service)
+     */
+    getCurrentAutomation(): TheAgent | null {
+        return this.currentAutomation;
+    }
+
+    /**
      * Get current screenshot from active automation instance
      */
     async getCurrentScreenshot(options?: { quality?: number; format?: 'png' | 'jpeg'; fullPage?: boolean }): Promise<Buffer | null> {

@@ -396,4 +396,113 @@ export class VideoStreamService extends EventEmitter {
     }
     return metrics;
   }
+
+  /**
+   * Handle click event from browser
+   */
+  async handleClickEvent(clientId: string, x: number, y: number): Promise<void> {
+    const client = this.clients.get(clientId);
+    if (!client) {
+      throw new Error(`Client ${clientId} not found`);
+    }
+
+    try {
+      // Get current automation instance and perform click
+      const currentAutomation = this.automationService.getCurrentAutomation();
+      if (!currentAutomation) {
+        throw new Error('No active browser session');
+      }
+
+      const browserManager = currentAutomation.getBrowserManager();
+      const currentPage = await browserManager.getCurrentPage();
+      if (!currentPage) {
+        throw new Error('No active page found');
+      }
+
+      // Access the underlying Playwright page instance for mouse operations
+      const playwrightPage = (currentPage as any).page;
+      if (playwrightPage && playwrightPage.mouse) {
+        // Perform click at coordinates using Playwright mouse API
+        await playwrightPage.mouse.click(x, y);
+        console.log(`🖱️ Click performed at (${x}, ${y}) for client ${clientId}`);
+      } else {
+        throw new Error('Mouse operations not supported by current page adapter');
+      }
+
+      // Send confirmation back to client
+      this.sendMessage(clientId, {
+        type: 'click_response',
+        success: true,
+        x,
+        y,
+        timestamp: Date.now()
+      });
+
+    } catch (error) {
+      console.error(`Error handling click event for client ${clientId}:`, error);
+      this.sendMessage(clientId, {
+        type: 'click_response',
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: Date.now()
+      });
+    }
+  }
+
+  /**
+   * Handle keyboard event from browser
+   */
+  async handleKeyboardEvent(clientId: string, text: string): Promise<void> {
+    const client = this.clients.get(clientId);
+    if (!client) {
+      throw new Error(`Client ${clientId} not found`);
+    }
+
+    try {
+      // Get current automation instance and perform typing
+      const currentAutomation = this.automationService.getCurrentAutomation();
+      if (!currentAutomation) {
+        throw new Error('No active browser session');
+      }
+
+      const browserManager = currentAutomation.getBrowserManager();
+      const currentPage = await browserManager.getCurrentPage();
+      if (!currentPage) {
+        throw new Error('No active page found');
+      }
+
+      // Access the underlying Playwright page instance for keyboard operations
+      const playwrightPage = (currentPage as any).page;
+      if (playwrightPage && playwrightPage.keyboard) {
+        // Handle special keys
+        if (text.startsWith('{') && text.endsWith('}')) {
+          const key = text.slice(1, -1);
+          await playwrightPage.keyboard.press(key);
+        } else {
+          // Regular text input
+          await playwrightPage.keyboard.type(text);
+        }
+        console.log(`⌨️ Keyboard input "${text}" for client ${clientId}`);
+      } else {
+        throw new Error('Keyboard operations not supported by current page adapter');
+      }
+
+      // Send confirmation back to client
+      this.sendMessage(clientId, {
+        type: 'keyboard_response',
+        success: true,
+        text,
+        timestamp: Date.now()
+      });
+
+    } catch (error) {
+      console.error(`Error handling keyboard event for client ${clientId}:`, error);
+      this.sendMessage(clientId, {
+        type: 'keyboard_response',
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: Date.now()
+      });
+    }
+  }
 }
