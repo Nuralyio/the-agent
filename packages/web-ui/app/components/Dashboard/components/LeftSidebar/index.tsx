@@ -56,7 +56,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
       <div style={styles.sidebarHeader}>
         <h1 style={styles.title}>
           <Bot20Regular style={{ marginRight: '8px', verticalAlign: 'middle' }} />
-          Browser Automation
+          The Agent
         </h1>
         <p style={styles.subtitle}>AI-powered web automation assistant</p>
       </div>

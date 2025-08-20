@@ -37,7 +37,7 @@ export const PreviewTab: React.FC<PreviewTabProps> = ({
           <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px' }}>
             {selectedStepIndex !== null
               ? `Screenshot from Step ${selectedStepIndex + 1}: ${currentPlan[selectedStepIndex]?.title || 'Unknown Step'}`
-              : 'Latest browser screenshot from automation'}
+              : 'Latest browser screenshot from agent'}
           </div>
           {selectedStepIndex !== null && (
             <button
@@ -75,7 +75,7 @@ export const PreviewTab: React.FC<PreviewTabProps> = ({
               Browser screenshot will appear here
             </div>
             <div style={{ fontSize: '13px', color: '#6b7280' }}>
-              Start a task to see real-time automation, or click on steps to see their screenshots
+              Start a task to see real-time agent activity, or click on steps to see their screenshots
             </div>
           </div>
         </div>

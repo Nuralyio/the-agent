@@ -30,15 +30,15 @@ export class EventFactory {
   /**
    * Create plan created event
    */
-  static createHierarchicalPlanCreatedEvent(
+  static createExecutionPlanCreatedEvent(
     sessionId: string,
-    hierarchicalPlan: any,
+    executionPlan: any,
     globalObjective: string,
     planningStrategy?: string
   ): ExecutionEvent {
     return {
-      type: 'hierarchical_plan_created',
-      hierarchicalPlan,
+      type: 'execution_plan_created',
+      executionPlan,
       globalObjective,
       planningStrategy,
       sessionId,

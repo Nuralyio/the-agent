@@ -9,7 +9,7 @@ import {
 } from './types/planning.types';
 
 /**
- * Manages execution of hierarchical plans with streaming support
+ * Manages execution of execution plans with streaming support
  */
 export class PlanExecution {
   constructor(
@@ -165,7 +165,7 @@ export class PlanExecution {
       executionStream.streamExecutionComplete();
       console.log(`✅ DEBUG: streamExecutionComplete call completed for plan`);
     } catch (error) {
-      console.error(`❌ ERROR in streamExecutionComplete for hierarchical plan:`, error);
+      console.error(`❌ ERROR in streamExecutionComplete for execution plan:`, error);
     }
   }
 
@@ -188,13 +188,13 @@ export class PlanExecution {
   private createExecutionResult(
     success: boolean,
     results: any[],
-    hierarchicalPlan: Plan,
+    executionPlan: Plan,
     failedAt?: number
   ): PlanExecutionResult {
     return {
       success,
       results,
-      plan: hierarchicalPlan,
+      plan: executionPlan,
       executionTime: Date.now(),
       failedAt
     };

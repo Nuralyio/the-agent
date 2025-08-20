@@ -1,7 +1,7 @@
 import { GlobalPlanInstruction } from '../types/planning.types';
 
 /**
- * Parses AI responses for hierarchical planning
+ * Parses AI responses for execution planning
  */
 export class ResponseParser {
   /**

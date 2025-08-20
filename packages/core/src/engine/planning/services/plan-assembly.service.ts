@@ -3,7 +3,7 @@ import { ActionPlan, ActionStep, ActionType, SubPlan } from '../../../types';
 import { PlanAssemblyConfig } from '../types/planning.types';
 
 /**
- * Service for assembling hierarchical plans from sub-plans
+ * Service for assembling execution plans from sub-plans
  */
 export class PlanAssemblyService {
   /**
@@ -31,7 +31,7 @@ export class PlanAssemblyService {
         subPlanCount: subPlans.length
       },
       metadata: {
-        hierarchical: true,
+        execution: true,
         strategy
       }
     };

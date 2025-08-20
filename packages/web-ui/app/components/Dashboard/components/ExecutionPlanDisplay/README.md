@@ -1,12 +1,12 @@
-# HierarchicalPlanDisplay Component
+# ExecutionPlanDisplay Component
 
-A refactored React component for displaying hierarchical execution plans with
+A refactored React component for displaying execution plans with
 improved modularity, maintainability, and reusability.
 
 ## 📁 Structure
 
 ```
-HierarchicalPlanDisplay/
+ExecutionPlanDisplay/
 ├── index.tsx                    # Main component
 ├── constants.ts                 # Shared constants and types
 ├── exports.ts                   # Component exports
@@ -51,13 +51,13 @@ HierarchicalPlanDisplay/
 
 ## 🧩 Components
 
-### `HierarchicalPlanDisplay` (Main)
+### `ExecutionPlanDisplay` (Main)
 
 The root component that orchestrates all sub-components.
 
 **Props:**
 
-- `hierarchicalPlan: HierarchicalPlan` - The plan data
+- `executionPlan: ExecutionPlan` - The plan data
 - `onSubPlanClick?: (index: number, subPlan: SubPlan) => void` - Click handler
 
 ### `StatusBadge`
@@ -113,7 +113,7 @@ Header section with plan metadata and progress.
 
 **Props:**
 
-- `hierarchicalPlan: HierarchicalPlan` - Plan data
+- `executionPlan: ExecutionPlan` - Plan data
 - `completedSubPlans: number` - Completed count
 - `totalSubPlans: number` - Total count
 
@@ -127,7 +127,7 @@ Fallback component when no plan is available.
 
 ## 🎣 Custom Hooks
 
-### `useCurrentAction(hierarchicalPlan)`
+### `useCurrentAction(executionPlan)`
 
 Returns current action information or null if none active.
 
@@ -141,7 +141,7 @@ Returns current action information or null if none active.
 } | null
 ```
 
-### `usePlanProgress(hierarchicalPlan)`
+### `usePlanProgress(executionPlan)`
 
 Calculates progress statistics for the plan.
 
@@ -172,7 +172,7 @@ Calculates progress statistics for the plan.
 ## 📦 Usage
 
 ```tsx
-import { HierarchicalPlanDisplay } from './components/HierarchicalPlanDisplay';
+import { ExecutionPlanDisplay } from './components/ExecutionPlanDisplay';
 
 function MyComponent() {
   const handleSubPlanClick = (index: number, subPlan: SubPlan) => {
@@ -180,8 +180,8 @@ function MyComponent() {
   };
 
   return (
-    <HierarchicalPlanDisplay
-      hierarchicalPlan={myPlan}
+    <ExecutionPlanDisplay
+      executionPlan={myPlan}
       onSubPlanClick={handleSubPlanClick}
     />
   );
@@ -195,7 +195,7 @@ function MyComponent() {
 import {
   StatusBadge,
   ActionDetails,
-} from './components/HierarchicalPlanDisplay/exports';
+} from './components/ExecutionPlanDisplay/exports';
 
 function MyCustomComponent() {
   return (

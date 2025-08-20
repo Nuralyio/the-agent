@@ -1,10 +1,10 @@
 import type { EventData, UseEventStreamProps } from '../types/eventStream.types';
 import {
-  completeHierarchicalPlan,
-  createMainPlanFromHierarchical,
-  updateHierarchicalStepStatus,
+  completeExecutionPlan,
+  createMainPlanFromExecution,
+  updateExecutionStepStatus,
   updateSubPlanStatus,
-} from '../utils/hierarchicalPlanUtils';
+} from '../utils/executionPlanUtils';
 import {
   createErrorMessage,
   createExecutionCompleteMessage,
@@ -12,8 +12,8 @@ import {
   createSubPlanCompletionMessage,
 } from '../utils/messageUtils';
 import {
-  createHierarchicalPlan,
-  createHierarchicalPlanMessage,
+  createExecutionPlan,
+  createExecutionPlanMessage,
   createOrExtendPlan,
   createPlanMessage,
   createPlanSteps,
@@ -56,12 +56,12 @@ export class EventHandlers {
   /**
    * Handles plan creation events
    */
-  handleHierarchicalPlanCreated = (data: EventData): void => {
-    const hierarchicalPlan = createHierarchicalPlan(data);
+  handleExecutionPlanCreated = (data: EventData): void => {
+    const executionPlan = createExecutionPlan(data);
 
     // Update plan state
-    if (this.props.setCurrentHierarchicalPlan) {
-      this.props.setCurrentHierarchicalPlan(hierarchicalPlan);
+    if (this.props.setCurrentExecutionPlan) {
+      this.props.setCurrentExecutionPlan(executionPlan);
     }
 
     // Turn off loading state when plan is received
@@ -70,12 +70,12 @@ export class EventHandlers {
     }
 
     // Create sub-plan overview steps for main plan display
-    const subPlanSteps = createSubPlanSteps(hierarchicalPlan);
+    const subPlanSteps = createSubPlanSteps(executionPlan);
     this.props.setCurrentPlan(subPlanSteps);
 
     // Add plan message to chat
-    const hierarchicalPlanMessage = createHierarchicalPlanMessage(hierarchicalPlan);
-    this.props.setChatMessages(prev => [...prev, hierarchicalPlanMessage]);
+    const executionPlanMessage = createExecutionPlanMessage(executionPlan);
+    this.props.setChatMessages(prev => [...prev, executionPlanMessage]);
   };
 
   /**
@@ -91,10 +91,10 @@ export class EventHandlers {
     );
 
     // Update plan step status
-    if (this.props.setCurrentHierarchicalPlan) {
-      this.props.setCurrentHierarchicalPlan(prev => {
+    if (this.props.setCurrentExecutionPlan) {
+      this.props.setCurrentExecutionPlan(prev => {
         if (!prev) return prev;
-        return updateHierarchicalStepStatus(prev, data, 'running');
+        return updateExecutionStepStatus(prev, data, 'running');
       });
     }
 
@@ -122,16 +122,16 @@ export class EventHandlers {
     }
 
     // Update plan step status
-    if (this.props.setCurrentHierarchicalPlan) {
-      this.props.setCurrentHierarchicalPlan(prev => {
+    if (this.props.setCurrentExecutionPlan) {
+      this.props.setCurrentExecutionPlan(prev => {
         if (!prev) return prev;
 
-        const updatedPlan = updateHierarchicalStepStatus(prev, data, 'completed', screenshot);
+        const updatedPlan = updateExecutionStepStatus(prev, data, 'completed', screenshot);
 
-        // Update main plan display if showing hierarchical view
+        // Update main plan display if showing execution view
         this.props.setCurrentPlan(prevPlan => {
           if (prevPlan.length > 0 && prevPlan[0].title?.includes('Sub-plan')) {
-            return createMainPlanFromHierarchical(updatedPlan, true);
+            return createMainPlanFromExecution(updatedPlan, true);
           }
           return prevPlan;
         });
@@ -161,11 +161,11 @@ export class EventHandlers {
    * Handles sub-plan start events
    */
   handleSubPlanStart = (data: EventData): void => {
-    if (!this.props.setCurrentHierarchicalPlan) return;
+    if (!this.props.setCurrentExecutionPlan) return;
 
     const subPlanIndex = data.data?.subPlanIndex ?? data.subPlanIndex ?? 0;
 
-    this.props.setCurrentHierarchicalPlan(prev => {
+    this.props.setCurrentExecutionPlan(prev => {
       if (!prev) return prev;
 
       const updatedPlan = updateSubPlanStatus(prev, subPlanIndex, 'running');
@@ -173,7 +173,7 @@ export class EventHandlers {
       // Update main plan display
       this.props.setCurrentPlan(prevPlan => {
         if (prevPlan.length > 0 && prevPlan[0].title?.includes('Sub-plan')) {
-          return createMainPlanFromHierarchical(updatedPlan);
+          return createMainPlanFromExecution(updatedPlan);
         }
         return prevPlan;
       });
@@ -189,8 +189,8 @@ export class EventHandlers {
     const subPlanIndex = data.data?.subPlanIndex ?? data.subPlanIndex ?? 0;
     const success = data.data?.success ?? data.success ?? true;
 
-    if (this.props.setCurrentHierarchicalPlan) {
-      this.props.setCurrentHierarchicalPlan(prev => {
+    if (this.props.setCurrentExecutionPlan) {
+      this.props.setCurrentExecutionPlan(prev => {
         if (!prev) return prev;
 
         const status = success === false ? 'error' : 'completed';
@@ -199,7 +199,7 @@ export class EventHandlers {
         // Update main plan display
         this.props.setCurrentPlan(prevPlan => {
           if (prevPlan.length > 0 && prevPlan[0].title?.includes('Sub-plan')) {
-            return createMainPlanFromHierarchical(updatedPlan);
+            return createMainPlanFromExecution(updatedPlan);
           }
           return prevPlan;
         });
@@ -218,16 +218,16 @@ export class EventHandlers {
    */
   handleExecutionComplete = (eventSource: EventSource): void => {
     // Mark plan as completed
-    if (this.props.setCurrentHierarchicalPlan) {
-      this.props.setCurrentHierarchicalPlan(prev => {
+    if (this.props.setCurrentExecutionPlan) {
+      this.props.setCurrentExecutionPlan(prev => {
         if (!prev) return prev;
 
-        const updatedPlan = completeHierarchicalPlan(prev);
+        const updatedPlan = completeExecutionPlan(prev);
 
         // Update main plan display to show all sub-plans as completed
         this.props.setCurrentPlan(prevPlan => {
           if (prevPlan.length > 0 && prevPlan[0].title?.includes('Sub-plan')) {
-            return createMainPlanFromHierarchical(updatedPlan);
+            return createMainPlanFromExecution(updatedPlan);
           }
           return prevPlan;
         });

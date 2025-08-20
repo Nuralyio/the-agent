@@ -160,8 +160,12 @@ export const styles = {
     borderRadius: '8px',
     padding: '14px',
     margin: '4px 0',
-    maxWidth: '95%',
+    width: '100%',
+    maxWidth: '100%',
     alignSelf: 'flex-end' as const,
+    overflow: 'hidden',
+    wordWrap: 'break-word' as const,
+    overflowWrap: 'break-word' as const,
   },
   planHeader: {
     display: 'flex',
@@ -173,6 +177,8 @@ export const styles = {
     fontSize: '14px',
     fontWeight: '600',
     color: '#10b981',
+    wordWrap: 'break-word' as const,
+    overflowWrap: 'break-word' as const,
   },
   planSteps: {
     display: 'flex',
@@ -223,6 +229,9 @@ export const styles = {
     fontSize: '11px',
     color: '#d1d5db',
     lineHeight: '1.3',
+    wordWrap: 'break-word' as const,
+    overflowWrap: 'break-word' as const,
+    maxWidth: '100%',
   },
   inputContainer: {
     padding: '16px',

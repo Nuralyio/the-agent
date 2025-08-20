@@ -1,15 +1,15 @@
-import type { ExecutionStep, HierarchicalPlan } from '../../Dashboard.types';
+import type { ExecutionStep, ExecutionPlan } from '../../Dashboard.types';
 import type { EventData } from '../types/eventStream.types';
 
 /**
  * Updates plan step status
  */
-export const updateHierarchicalStepStatus = (
-  plan: HierarchicalPlan,
+export const updateExecutionStepStatus = (
+  plan: ExecutionPlan,
   data: EventData,
   status: ExecutionStep['status'],
   screenshot?: string
-): HierarchicalPlan => {
+): ExecutionPlan => {
   const targetSubPlanIndex = data.data?.subPlanIndex ?? data.subPlanIndex ?? plan.currentSubPlanIndex;
   const stepIndex = data.data?.stepIndex ?? data.stepIndex;
   const stepData = data.data?.step || data.step;
@@ -31,7 +31,7 @@ export const updateHierarchicalStepStatus = (
 
       // Ensure we have enough steps in the array
       const updatedSteps = [...subPlan.steps];
-      
+
       // If the step doesn't exist, create it
       if (stepIndex >= updatedSteps.length) {
         // Fill missing steps with placeholder steps
@@ -76,10 +76,10 @@ export const updateHierarchicalStepStatus = (
  * Updates sub-plan status
  */
 export const updateSubPlanStatus = (
-  plan: HierarchicalPlan,
+  plan: ExecutionPlan,
   subPlanIndex: number,
   status: 'running' | 'completed' | 'error'
-): HierarchicalPlan => {
+): ExecutionPlan => {
   return {
     ...plan,
     currentSubPlanIndex: status === 'running' ? subPlanIndex : plan.currentSubPlanIndex,
@@ -99,7 +99,7 @@ export const updateSubPlanStatus = (
 /**
  * Marks plan as completed
  */
-export const completeHierarchicalPlan = (plan: HierarchicalPlan): HierarchicalPlan => {
+export const completeExecutionPlan = (plan: ExecutionPlan): ExecutionPlan => {
   return {
     ...plan,
     status: 'completed',
@@ -113,11 +113,11 @@ export const completeHierarchicalPlan = (plan: HierarchicalPlan): HierarchicalPl
 /**
  * Creates main plan display from plan
  */
-export const createMainPlanFromHierarchical = (
-  hierarchicalPlan: HierarchicalPlan,
+export const createMainPlanFromExecution = (
+  executionPlan: ExecutionPlan,
   includeCurrentSubPlanSteps = false
 ): ExecutionStep[] => {
-  const subPlanSteps = hierarchicalPlan.subPlans.map((subPlan, index) => ({
+  const subPlanSteps = executionPlan.subPlans.map((subPlan, index) => ({
     id: index,
     title: `Sub-plan ${index + 1}: ${subPlan.objective}`,
     description: `${subPlan.steps.length} steps • Priority: ${subPlan.priority} • Est: ${Math.round(subPlan.estimatedDuration / 1000)}s`,
@@ -129,8 +129,8 @@ export const createMainPlanFromHierarchical = (
     return subPlanSteps;
   }
 
-  const currentSubPlanIndex = hierarchicalPlan.currentSubPlanIndex;
-  const currentSubPlan = currentSubPlanIndex !== undefined ? hierarchicalPlan.subPlans[currentSubPlanIndex] : null;
+  const currentSubPlanIndex = executionPlan.currentSubPlanIndex;
+  const currentSubPlan = currentSubPlanIndex !== undefined ? executionPlan.subPlans[currentSubPlanIndex] : null;
 
   const currentSubPlanSteps: ExecutionStep[] = currentSubPlan ?
     currentSubPlan.steps.map((step, stepIndex) => ({

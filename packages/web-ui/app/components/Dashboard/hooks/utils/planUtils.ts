@@ -1,4 +1,4 @@
-import type { ChatMessage, ExecutionStep, HierarchicalPlan } from '../../Dashboard.types';
+import type { ChatMessage, ExecutionStep, ExecutionPlan } from '../../Dashboard.types';
 import type { EventData } from '../types/eventStream.types';
 
 /**
@@ -31,11 +31,11 @@ export const createPlanMessage = (planSteps: ExecutionStep[]): ChatMessage => ({
 /**
  * Creates a plan from event data
  */
-export const createHierarchicalPlan = (data: EventData): HierarchicalPlan => {
-  const planData = data.data?.hierarchicalPlan || data;
+export const createExecutionPlan = (data: EventData): ExecutionPlan => {
+  const planData = data.data?.executionPlan || data;
 
   return {
-    id: planData?.id || 'hierarchical-plan',
+    id: planData?.id || 'execution-plan',
     globalObjective: data.data?.globalObjective || planData?.globalObjective || 'Complex task execution',
     subPlans: (planData?.subPlans || []).map((subPlan: any, index: number) => ({
       id: subPlan.id || `sub-plan-${index}`,
@@ -67,8 +67,8 @@ export const createHierarchicalPlan = (data: EventData): HierarchicalPlan => {
 /**
  * Creates sub-plan overview steps for main plan display
  */
-export const createSubPlanSteps = (hierarchicalPlan: HierarchicalPlan): ExecutionStep[] => {
-  return hierarchicalPlan.subPlans.map((subPlan, index) => ({
+export const createSubPlanSteps = (executionPlan: ExecutionPlan): ExecutionStep[] => {
+  return executionPlan.subPlans.map((subPlan, index) => ({
     id: index,
     title: `Sub-plan ${index + 1}: ${subPlan.objective}`,
     description: `${subPlan.steps.length} steps • Priority: ${subPlan.priority} • Est: ${Math.round(subPlan.estimatedDuration / 1000)}s`,
@@ -80,12 +80,12 @@ export const createSubPlanSteps = (hierarchicalPlan: HierarchicalPlan): Executio
 /**
  * Creates a plan chat message
  */
-export const createHierarchicalPlanMessage = (hierarchicalPlan: HierarchicalPlan): ChatMessage => ({
+export const createExecutionPlanMessage = (executionPlan: ExecutionPlan): ChatMessage => ({
   id: Date.now(),
-  type: 'hierarchical_plan',
-  text: `🧠 Plan: ${hierarchicalPlan.globalObjective} (${hierarchicalPlan.subPlans.length} sub-plans)`,
+  type: 'execution_plan',
+  text: `🧠 Plan: ${executionPlan.globalObjective} (${executionPlan.subPlans.length} sub-plans)`,
   timestamp: new Date(),
-  hierarchicalPlan,
+  executionPlan,
 });
 
 /**

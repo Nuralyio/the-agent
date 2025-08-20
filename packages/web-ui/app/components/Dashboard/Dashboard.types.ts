@@ -1,12 +1,12 @@
 export interface ChatMessage {
   id: number;
-  type: 'user' | 'system' | 'step' | 'plan' | 'hierarchical_plan';
+  type: 'user' | 'system' | 'step' | 'plan' | 'execution_plan';
   text: string;
   timestamp: Date;
   description?: string;
   status?: string;
   steps?: ExecutionStep[];
-  hierarchicalPlan?: HierarchicalPlan;
+  executionPlan?: ExecutionPlan;
 }
 
 export interface ExecutionStep {
@@ -42,7 +42,7 @@ export interface SubPlan {
   context?: any;
 }
 
-export interface HierarchicalPlan {
+export interface ExecutionPlan {
   id: string;
   globalObjective: string;
   subPlans: SubPlan[];

@@ -5,7 +5,7 @@ import { copyToClipboard, formatTime } from '../../utils/formatting';
 import { MessageBubble } from './components/MessageBubble';
 import { PlanBubble } from './components/PlanBubble';
 import { StepBubble } from './components/StepBubble';
-import { HierarchicalPlanBubble } from './components/HierarchicalPlanBubble';
+import { ExecutionPlanBubble } from './components/ExecutionPlanBubble';
 import { ChatInput } from './components/ChatInput';
 
 interface ChatTabProps {
@@ -43,8 +43,8 @@ export const ChatTab: React.FC<ChatTabProps> = ({
                 selectedStepIndex={null}
                 onStepClick={handleStepClick}
               />
-            ) : message.type === 'hierarchical_plan' ? (
-              <HierarchicalPlanBubble
+            ) : message.type === 'execution_plan' ? (
+              <ExecutionPlanBubble
                 message={message}
                 selectedStepIndex={null}
                 onStepClick={handleStepClick}

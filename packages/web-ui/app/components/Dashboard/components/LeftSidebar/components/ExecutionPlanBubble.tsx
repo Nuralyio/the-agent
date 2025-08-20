@@ -11,21 +11,21 @@ import type { ChatMessage, ExecutionStep, SubPlan } from '../../../Dashboard.typ
 import { styles } from '../../../Dashboard.styles';
 import { getStepIcon } from '../../../utils/formatting';
 
-interface HierarchicalPlanBubbleProps {
+interface ExecutionPlanBubbleProps {
   message: ChatMessage;
   selectedStepIndex: number | null;
   onStepClick: (stepIndex: number, step: ExecutionStep) => void;
 }
 
-export const HierarchicalPlanBubble: React.FC<HierarchicalPlanBubbleProps> = ({ 
+export const ExecutionPlanBubble: React.FC<ExecutionPlanBubbleProps> = ({ 
   message, 
   selectedStepIndex, 
   onStepClick 
 }) => {
   const [expandedSubPlans, setExpandedSubPlans] = useState<Set<string>>(new Set());
-  const hierarchicalPlan = message.hierarchicalPlan;
+  const executionPlan = message.executionPlan;
 
-  if (!hierarchicalPlan) {
+  if (!executionPlan) {
     return null;
   }
 
@@ -73,7 +73,7 @@ export const HierarchicalPlanBubble: React.FC<HierarchicalPlanBubbleProps> = ({
         fontStyle: 'italic',
         color: '#cbd5e1'
       }}>
-        🎯 {hierarchicalPlan.globalObjective}
+        🎯 {executionPlan.globalObjective}
       </div>
 
       {/* Strategy Info */}
@@ -86,16 +86,16 @@ export const HierarchicalPlanBubble: React.FC<HierarchicalPlanBubbleProps> = ({
         borderRadius: '6px',
         border: '1px solid #334155'
       }}>
-        <div>📋 Strategy: {hierarchicalPlan.planningStrategy}</div>
-        <div>⏱️ Total Duration: {Math.round(hierarchicalPlan.totalEstimatedDuration / 1000)}s</div>
-        <div>📊 Sub-plans: {hierarchicalPlan.subPlans.length}</div>
+        <div>📋 Strategy: {executionPlan.planningStrategy}</div>
+        <div>⏱️ Total Duration: {Math.round(executionPlan.totalEstimatedDuration / 1000)}s</div>
+        <div>📊 Sub-plans: {executionPlan.subPlans.length}</div>
       </div>
 
       {/* Sub-plans */}
       <div style={styles.planSteps}>
-        {hierarchicalPlan.subPlans.map((subPlan, subPlanIndex) => {
+        {executionPlan.subPlans.map((subPlan, subPlanIndex) => {
           const isExpanded = expandedSubPlans.has(subPlan.id);
-          const isCurrentSubPlan = hierarchicalPlan.currentSubPlanIndex === subPlanIndex;
+          const isCurrentSubPlan = executionPlan.currentSubPlanIndex === subPlanIndex;
           const progressPercentage = getSubPlanProgressPercentage(subPlan);
 
           return (

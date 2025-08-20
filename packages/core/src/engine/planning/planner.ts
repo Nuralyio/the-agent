@@ -46,9 +46,9 @@ export class Planner {
   }
 
   /**
-   * Create a complete hierarchical plan
+   * Create a complete execution plan
    */
-  async createHierarchicalPlan(
+  async createExecutionPlan(
     instruction: string,
     context: TaskContext,
     pageState?: PageState
@@ -86,8 +86,8 @@ export class Planner {
         strategy: globalPlan.planningStrategy
       });
 
-      // Step 4: Assemble the complete hierarchical plan
-      const hierarchicalPlan: Plan = {
+      // Step 4: Assemble the complete execution plan
+      const executionPlan: Plan = {
         id: crypto.randomUUID(),
         globalObjective: instruction,
         globalPlan: mainActionPlan,
@@ -102,13 +102,13 @@ export class Planner {
       };
 
       const totalTime = Date.now() - startTime;
-      console.log(`🎯 Plan completed: ${subPlans.length} sub-plans, ${hierarchicalPlan.totalEstimatedDuration}ms estimated (Planning took ${totalTime}ms total: ${globalPlanTime}ms global + ${subPlanTime}ms sub-plans)`);
+      console.log(`🎯 Plan completed: ${subPlans.length} sub-plans, ${executionPlan.totalEstimatedDuration}ms estimated (Planning took ${totalTime}ms total: ${globalPlanTime}ms global + ${subPlanTime}ms sub-plans)`);
 
-      return hierarchicalPlan;
+      return executionPlan;
 
     } catch (error) {
-      console.error('❌ Failed to create hierarchical plan:', error);
-      throw new Error(`Hierarchical planning failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('❌ Failed to create execution plan:', error);
+      throw new Error(`Execution planning failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -119,13 +119,13 @@ export class Planner {
   async planInstruction(instruction: string, context: TaskContext, pageState?: PageState): Promise<Plan> {
     console.log('🧠 Planner: Using structured planning by default');
 
-    const plan = await this.createHierarchicalPlan(instruction, context, pageState);
+    const plan = await this.createExecutionPlan(instruction, context, pageState);
 
     console.log(`📋 Planner: Created plan with ${plan.subPlans.length} sub-plans`);
 
     // Stream the plan to the frontend
     console.log('📡 Planner: About to stream plan to frontend');
-    executionStream.streamHierarchicalPlanCreated(
+    executionStream.streamExecutionPlanCreated(
       plan,
       plan.globalObjective,
       plan.planningStrategy
@@ -136,14 +136,14 @@ export class Planner {
   }
 
   /**
-   * Execute a hierarchical plan
+   * Execute an execution plan
    */
-  async executeHierarchicalPlan(
-    hierarchicalPlan: Plan,
+  async executeExecutionPlan(
+    executionPlan: Plan,
     executeActionPlan: (plan: any) => Promise<any>
   ): Promise<any> {
     return await this.executionManager.executePlan(
-      hierarchicalPlan,
+      executionPlan,
       executeActionPlan
     );
   }
@@ -164,7 +164,7 @@ export class Planner {
 
     try {
       console.log('🔍 DEBUG: About to call executePlan');
-      const result = await this.executeHierarchicalPlan(plan, executePlanFunction);
+      const result = await this.executeExecutionPlan(plan, executePlanFunction);
       console.log('🔍 DEBUG: executePlan completed successfully');
       return result;
     } catch (error) {
@@ -211,7 +211,7 @@ export class Planner {
   async createGlobalPlan(config: GlobalPlanConfig): Promise<GlobalPlanInstruction> {
     const { instruction, context, pageState } = config;
 
-    const systemPrompt = this.promptTemplate.render('hierarchical-planning', {
+    const systemPrompt = this.promptTemplate.render('execution-planning', {
       pageUrl: pageState?.url || context.url || 'about:blank',
       pageTitle: pageState?.title || context.pageTitle || 'Unknown Page',
     });

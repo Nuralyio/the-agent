@@ -9,14 +9,14 @@ export type {
 
 // Utility exports for potential reuse
 export {
-  createHierarchicalPlan, createHierarchicalPlanMessage, createOrExtendPlan, createPlanMessage, createPlanSteps, createStepMessage, createSubPlanSteps, formatScreenshot
+  createExecutionPlan, createExecutionPlanMessage, createOrExtendPlan, createPlanMessage, createPlanSteps, createStepMessage, createSubPlanSteps, formatScreenshot
 } from './utils/planUtils';
 
 export {
-  completeHierarchicalPlan,
-  createMainPlanFromHierarchical, updateHierarchicalStepStatus,
+  completeExecutionPlan,
+  createMainPlanFromExecution, updateExecutionStepStatus,
   updateSubPlanStatus
-} from './utils/hierarchicalPlanUtils';
+} from './utils/executionPlanUtils';
 
 export {
   createErrorMessage, createExecutionCompleteMessage, createExecutionStartMessage, createSubPlanCompletionMessage, createSystemMessage

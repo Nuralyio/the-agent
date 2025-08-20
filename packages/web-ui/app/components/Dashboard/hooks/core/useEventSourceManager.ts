@@ -80,8 +80,8 @@ export const useEventSourceManager = (props: UseEventStreamProps) => {
         eventHandlers.handlePlanCreated(data);
         break;
 
-      case 'hierarchical_plan_created':
-        eventHandlers.handleHierarchicalPlanCreated(data);
+      case 'execution_plan_created':
+        eventHandlers.handleExecutionPlanCreated(data);
         break;
 
       case 'step_start':

@@ -1,17 +1,17 @@
 import React from 'react';
 import { OrganizationRegular } from '@fluentui/react-icons';
-import type { HierarchicalPlan, ExecutionStep } from '../../Dashboard.types';
+import type { ExecutionPlan, ExecutionStep } from '../../Dashboard.types';
 import { styles } from '../../Dashboard.styles';
-import { HierarchicalPlanDisplay } from '../HierarchicalPlanDisplay';
+import { ExecutionPlanDisplay } from '../ExecutionPlanDisplay';
 
 interface ExecutionPlanProps {
-  currentHierarchicalPlan?: HierarchicalPlan | null;
+  currentExecutionPlan?: ExecutionPlan | null;
   isLoading?: boolean;
   handleStepClick?: (stepIndex: number, step: ExecutionStep) => void;
 }
 
 export const ExecutionPlan: React.FC<ExecutionPlanProps> = ({
-  currentHierarchicalPlan,
+  currentExecutionPlan,
   isLoading = false,
   handleStepClick,
 }) => {
@@ -40,9 +40,9 @@ export const ExecutionPlan: React.FC<ExecutionPlanProps> = ({
             <div style={{ fontSize: '14px', marginBottom: '8px' }}>Preparing plan...</div>
             <div style={{ fontSize: '12px' }}>Please wait while we analyze your request</div>
           </div>
-        ) : currentHierarchicalPlan ? (
-          <HierarchicalPlanDisplay
-            hierarchicalPlan={currentHierarchicalPlan}
+        ) : currentExecutionPlan ? (
+          <ExecutionPlanDisplay
+            executionPlan={currentExecutionPlan}
             onSubPlanClick={(subPlanIndex, subPlan) => {
               // Handle sub-plan click if needed
             }}

@@ -1,8 +1,8 @@
-import type { ChatMessage, ExecutionStep, HierarchicalPlan } from '../../Dashboard.types';
+import type { ChatMessage, ExecutionStep, ExecutionPlan } from '../../Dashboard.types';
 
 export interface UseEventStreamProps {
   setCurrentPlan: React.Dispatch<React.SetStateAction<ExecutionStep[]>>;
-  setCurrentHierarchicalPlan?: React.Dispatch<React.SetStateAction<HierarchicalPlan | null>>;
+  setCurrentExecutionPlan?: React.Dispatch<React.SetStateAction<ExecutionPlan | null>>;
   setCurrentScreenshot: React.Dispatch<React.SetStateAction<string | null>>;
   setChatMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   updateLastStepMessage: (status: string) => void;
@@ -23,7 +23,7 @@ export interface EventData {
   success?: boolean;
   totalSubPlans?: number;
   globalObjective?: string;
-  hierarchicalPlan?: any;
+  executionPlan?: any;
   planningStrategy?: string;
 }
 

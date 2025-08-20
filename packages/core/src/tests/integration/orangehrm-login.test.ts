@@ -2,7 +2,7 @@ import { assert, executeTestInstruction, initializePage, setupTestContext, teard
 
 /**
  * Integration test for OrangeHRM demo site
- * Tests hierarchical planning through ActionEngine (which uses UnifiedPlanner automatically)
+ * Tests execution planning through ActionEngine (which uses UnifiedPlanner automatically)
  */
 export class OrangeHRMLoginTest {
   private context!: TestContext;
@@ -19,8 +19,8 @@ export class OrangeHRMLoginTest {
   }
 
   /**
-   * Test OrangeHRM candidate creation with hierarchical planning
-   * Uses ActionEngine which automatically uses UnifiedPlanner with hierarchical planning
+   * Test OrangeHRM candidate creation with execution planning
+   * Uses ActionEngine which automatically uses UnifiedPlanner with execution planning
    */
   async testOrangeHRMCandidateCreation(): Promise<void> {
     const instruction = "Navigate to https://opensource-demo.orangehrmlive.com/ and create candidate, login if needed";

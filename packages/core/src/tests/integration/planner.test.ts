@@ -21,32 +21,32 @@ export class PlannerTest {
   }
 
   /**
-   * Test hierarchical planning decision logic
+   * Test execution planning decision logic
    */
-  async testHierarchicalPlanningDecision(): Promise<void> {
+  async testExecutionPlanningDecision(): Promise<void> {
     const actionPlanner = new ActionPlanner(this.context.aiEngine);
     const planner = new Planner(this.context.aiEngine);
 
-    // Test cases for hierarchical planning decision
+    // Test cases for execution planning decision
     const testCases = [
       {
         instruction: 'Navigate to https://opensource-demo.orangehrmlive.com/ and create candidate, login if needed',
-        expectedHierarchical: true,
+        expectedExecution: true,
         description: 'Complex multi-step workflow'
       },
       {
         instruction: 'Click the submit button',
-        expectedHierarchical: false,
+        expectedExecution: false,
         description: 'Simple single action'
       },
       {
         instruction: 'Go to github.com, search for typescript projects, star the first three results, and create a new repository with README',
-        expectedHierarchical: true,
+        expectedExecution: true,
         description: 'Multi-objective workflow'
       },
       {
         instruction: 'Fill out the form with test data',
-        expectedHierarchical: false,
+        expectedExecution: false,
         description: 'Single objective'
       }
     ];
@@ -55,21 +55,21 @@ export class PlannerTest {
 
 
 
-    console.log(`📊 Hierarchical Planning Decision Test: ${passedTests}/${testCases.length} passed`);
+    console.log(`📊 Execution Planning Decision Test: ${passedTests}/${testCases.length} passed`);
     assert(passedTests >= testCases.length * 0.75, `Should pass at least 75% of decision tests, got ${passedTests}/${testCases.length}`);
   }
 
   /**
-   * Test hierarchical plan creation with real AI
+   * Test execution plan creation with real AI
    */
-  async testHierarchicalPlanCreation(): Promise<void> {
+  async testExecutionPlanCreation(): Promise<void> {
     const actionPlanner = new ActionPlanner(this.context.aiEngine);
     const planner = new Planner(this.context.aiEngine);
 
     const instruction = 'Navigate to https://opensource-demo.orangehrmlive.com/ and create candidate, login if needed';
 
     const taskContext: TaskContext = {
-      id: 'test-hierarchical-plan',
+      id: 'test-execution-plan',
       objective: instruction,
       constraints: [],
       variables: {},
@@ -133,7 +133,7 @@ export class PlannerTest {
     const actionPlanner = new ActionPlanner(this.context.aiEngine);
     const planner = new Planner(this.context.aiEngine);
 
-    // Create a simple hierarchical plan
+    // Create a simple execution plan
     const instruction = 'Navigate to http://localhost:3005/html and take a screenshot';
 
     const taskContext: TaskContext = {
@@ -170,8 +170,8 @@ export class PlannerTest {
     assert(result.success === true || result.results.length > 0, 'Should attempt execution');
     assert(result.results.length > 0, 'Should execute at least one sub-plan');
 
-    if (result.hierarchicalPlan) {
-      assert(result.hierarchicalPlan.subPlans.length === plan.subPlans.length, 'Should preserve hierarchical plan structure');
+    if (result.executionPlan) {
+      assert(result.executionPlan.subPlans.length === plan.subPlans.length, 'Should preserve execution plan structure');
     }
 
     console.log(`✅ Execution completed with ${result.results.length} sub-plans executed`);
@@ -182,25 +182,25 @@ export class PlannerTest {
   }
 
   /**
-   * Run all hierarchical planner tests
+   * Run all execution planner tests
    */
   async runAll(): Promise<void> {
-    console.log('\n🧠 === HIERARCHICAL PLANNER TESTS ===');
+    console.log('\n🧠 === EXECUTION PLANNER TESTS ===');
     try {
       await this.setup();
 
-      console.log('\n🔍 Testing hierarchical planning decision logic...');
-      await this.testHierarchicalPlanningDecision();
+      console.log('\n🔍 Testing execution planning decision logic...');
+      await this.testExecutionPlanningDecision();
 
-      console.log('\n🏗️  Testing hierarchical plan creation...');
-      await this.testHierarchicalPlanCreation();
+      console.log('\n🏗️  Testing execution plan creation...');
+      await this.testExecutionPlanCreation();
 
       console.log('\n🚀 Testing sub-plan execution...');
       await this.testSubPlanExecution();
 
-      console.log('\n✅ All hierarchical planner tests completed successfully');
+      console.log('\n✅ All execution planner tests completed successfully');
     } catch (error) {
-      console.error('❌ Hierarchical planner tests failed:', error);
+      console.error('❌ Execution planner tests failed:', error);
       throw error;
     } finally {
       await this.teardown();
@@ -212,7 +212,7 @@ export class PlannerTest {
 if (require.main === module) {
   const plannerTest = new PlannerTest();
   plannerTest.runAll().catch(error => {
-    console.error('💥 Hierarchical planner test execution failed:', error);
+    console.error('💥 Execution planner test execution failed:', error);
     process.exit(1);
   });
 }

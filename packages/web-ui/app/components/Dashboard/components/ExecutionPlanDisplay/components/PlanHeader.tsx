@@ -1,13 +1,13 @@
 import React from 'react';
-import type { HierarchicalPlan } from '../../../Dashboard.types';
+import type { ExecutionPlan } from '../../../Dashboard.types';
 
 interface PlanHeaderProps {
-  hierarchicalPlan: HierarchicalPlan;
+  executionPlan: ExecutionPlan;
   completedSubPlans: number;
   totalSubPlans: number;
 }
 
-export const PlanHeader: React.FC<PlanHeaderProps> = ({ hierarchicalPlan, completedSubPlans, totalSubPlans }) => {
+export const PlanHeader: React.FC<PlanHeaderProps> = ({ executionPlan, completedSubPlans, totalSubPlans }) => {
   const progressPercentage = totalSubPlans > 0 ? (completedSubPlans / totalSubPlans) * 100 : 0;
 
   const styles = {
@@ -40,11 +40,11 @@ export const PlanHeader: React.FC<PlanHeaderProps> = ({ hierarchicalPlan, comple
 
   return (
     <div style={styles.header}>
-      {/* <div style={styles.objective}>{hierarchicalPlan.globalObjective}</div> */}
+      {/* <div style={styles.objective}>{executionPlan.globalObjective}</div> */}
       <div style={styles.metadata}>
-        Strategy: {hierarchicalPlan.planningStrategy} | Progress: {completedSubPlans}/{totalSubPlans} sub-plans
+        Strategy: {executionPlan.planningStrategy} | Progress: {completedSubPlans}/{totalSubPlans} sub-plans
         completed ({progressPercentage.toFixed(0)}%) | Est. Duration:{' '}
-        {Math.round(hierarchicalPlan.totalEstimatedDuration / 1000)}s
+        {Math.round(executionPlan.totalEstimatedDuration / 1000)}s
       </div>
     </div>
   );

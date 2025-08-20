@@ -20,7 +20,7 @@ export interface ActionStep {
   condition?: {
     timeout?: number;
   };
-  // New hierarchical properties
+  // New execution properties
   subPlanId?: string;
   planReference?: {
     type: 'sub-plan' | 'action';

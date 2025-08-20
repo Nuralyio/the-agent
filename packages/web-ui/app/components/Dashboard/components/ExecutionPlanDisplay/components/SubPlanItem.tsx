@@ -23,6 +23,10 @@ export const SubPlanItem: React.FC<SubPlanItemProps> = ({ subPlan, index, isActi
       padding: '12px',
       cursor: 'pointer',
       transition: 'all 0.2s ease',
+      width: '100%',
+      overflow: 'hidden',
+      wordWrap: 'break-word' as const,
+      overflowWrap: 'break-word' as const,
     },
     header: {
       display: 'flex',
@@ -41,13 +45,18 @@ export const SubPlanItem: React.FC<SubPlanItemProps> = ({ subPlan, index, isActi
       flex: 1, // Allow title to take available space
       minWidth: 0, // Allow text to truncate if needed
       overflow: 'hidden', // Hide overflow
-      textOverflow: 'ellipsis', // Add ellipsis for long text
-      whiteSpace: 'nowrap', // Prevent line breaks
+      wordWrap: 'break-word' as const,
+      overflowWrap: 'break-word' as const,
+      whiteSpace: 'normal' as const, // Allow line breaks for better wrapping
+      lineHeight: '1.3',
     },
     info: {
       fontSize: '12px',
       color: '#9ca3af',
       marginBottom: '8px',
+      wordWrap: 'break-word' as const,
+      overflowWrap: 'break-word' as const,
+      maxWidth: '100%',
     },
     stepsList: {
       marginLeft: '16px',

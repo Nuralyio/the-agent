@@ -8,12 +8,10 @@ import { useAutomationState } from './hooks/useAutomationState';
 import { styles } from './Dashboard.styles';
 import { DEFAULT_TABS } from './utils/constants';
 
-export const meta: MetaFunction = () => {
-  return [
-    { title: 'Browser Automation Dashboard' },
-    { name: 'description', content: 'Real-time browser automation monitor and control' },
-  ];
-};
+export const meta: MetaFunction = () => [
+  { title: 'The Agent Dashboard' },
+  { name: 'description', content: 'Real-time AI agent monitor and control' },
+];
 
 export const Dashboard: React.FC = () => {
   const {
@@ -39,8 +37,8 @@ export const Dashboard: React.FC = () => {
     setLeftPanelTab,
     currentPlan,
     setCurrentPlan,
-    currentHierarchicalPlan,
-    setCurrentHierarchicalPlan,
+    currentExecutionPlan,
+    setCurrentExecutionPlan,
     currentScreenshot,
     setCurrentScreenshot,
     selectedStepIndex,
@@ -63,7 +61,7 @@ export const Dashboard: React.FC = () => {
   // Initialize event stream
   useEventStreamSimple({
     setCurrentPlan,
-    setCurrentHierarchicalPlan,
+    setCurrentExecutionPlan,
     setCurrentScreenshot,
     setChatMessages,
     updateLastStepMessage,
@@ -99,7 +97,7 @@ export const Dashboard: React.FC = () => {
       />
       <RightPanel
         currentPlan={currentPlan}
-        currentHierarchicalPlan={currentHierarchicalPlan}
+        currentExecutionPlan={currentExecutionPlan}
         isLoading={isLoading}
         activeTab={activeTab}
         setActiveTab={setActiveTab}

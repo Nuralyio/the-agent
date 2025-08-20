@@ -33,9 +33,11 @@ export const StepItem: React.FC<StepItemProps> = ({ step, isActive = false, onSt
       cursor: isClickable ? 'pointer' : 'default',
       transition: 'background-color 0.2s ease',
       borderRadius: '4px',
-      ':hover': isClickable ? {
-        backgroundColor: '#374151',
-      } : {},
+      ':hover': isClickable
+        ? {
+            backgroundColor: '#374151',
+          }
+        : {},
     },
     icon: {
       width: '16px',
@@ -51,15 +53,25 @@ export const StepItem: React.FC<StepItemProps> = ({ step, isActive = false, onSt
     },
     content: {
       flex: 1,
+      minWidth: 0,
+      overflow: 'hidden',
+      wordWrap: 'break-word' as const,
+      overflowWrap: 'break-word' as const,
     },
     title: {
       fontWeight: step.status === 'running' ? '500' : '400',
       color: step.status === 'running' ? '#ffffff' : '#d1d5db',
+      wordWrap: 'break-word' as const,
+      overflowWrap: 'break-word' as const,
+      marginBottom: '2px',
     },
     description: {
       fontSize: '11px',
       color: '#9ca3af',
       marginTop: '2px',
+      wordWrap: 'break-word' as const,
+      overflowWrap: 'break-word' as const,
+      lineHeight: '1.3',
     },
     actionDetails: {
       marginTop: '4px',
@@ -91,12 +103,7 @@ export const StepItem: React.FC<StepItemProps> = ({ step, isActive = false, onSt
   };
 
   return (
-    <div 
-      style={styles.container}
-      onClick={handleClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
+    <div style={styles.container} onClick={handleClick} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
       <div style={styles.icon}>{getStepStatusIcon(step.status)}</div>
       <div style={styles.content}>
         <div style={styles.title}>

@@ -1,13 +1,13 @@
 import React from 'react';
-import type { HierarchicalPlan, SubPlan, ExecutionStep } from '../../Dashboard.types';
+import type { ExecutionPlan, SubPlan, ExecutionStep } from '../../Dashboard.types';
 import { CurrentActionDisplay } from './components/CurrentActionDisplay';
 import { EmptyState } from './components/EmptyState';
 import { PlanHeader } from './components/PlanHeader';
 import { SubPlanItem } from './components/SubPlanItem';
 import { useCurrentAction, usePlanProgress } from './hooks/usePlanData';
 
-interface HierarchicalPlanDisplayProps {
-  hierarchicalPlan: HierarchicalPlan;
+interface ExecutionPlanDisplayProps {
+  executionPlan: ExecutionPlan;
   onSubPlanClick?: (subPlanIndex: number, subPlan: SubPlan) => void;
   onStepClick?: (stepIndex: number, step: ExecutionStep) => void;
 }
@@ -19,26 +19,32 @@ const styles = {
     borderRadius: '8px',
     padding: '16px',
     margin: '8px 0',
-    maxWidth: '95%',
+    width: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
+    wordWrap: 'break-word' as const,
+    overflowWrap: 'break-word' as const,
   },
   subPlansList: {
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '12px',
+    width: '100%',
+    overflow: 'hidden',
   },
 };
 
-export const HierarchicalPlanDisplay: React.FC<HierarchicalPlanDisplayProps> = ({
-  hierarchicalPlan,
+export const ExecutionPlanDisplay: React.FC<ExecutionPlanDisplayProps> = ({
+  executionPlan,
   onSubPlanClick,
   onStepClick,
 }) => {
-  if (!hierarchicalPlan) {
+  if (!executionPlan) {
     return <EmptyState />;
   }
 
-  const currentAction = useCurrentAction(hierarchicalPlan);
-  const { completedSubPlans, totalSubPlans } = usePlanProgress(hierarchicalPlan);
+  const currentAction = useCurrentAction(executionPlan);
+  const { completedSubPlans, totalSubPlans } = usePlanProgress(executionPlan);
 
   const handleSubPlanClick = (subPlanIndex: number, subPlan: SubPlan) => {
     onSubPlanClick?.(subPlanIndex, subPlan);
@@ -56,7 +62,7 @@ export const HierarchicalPlanDisplay: React.FC<HierarchicalPlanDisplayProps> = (
   return (
     <div style={styles.container}>
       <PlanHeader
-        hierarchicalPlan={hierarchicalPlan}
+        executionPlan={executionPlan}
         completedSubPlans={completedSubPlans}
         totalSubPlans={totalSubPlans}
       />
@@ -70,8 +76,8 @@ export const HierarchicalPlanDisplay: React.FC<HierarchicalPlanDisplayProps> = (
       )}
 
       <div style={styles.subPlansList}>
-        {hierarchicalPlan.subPlans.map((subPlan, index) => {
-          const isActive = hierarchicalPlan.currentSubPlanIndex === index;
+        {executionPlan.subPlans.map((subPlan, index) => {
+          const isActive = executionPlan.currentSubPlanIndex === index;
 
           return (
             <SubPlanItem

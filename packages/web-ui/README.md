@@ -1,14 +1,14 @@
 # @theagent/web-ui
 
 A modern React-based dashboard built with Remix.js for visualizing and
-controlling browser automation tasks in real-time.
+controlling AI agent tasks in real-time.
 
 ## 🚀 Features
 
-- **Real-time Monitor**: Live updates of browser automation execution via
+- **Real-time Monitor**: Live updates of AI agent execution via
   Server-Sent Events
-- **Chat-based Control**: Natural language interface to trigger automation tasks
-- **Step-by-Step Tracking**: Visual progression of automation steps with status
+- **Chat-based Control**: Natural language interface to trigger agent tasks
+- **Step-by-Step Tracking**: Visual progression of agent steps with status
   indicators
 - **Screenshot Viewer**: Live screenshots with zoom and controls
 - **Modern UI**: Built with Microsoft FluentUI for a professional look and feel
@@ -43,7 +43,7 @@ agent-ui/
 ### Prerequisites
 
 - Node.js 18+
-- The main automation server running on `http://localhost:3002`
+- The main agent server running on `http://localhost:3002`
 
 ### Installation
 
@@ -69,31 +69,31 @@ agent-ui/
 
 ### Chat Interface
 
-The chat interface allows you to control browser automation using natural
+The chat interface allows you to control the AI agent using natural
 language:
 
 ```
 Examples:
 - "Go to google.com"
 - "Take a screenshot"
-- "Search for automation tools"
+- "Search for tools"
 - "Scroll down 500 pixels"
 - "Click the submit button"
 ```
 
 ### Quick Commands
 
-Pre-built commands for common automation tasks:
+Pre-built commands for common agent tasks:
 
 - Take a screenshot
 - Go to google.com
 - Scroll down 500 pixels
 - Wait for 2 seconds
-- Go to github.com and search for automation
+- Go to github.com and search for tools
 
 ### Real-time Updates
 
-The dashboard automatically connects to the automation server and displays:
+The dashboard automatically connects to the agent server and displays:
 
 - Live execution steps
 - Current browser screenshots
@@ -113,20 +113,20 @@ const [serverUrl] = useState('http://your-server:port');
 
 ### API Endpoints
 
-The app uses these endpoints from the automation server:
+The app uses these endpoints from the agent server:
 
 - `GET /api/status` - Server status
 - `GET /api/sessions` - List execution sessions
 - `GET /api/sessions/:id` - Session details
 - `GET /api/sessions/:id/steps/:index/screenshot` - Step screenshots
-- `POST /api/execute` - Execute automation task
+- `POST /api/execute` - Execute agent task
 - `GET /api/execution/stream` - Server-Sent Events stream
 
 ## 🎨 Components
 
 ### ChatInterface
 
-Interactive chat for automation control:
+Interactive chat for agent control:
 
 ```typescript
 <ChatInterface
@@ -178,7 +178,7 @@ Embed the dashboard in your application:
 
 ### Custom API Integration
 
-Use the automation API directly:
+Use the agent API directly:
 
 ```typescript
 import { automationAPI, quickExecute } from '~/utils/automationAPI';
@@ -261,7 +261,7 @@ CMD ["npm", "start"]
 
 ### Connection Issues
 
-- Ensure the automation server is running on port 3002
+- Ensure the agent server is running on port 3002
 - Check CORS settings on the server
 - Verify network connectivity
 
@@ -288,5 +288,5 @@ CMD ["npm", "start"]
 
 ## 📄 License
 
-This project is part of the Browser Automation Framework and follows the same
+This project is part of The Agent Framework and follows the same
 license terms.

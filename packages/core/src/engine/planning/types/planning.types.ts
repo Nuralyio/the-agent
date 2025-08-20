@@ -54,7 +54,7 @@ export interface PlanAssemblyConfig {
 }
 
 /**
- * Execution context for hierarchical plans
+ * Execution context for execution plans
  */
 export interface ExecutionContext {
   currentSubPlanIndex: number;

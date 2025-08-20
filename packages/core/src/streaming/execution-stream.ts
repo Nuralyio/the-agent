@@ -1,9 +1,9 @@
 import { EventEmitter } from 'events';
 import { ActionStep } from '../types';
-import { EventFactory } from './event-factory';
 import { ClientManager } from './client-manager';
-import { SessionManager } from './session-manager';
+import { EventFactory } from './event-factory';
 import { EventProcessor } from './event-processor';
+import { SessionManager } from './session-manager';
 import { ExecutionEvent } from './streaming.types';
 
 /**
@@ -60,12 +60,12 @@ export class ExecutionStream extends EventEmitter {
   /**
    * Legacy method for plan creation
    */
-  streamHierarchicalPlanCreated(
-    hierarchicalPlan: any,
+  streamExecutionPlanCreated(
+    executionPlan: any,
     globalObjective: string,
     planningStrategy?: string
   ): void {
-    this.notifyHierarchicalPlanCreated(hierarchicalPlan, globalObjective, planningStrategy);
+    this.notifyExecutionPlanCreated(executionPlan, globalObjective, planningStrategy);
   }
 
   /**
@@ -153,8 +153,8 @@ export class ExecutionStream extends EventEmitter {
   /**
    * Notify plan creation
    */
-  notifyHierarchicalPlanCreated(
-    hierarchicalPlan: any,
+  notifyExecutionPlanCreated(
+    executionPlan: any,
     globalObjective: string,
     planningStrategy?: string
   ): void {
@@ -164,9 +164,9 @@ export class ExecutionStream extends EventEmitter {
       return;
     }
 
-    const event = EventFactory.createHierarchicalPlanCreatedEvent(
+    const event = EventFactory.createExecutionPlanCreatedEvent(
       sessionId,
-      hierarchicalPlan,
+      executionPlan,
       globalObjective,
       planningStrategy
     );

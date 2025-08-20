@@ -12,7 +12,7 @@ export const StatusTab: React.FC<StatusTabProps> = ({ selectedEngine }) => {
       <div style={styles.settingsCard}>
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
           <span style={{ ...styles.statusIndicator, backgroundColor: '#10a37f' }}></span>
-          <strong style={{ color: '#e5e7eb' }}>Automation Engine</strong>
+          <strong style={{ color: '#e5e7eb' }}>Agent Engine</strong>
         </div>
         <p style={{ color: '#9ca3af', margin: '0', fontSize: '13px' }}>
           {selectedEngine.charAt(0).toUpperCase() + selectedEngine.slice(1)} is ready and operational
@@ -24,7 +24,7 @@ export const StatusTab: React.FC<StatusTabProps> = ({ selectedEngine }) => {
           <strong style={{ color: '#e5e7eb' }}>AI Assistant</strong>
         </div>
         <p style={{ color: '#9ca3af', margin: '0', fontSize: '13px' }}>
-          Connected and ready to help with browser automation
+          Connected and ready to help with web automation
         </p>
       </div>
     </div>

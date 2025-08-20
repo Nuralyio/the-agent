@@ -5,7 +5,7 @@ import { ActionStep } from '../types';
  */
 export type ExecutionEventType =
   | 'plan_created'
-  | 'hierarchical_plan_created'
+  | 'execution_plan_created'
   | 'sub_plan_start'
   | 'sub_plan_completed'
   | 'step_start'
@@ -31,8 +31,8 @@ export interface ExecutionEvent {
   success?: boolean; // For sub-plan completion status
   timestamp: Date;
   sessionId: string;
-  // Hierarchical plan specific fields
-  hierarchicalPlan?: any;
+  // Execution plan specific fields
+  executionPlan?: any;
   globalObjective?: string;
   planningStrategy?: string;
   // Sub-plan specific fields

@@ -1,5 +1,5 @@
 // Main component
-export { HierarchicalPlanDisplay } from './index';
+export { ExecutionPlanDisplay } from './index';
 
 // Sub-components
 export { ActionDetails } from './components/ActionDetails';

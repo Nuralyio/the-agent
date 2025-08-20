@@ -1,12 +1,12 @@
 import React from 'react';
-import type { ExecutionStep, TabItem, HierarchicalPlan } from '../../Dashboard.types';
+import type { ExecutionStep, TabItem, ExecutionPlan } from '../../Dashboard.types';
 import { styles } from '../../Dashboard.styles';
 import { ExecutionPlan } from './ExecutionPlan';
 import { TabSection } from './TabSection/index';
 
 interface RightPanelProps {
   currentPlan: ExecutionStep[];
-  currentHierarchicalPlan?: HierarchicalPlan | null;
+  currentExecutionPlan?: ExecutionPlan | null;
   isLoading?: boolean;
   activeTab: string;
   setActiveTab: (tab: string) => void;
@@ -20,7 +20,7 @@ interface RightPanelProps {
 
 export default function RightPanel({
   currentPlan,
-  currentHierarchicalPlan,
+  currentExecutionPlan,
   isLoading = false,
   activeTab,
   setActiveTab,
@@ -35,7 +35,7 @@ export default function RightPanel({
     <div style={styles.rightPanel}>
       {/* Execution Plan Section */}
       <ExecutionPlan
-        currentHierarchicalPlan={currentHierarchicalPlan}
+        currentExecutionPlan={currentExecutionPlan}
         isLoading={isLoading}
         handleStepClick={handleStepClick}
       />
