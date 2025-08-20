@@ -1,3 +1,10 @@
+/**
+ * ActionExecutor - Manages execution of browser automation action steps
+ *
+ * This class handles the execution of individual action steps including navigation,
+ * clicking, typing, filling forms, waiting, extracting content, scrolling, and screenshots.
+ */
+
 import { executionStream } from '../../streaming/execution-stream';
 import { ActionStep, ActionType, BrowserManager, PageState } from '../../types';
 
@@ -62,14 +69,11 @@ export class ActionExecutor {
     console.log(`🌐 Navigating to: ${url}`);
     await page.navigate(url);
 
-    // Wait for the DOM to be ready after navigation
     console.log('⏳ Waiting for page to load...');
     await page.waitForLoad();
 
-    // Give a small additional delay to ensure content is fully rendered
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    // Stream page change event
     try {
       const currentPage = await this.captureState();
       executionStream.streamPageChange(url, currentPage.title, currentPage.screenshot);
@@ -87,7 +91,6 @@ export class ActionExecutor {
     if (step.target?.selector) {
       await page.click(step.target.selector);
     } else if (step.target?.coordinates) {
-      // Use coordinates if selector not available
       throw new Error('Coordinate-based clicking not implemented yet');
     } else {
       throw new Error('No target specified for click action');
@@ -118,15 +121,12 @@ export class ActionExecutor {
     }
 
     try {
-      // Parse form data - can be a single value or JSON object with multiple fields
       let formData: { [key: string]: string } = {};
 
       if (typeof step.value === 'string') {
         try {
-          // Try to parse as JSON first
           formData = JSON.parse(step.value);
         } catch {
-          // If not JSON, treat as single value for the target selector
           if (step.target?.selector) {
             formData[step.target.selector] = step.value;
           } else {
@@ -138,8 +138,6 @@ export class ActionExecutor {
       }
 
       console.log(`📝 Filling form with data:`, formData);
-
-      // Fill each field
       for (const [selector, value] of Object.entries(formData)) {
         try {
           console.log(`📝 Filling field "${selector}" with value "${value}"`);
@@ -148,13 +146,12 @@ export class ActionExecutor {
           await page.waitForSelector(selector);
 
           // Clear the field first by selecting all and typing
-          await page.click(selector); // Click to focus
-          await page.evaluate(() => document.execCommand('selectAll')); // Select all text
-          await page.type(selector, value); // Type the new value (will replace selected text)
+          await page.click(selector);
+          await page.evaluate(() => document.execCommand('selectAll'));
+          await page.type(selector, value);
 
         } catch (fieldError) {
           console.warn(`⚠️ Failed to fill field "${selector}":`, fieldError);
-          // Continue with other fields even if one fails
         }
       }
 
@@ -185,7 +182,6 @@ export class ActionExecutor {
     const page = await this.browserManager.getCurrentPage();
     if (!page) throw new Error('No active page');
 
-    // Try the specific selector first if provided
     if (step.target?.selector) {
       try {
         const element = await page.waitForSelector(step.target.selector, { timeout: 2000 });
@@ -201,7 +197,6 @@ export class ActionExecutor {
       }
     }
 
-    // Fallback: Extract from common content elements
     const contentSelectors = ['p', 'div', 'span', '.info', '.note', '.help'];
 
     for (const selector of contentSelectors) {
@@ -219,7 +214,6 @@ export class ActionExecutor {
       }
     }
 
-    // Last resort: extract all page text
     try {
       const allText = await page.evaluate(() => document.body.innerText || '');
       if (allText?.trim()) {
@@ -238,7 +232,7 @@ export class ActionExecutor {
     if (!page) throw new Error('No active page');
 
     await page.evaluate(() => {
-      window.scrollBy(0, 500); // Scroll down 500px
+      window.scrollBy(0, 500);
     });
 
     return { success: true };
@@ -255,11 +249,9 @@ export class ActionExecutor {
       const fs = require('fs');
       const path = require('path');
 
-      // Save screenshots in execution-logs folder instead of root
       const executionLogsDir = path.join(process.cwd(), 'execution-logs');
       const screenshotPath = path.join(executionLogsDir, step.value);
 
-      // Ensure execution-logs directory exists
       if (!fs.existsSync(executionLogsDir)) {
         fs.mkdirSync(executionLogsDir, { recursive: true });
       }
@@ -284,11 +276,9 @@ export class ActionExecutor {
       throw new Error('No active page');
     }
 
-    // Wait for page to be fully loaded before extracting content
     try {
       console.log('⏳ Ensuring page is fully loaded before capturing state...');
       await page.waitForLoad();
-      // Give a small additional delay to ensure content is fully rendered
       await new Promise(resolve => setTimeout(resolve, 100));
       console.log('✅ Page load complete, capturing state...');
     } catch (error) {
@@ -307,8 +297,8 @@ export class ActionExecutor {
       content,
       screenshot,
       timestamp: Date.now(),
-      viewport: { width: 1280, height: 720 }, // Default, should get from actual viewport
-      elements: [] // TODO: Implement element extraction
+      viewport: { width: 1280, height: 720 },
+      elements: []
     };
   }
 }

@@ -1,4 +1,3 @@
-import { AIEngine } from './ai-engine';
 import { executionStream } from '../streaming/execution-stream';
 import {
   ActionPlan,
@@ -9,6 +8,7 @@ import {
   TaskResult
 } from '../types';
 import { ExecutionLogger } from '../utils/execution-logger';
+import { AIEngine } from './ai-engine';
 import { StepContextManager } from './analysis/step-context';
 import { ActionExecutor } from './execution/action-executor';
 import { ActionSequenceExecutor } from './execution/action-sequence-executor';
@@ -32,7 +32,6 @@ export class ActionEngine implements IActionEngine {
   private planner: Planner;
   private readonly stepContextManager: StepContextManager;
 
-  // Execution modules
   private readonly actionExecutor: ActionExecutor;
   private readonly stepRefinementManager: StepRefinementManager;
   private planExecutionManager: ActionSequenceExecutor;
@@ -41,7 +40,6 @@ export class ActionEngine implements IActionEngine {
     this.stepContextManager = new StepContextManager();
     this.planner = new Planner(aiEngine, this.stepContextManager);
 
-    // Initialize execution modules
     this.actionExecutor = new ActionExecutor(browserManager);
     this.stepRefinementManager = new StepRefinementManager(
       this.planner.getActionPlanner(),
@@ -55,7 +53,6 @@ export class ActionEngine implements IActionEngine {
       this.stepRefinementManager,
     );
 
-    // Set action executor for lazy action planning in sub-plans
     this.planner.setActionExecutor(this.actionExecutor);
   }
 
@@ -66,25 +63,20 @@ export class ActionEngine implements IActionEngine {
     const startTime = Date.now();
     console.log(`🤖 Processing instruction: "${objective}"`);
 
-    // Initialize execution logger
     const logger = new ExecutionLogger(objective);
     console.log(`📝 Execution logging started: ${logger.getSessionId()}`);
 
-    // Start streaming session
     executionStream.startSession(logger.getSessionId());
 
     try {
-      // Use Planner for all tasks
       console.log(`🧠 Using Planner with planning (always default)`);
       console.log(`🔍 ActionEngine: Starting planning for: "${objective}"`);
       return await this.executeWithPlanning(objective, context, logger);
     } catch (error) {
       console.error('❌ Task execution failed:', error);
 
-      // Stream execution completion even on failure
       executionStream.streamExecutionComplete();
 
-      // Finalize logging even on failure
       try {
         await logger.completeSession(false);
       } catch (logError) {
@@ -110,7 +102,6 @@ export class ActionEngine implements IActionEngine {
     logger?: ExecutionLogger,
   ): Promise<TaskResult> {
     try {
-      // Capture current page state for context
       let pageState: PageState | undefined = undefined;
       try {
         pageState = await this.actionExecutor.captureState();
@@ -118,7 +109,6 @@ export class ActionEngine implements IActionEngine {
         console.log('ℹ️ No active page available for context, proceeding with planning');
       }
 
-      // Create context from page state (or empty context if no page)
       const taskContext: TaskContext = context || {
         id: 'task-' + Date.now(),
         objective: objective,
@@ -139,19 +129,16 @@ export class ActionEngine implements IActionEngine {
         pageTitle: pageState?.title || '',
       };
 
-      // Use Planner for end-to-end planning and execution
       console.log(`🧠 Planner: Creating and executing plan`);
       const result = await this.planner.planAndExecute(objective, taskContext, (plan: ActionPlan) =>
         this.planExecutionManager.executeActionPlan(plan, logger, true, false), // Preserve extracted data, disable refinement
       );
 
-      // Finalize logging
       if (logger) {
         const logPath = await logger.completeSession(result.success);
         console.log(`📋 Complete execution log saved to: ${logPath}`);
       }
 
-      // Stream execution completion
       executionStream.streamExecutionComplete();
 
       return {
@@ -173,7 +160,6 @@ export class ActionEngine implements IActionEngine {
    * Uses Planner for consistent planning
    */
   async parseInstruction(instruction: string): Promise<ActionPlan> {
-    // Try to capture current page state for context, but handle case where no page is loaded
     let pageState: PageState | undefined = undefined;
     try {
       pageState = await this.actionExecutor.captureState();
@@ -181,7 +167,6 @@ export class ActionEngine implements IActionEngine {
       console.log('🔍 No active page available for context, proceeding with navigation planning');
     }
 
-    // Create context from page state (or empty context if no page)
     const context: TaskContext = {
       id: 'task-' + Date.now(),
       objective: instruction,
@@ -201,7 +186,6 @@ export class ActionEngine implements IActionEngine {
       pageTitle: pageState?.title || '',
     };
 
-    // Use the Planner to generate action plan with current page content
     const actionPlan = await this.planner.createActionPlan(instruction, context);
 
     return actionPlan;
@@ -243,23 +227,18 @@ export class ActionEngine implements IActionEngine {
     const startTime = Date.now();
     console.log(`🤖 Processing instruction with refinement: "${objective}"`);
 
-    // Initialize execution logger
     const logger = new ExecutionLogger(objective);
     console.log(`📝 Execution logging started: ${logger.getSessionId()}`);
 
-    // Start streaming session
     executionStream.startSession(logger.getSessionId());
 
     try {
-      // Use enhanced execution with refinement
       return await this.executeWithPlanningAndRefinement(objective, context, logger);
     } catch (error) {
       console.error('❌ Task execution with refinement failed:', error);
 
-      // Stream execution completion even on failure
       executionStream.streamExecutionComplete();
 
-      // Finalize logging even on failure
       try {
         await logger.completeSession(false);
       } catch (logError) {
@@ -285,7 +264,6 @@ export class ActionEngine implements IActionEngine {
     logger?: ExecutionLogger,
   ): Promise<TaskResult> {
     try {
-      // Capture current page state for context
       let pageState: PageState | undefined = undefined;
       try {
         pageState = await this.actionExecutor.captureState();
@@ -293,7 +271,6 @@ export class ActionEngine implements IActionEngine {
         console.log('ℹ️ No active page available for context, proceeding with planning');
       }
 
-      // Create context from page state (or empty context if no page)
       const taskContext: TaskContext = context || {
         id: 'task-' + Date.now(),
         objective: objective,
@@ -314,19 +291,16 @@ export class ActionEngine implements IActionEngine {
         pageTitle: pageState?.title || '',
       };
 
-      // Use Planner for end-to-end planning and execution with refinement
       console.log(`🧠 Planner: Creating and executing plan with refinement enabled`);
       const result = await this.planner.planAndExecute(objective, taskContext, (plan: ActionPlan) =>
         this.planExecutionManager.executeActionPlan(plan, logger, true, true), // Preserve data + enable refinement
       );
 
-      // Finalize logging
       if (logger) {
         const logPath = await logger.completeSession(result.success);
         console.log(`📋 Complete execution log saved to: ${logPath}`);
       }
 
-      // Stream execution completion
       executionStream.streamExecutionComplete();
 
       return {
