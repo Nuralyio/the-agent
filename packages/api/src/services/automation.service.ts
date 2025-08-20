@@ -42,9 +42,8 @@ export class AutomationService {
         const automationConfig = {
             adapter: engine,
             browserType: BrowserType.CHROMIUM,
-            headless: false, // Show browser for UI
             viewport: { width: 1280, height: 720 },
-            ...options,
+            ...options, // Apply options first so they can be overridden
             ai: configService.getAIConfig(aiProvider) // Pass AI provider
         };
 
@@ -294,18 +293,16 @@ export class AutomationService {
      * Broadcast custom events to all connected clients
      */
     private broadcastCustomEvent(event: ExecutionEvent): void {
-        // Get all connected clients via reflection (accessing private property)
-        const streamWithClients = executionStream as unknown as ExecutionStreamWithClients;
-        const clients = streamWithClients.clients;
-        if (clients) {
-            clients.forEach((client) => {
-                try {
-                    client.response.write(`data: ${JSON.stringify(event)}\n\n`);
-                } catch (error) {
-                    console.error('Failed to send event to client:', error);
-                }
-            });
-        }
+        // Use the execution stream's proper broadcasting mechanism
+        const streamEvent = {
+            type: event.type,
+            sessionId: event.sessionId || 'default',
+            timestamp: new Date(),
+            data: event
+        };
+
+        // Use the internal broadcast method from execution stream
+        (executionStream as any).broadcastEvent(streamEvent);
     }
 }
 

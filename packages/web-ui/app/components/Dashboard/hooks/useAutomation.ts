@@ -26,7 +26,7 @@ export const useAutomation = (addMessage: (message: ChatMessage) => void, startE
         taskDescription,
         engine: selectedEngine,
         options: {
-          headless: false, // Show browser for better UX
+          headless: true, // Default to headless mode
         },
       });
 
