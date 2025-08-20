@@ -90,6 +90,14 @@ export const StepItem: React.FC<StepItemProps> = ({ step, isActive = false, onSt
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      e.stopPropagation(); // Prevent sub-plan click when activating action via keyboard
+      onStepClick(step);
+    }
+  };
+
   const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isClickable) {
       e.currentTarget.style.backgroundColor = '#374151';
@@ -103,7 +111,16 @@ export const StepItem: React.FC<StepItemProps> = ({ step, isActive = false, onSt
   };
 
   return (
-    <div style={styles.container} onClick={handleClick} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+    <div 
+      style={styles.container} 
+      onClick={handleClick} 
+      onKeyDown={handleKeyDown}
+      onMouseEnter={handleMouseEnter} 
+      onMouseLeave={handleMouseLeave}
+      role={isClickable ? "button" : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      aria-label={isClickable ? `View screenshot for step: ${step.title}` : undefined}
+    >
       <div style={styles.icon}>{getStepStatusIcon(step.status)}</div>
       <div style={styles.content}>
         <div style={styles.title}>
