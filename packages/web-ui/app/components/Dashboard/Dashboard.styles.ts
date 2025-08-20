@@ -369,6 +369,8 @@ export const styles = {
     margin: '0',
     padding: '0',
     listStyle: 'none',
+    alignItems: 'center',
+    width: '100%',
   },
   rightTab: {
     padding: '16px 20px',
@@ -380,6 +382,9 @@ export const styles = {
     cursor: 'pointer',
     borderBottom: '2px solid transparent',
     transition: 'all 0.15s ease',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   rightTabActive: {
     color: '#007ACC',
