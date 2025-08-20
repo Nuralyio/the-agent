@@ -186,6 +186,7 @@ export class ExecutionStream extends EventEmitter {
     const currentSubPlan = subPlanIndex !== undefined ? subPlanIndex : this.sessionManager.getCurrentSubPlan();
 
     console.log(`📡 Step ${stepIndex + 1} started (sub-plan: ${currentSubPlan})`);
+    console.log(`📡 DEBUG: subPlanIndex param: ${subPlanIndex}, session manager sub-plan: ${this.sessionManager.getCurrentSubPlan()}`);
     console.log(`📡 Connected clients: ${this.clientManager.getClientCount()}`);
 
     const event = EventFactory.createStepStartEvent(sessionId, stepIndex, step, currentSubPlan);
@@ -210,6 +211,7 @@ export class ExecutionStream extends EventEmitter {
     const currentSubPlan = subPlanIndex !== undefined ? subPlanIndex : this.sessionManager.getCurrentSubPlan();
 
     console.log(`📡 Step ${stepIndex + 1} completed (sub-plan: ${currentSubPlan})`);
+    console.log(`📡 DEBUG: subPlanIndex param: ${subPlanIndex}, session manager sub-plan: ${this.sessionManager.getCurrentSubPlan()}`);
     console.log(`📡 Connected clients: ${this.clientManager.getClientCount()}`);
 
     const event = EventFactory.createStepCompleteEvent(sessionId, stepIndex, step, screenshot, currentSubPlan);

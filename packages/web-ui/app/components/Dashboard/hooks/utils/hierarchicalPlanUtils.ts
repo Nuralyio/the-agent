@@ -10,27 +10,65 @@ export const updateHierarchicalStepStatus = (
   status: ExecutionStep['status'],
   screenshot?: string
 ): HierarchicalPlan => {
-  const targetSubPlanIndex = data.data?.subPlanIndex ?? plan.currentSubPlanIndex;
+  const targetSubPlanIndex = data.data?.subPlanIndex ?? data.subPlanIndex ?? plan.currentSubPlanIndex;
+  const stepIndex = data.data?.stepIndex ?? data.stepIndex;
+  const stepData = data.data?.step || data.step;
 
-  if (targetSubPlanIndex === undefined) {
+  if (targetSubPlanIndex === undefined || stepIndex === undefined) {
+    return plan;
+  }
+
+  if (targetSubPlanIndex < 0 || targetSubPlanIndex >= plan.subPlans.length) {
     return plan;
   }
 
   return {
     ...plan,
-    subPlans: plan.subPlans.map((subPlan, subPlanIndex) =>
-      subPlanIndex === targetSubPlanIndex ? {
-        ...subPlan,
-        steps: subPlan.steps.map((step, stepIndex) =>
-          stepIndex === (data.data?.stepIndex ?? data.stepIndex) ? {
-            ...step,
-            status,
+    subPlans: plan.subPlans.map((subPlan, subPlanIndex) => {
+      if (subPlanIndex !== targetSubPlanIndex) {
+        return subPlan;
+      }
+
+      // Ensure we have enough steps in the array
+      const updatedSteps = [...subPlan.steps];
+      
+      // If the step doesn't exist, create it
+      if (stepIndex >= updatedSteps.length) {
+        // Fill missing steps with placeholder steps
+        for (let i = updatedSteps.length; i <= stepIndex; i++) {
+          updatedSteps.push({
+            id: i,
+            title: stepData?.title || stepData?.description || `Step ${i + 1}`,
+            description: stepData?.description || 'Executing step...',
+            status: 'pending',
             timestamp: new Date(),
-            screenshot: screenshot ? `data:image/png;base64,${screenshot}` : step.screenshot,
-          } : step
-        ),
-      } : subPlan
-    ),
+            actionType: stepData?.type,
+            target: stepData?.target,
+            value: stepData?.value,
+          });
+        }
+      }
+
+      // Update the specific step
+      updatedSteps[stepIndex] = {
+        ...updatedSteps[stepIndex],
+        ...(stepData && {
+          title: stepData.title || stepData.description || updatedSteps[stepIndex].title,
+          description: stepData.description || updatedSteps[stepIndex].description,
+          actionType: stepData.type || updatedSteps[stepIndex].actionType,
+          target: stepData.target || updatedSteps[stepIndex].target,
+          value: stepData.value || updatedSteps[stepIndex].value,
+        }),
+        status,
+        timestamp: new Date(),
+        screenshot: screenshot ? `data:image/png;base64,${screenshot}` : updatedSteps[stepIndex].screenshot,
+      };
+
+      return {
+        ...subPlan,
+        steps: updatedSteps,
+      };
+    }),
   };
 };
 

@@ -163,7 +163,7 @@ export class EventHandlers {
   handleSubPlanStart = (data: EventData): void => {
     if (!this.props.setCurrentHierarchicalPlan) return;
 
-    const subPlanIndex = data.data?.subPlanIndex ?? 0;
+    const subPlanIndex = data.data?.subPlanIndex ?? data.subPlanIndex ?? 0;
 
     this.props.setCurrentHierarchicalPlan(prev => {
       if (!prev) return prev;
