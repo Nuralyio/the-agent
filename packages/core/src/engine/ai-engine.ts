@@ -241,10 +241,15 @@ export class AIEngine {
 
       // Parse the JSON response
       const cleanedResponse = response.content.trim();
-      const jsonMatch = cleanedResponse.match(/\[[\s\S]*\]/);
-
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
+      
+      // Use a more secure regex to prevent ReDoS attacks
+      // Find the first '[' and the last matching ']' to extract JSON array
+      const firstBracket = cleanedResponse.indexOf('[');
+      const lastBracket = cleanedResponse.lastIndexOf(']');
+      
+      if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+        const jsonString = cleanedResponse.substring(firstBracket, lastBracket + 1);
+        return JSON.parse(jsonString);
       } else {
         console.warn('Failed to parse AI response as JSON, falling back to simple parsing');
         return this.fallbackParsing(instruction);
