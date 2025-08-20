@@ -22,19 +22,20 @@ export class ActionSequenceExecutor {
     private stepContextManager: StepContextManager,
     private actionExecutor: ActionExecutor,
     private stepRefinementManager: StepRefinementManager
-  ) { }
+  ) {
+  }
 
   /**
    * Execute an action plan with context-aware refinement
    */
   async executeActionPlan(plan: ActionPlan, logger?: ExecutionLogger, preserveExtractedData: boolean = true, enableStepRefinement: boolean = false): Promise<TaskResult> {
+    const startTime = Date.now();
     const executedSteps: any[] = [];
     const screenshots: Buffer[] = [];
     let currentPlan = plan;
 
     console.log(`🚀 Executing ${currentPlan.steps.length} steps with context-aware refinement`);
 
-    // Reset plan-specific context but optionally preserve session-level extracted data
     if (preserveExtractedData) {
       console.log(`💾 Preserving extracted data from previous executions`);
       this.stepContextManager.resetPlanContext();
@@ -50,7 +51,6 @@ export class ActionSequenceExecutor {
       console.log(`📍 Step ${i + 1}: ${step.description}`);
 
       try {
-        // Try to capture current page state before executing the step
         let pageStateBefore: PageState | undefined = undefined;
         try {
           pageStateBefore = await this.actionExecutor.captureState();
@@ -58,10 +58,8 @@ export class ActionSequenceExecutor {
           console.log(`🔍 No active page for step ${i + 1}, proceeding without state context`);
         }
 
-        // Get current step context including previous steps
         const stepContext = this.stepContextManager.getCurrentContext(i, currentPlan.steps.length);
 
-        // Track refinement information
         let refinementInfo: {
           wasRefined: boolean;
           originalStep?: ActionStep;
@@ -72,20 +70,17 @@ export class ActionSequenceExecutor {
           };
         } = { wasRefined: false };
 
-        // For steps that need page interaction, refine with context and page content (if enabled)
         if (enableStepRefinement && this.stepRefinementManager.needsRefinement(step)) {
           console.log(`\n🔄 Refining step ${i + 1} with AI and page content...`);
-          const originalStep = { ...step }; // Keep copy of original step
+          const originalStep = { ...step }; 
           const contextForRefinement = this.stepContextManager.getCurrentContext(i, currentPlan.steps.length);
           const refinedStep = await this.stepRefinementManager.refineStepWithContext(step, contextForRefinement, pageStateBefore);
 
-          // Check if step was actually refined by comparing selectors specifically
           const originalSelector = originalStep.target?.selector;
           const refinedSelector = refinedStep.target?.selector;
           const wasActuallyRefined = originalSelector !== refinedSelector;
 
           if (wasActuallyRefined) {
-            // Determine the refinement reason based on the change
             let refinementReason = 'Context-aware selector improvement';
             if (originalSelector && refinedSelector) {
               if (refinedSelector.includes('name=') && originalSelector.includes('name=')) {
@@ -119,10 +114,8 @@ export class ActionSequenceExecutor {
 
         console.log(''); // Add spacing before step execution
 
-        // Stream step start event
         executionStream.streamStepStart(i, currentPlan.steps[i]!);
 
-        // Execute step with retry mechanism and AI refinement
         const contextForRetry = this.stepContextManager.getCurrentContext(i, currentPlan.steps.length);
         const stepResult = await this.stepRefinementManager.executeStepWithRetry(
           currentPlan.steps[i]!,
@@ -132,12 +125,10 @@ export class ActionSequenceExecutor {
           (step: ActionStep) => this.actionExecutor.executeStep(step)
         );
 
-        // Capture page state after step execution (handle navigation gracefully)
         let pageStateAfter: PageState;
         try {
           pageStateAfter = await this.actionExecutor.captureState();
         } catch (error) {
-          // If context was destroyed due to navigation, wait and try again
           if (error instanceof Error && error.message.includes('Execution context was destroyed')) {
             console.log('🔄 Page navigated during step execution, waiting for new page...');
             await new Promise(resolve => setTimeout(resolve, 2000));
@@ -160,7 +151,6 @@ export class ActionSequenceExecutor {
           }
         }
 
-        // Create detailed step execution result
         const stepExecutionResult: StepExecutionResult = {
           step: currentPlan.steps[i]!,
           success: stepResult.success,
@@ -170,7 +160,6 @@ export class ActionSequenceExecutor {
           elementFound: stepResult.success
         };
 
-        // Add optional properties only if they exist
         if (stepResult.error) {
           stepExecutionResult.error = stepResult.error;
         }
@@ -182,16 +171,13 @@ export class ActionSequenceExecutor {
         if (stepResult.success && value) {
           stepExecutionResult.valueEntered = value;
         }
-        
-        // Add extracted data for EXTRACT actions
+
         if (stepResult.success && stepResult.data && step.type === 'extract') {
           stepExecutionResult.extractedData = stepResult.data;
         }
 
-        // Add step result to context manager
         this.stepContextManager.addStepResult(stepExecutionResult);
 
-        // Take screenshot for logging
         let screenshotBuffer: Buffer | undefined;
         try {
           screenshotBuffer = await this.browserManager.takeScreenshot();
@@ -199,14 +185,12 @@ export class ActionSequenceExecutor {
           console.warn(`⚠️ Failed to take screenshot for step ${i + 1}:`, error);
         }
 
-        // Stream step completion or error
         if (stepResult.success) {
           executionStream.streamStepComplete(i, currentPlan.steps[i]!, screenshotBuffer);
         } else {
           executionStream.streamStepError(i, currentPlan.steps[i]!, stepResult.error || 'Unknown error');
         }
 
-        // Log step execution with screenshot and refinement info
         if (logger) {
           await logger.logStep({
             stepIndex: i,
@@ -227,28 +211,24 @@ export class ActionSequenceExecutor {
           success: stepResult.success
         });
 
-        // Take screenshot after important steps for TaskResult
         if (step.type === 'navigate' || step.type === 'click') {
           if (screenshotBuffer) {
             screenshots.push(screenshotBuffer);
           }
         }
 
-        // If step failed, try to adapt the remaining plan
         if (!stepResult.success) {
           console.warn(`⚠️ Step ${i + 1} failed, attempting to adapt remaining plan...`);
           const updatedPageState = await this.actionExecutor.captureState();
           const remainingSteps = currentPlan.steps.slice(i + 1);
 
           if (remainingSteps.length > 0) {
-            // Use AI adaptation to handle the extracted data and remaining steps
             const adaptedPlan = await this.actionPlanner.adaptPlan({
               ...currentPlan,
               steps: remainingSteps
             }, updatedPageState);
             const adaptedSteps = adaptedPlan.steps;
 
-            // Update the current plan with adapted steps
             currentPlan.steps = [
               ...currentPlan.steps.slice(0, i + 1),
               ...adaptedSteps
@@ -262,10 +242,8 @@ export class ActionSequenceExecutor {
           }
         }
 
-        // If step succeeded and extracted data, let AI handle the injection in subsequent steps
         if (stepResult.success && stepResult.data) {
           console.log(`� Extracted data available for AI-powered step adaptation`);
-          // Store the extracted data in the plan context for future AI adaptations
           currentPlan.context.extractedData = stepResult.data;
         }
       } catch (error) {
@@ -277,7 +255,6 @@ export class ActionSequenceExecutor {
           success: false
         });
 
-        // Try to adapt the plan even on error
         try {
           const errorPageState = await this.actionExecutor.captureState();
           const remainingSteps = currentPlan.steps.slice(i + 1);
@@ -310,7 +287,7 @@ export class ActionSequenceExecutor {
       steps: executedSteps,
       screenshots,
       extractedData: currentPlan.context.extractedData,
-      duration: 0 // TODO: Add proper timing
+      duration: Date.now() - startTime
     };
   }
 }
