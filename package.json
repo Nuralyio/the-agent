@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "build": "npm run build -w packages/core && npm run build -w packages/api && npm run build -w packages/cli && npm run build -w packages/web-ui && npm run build -w packages/mcp-server",
-    "dev": "npm run build && concurrently --kill-others-on-fail --prefix=\"[{name}]\" --names=\"api,web-ui,test-server\" \"npm run dev -w packages/api\" \"npm run dev -w packages/web-ui\" \"node tools/test-server/server.js\"",
+    "dev": "npm run build && concurrently --kill-others --kill-signal SIGINT --prefix=\"[{name}]\" --names=\"api,web-ui,test-server\" \"npm run dev -w packages/api\" \"npm run dev -w packages/web-ui\" \"node tools/test-server/server.js\"",
     "dev:core": "npm run dev -w packages/core",
     "dev:api": "npm run dev -w packages/api",
     "dev:ui": "npm run dev -w packages/web-ui",

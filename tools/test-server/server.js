@@ -433,4 +433,9 @@ process.on('SIGINT', () => {
     process.exit(0);
 });
 
+process.on('SIGTERM', () => {
+    console.log('\\n🛑 Shutting down test server...');
+    process.exit(0);
+});
+
 module.exports = app;
