@@ -24,7 +24,7 @@ const defaultConfig: CLIConfig = {
 
 export async function loadConfig(configPath?: string): Promise<CLIConfig> {
   const configFile = configPath || findConfigFile();
-  
+
   if (!configFile) {
     return defaultConfig;
   }
@@ -32,7 +32,7 @@ export async function loadConfig(configPath?: string): Promise<CLIConfig> {
   try {
     const configContent = await fs.readFile(configFile, 'utf-8');
     let config: CLIConfig;
-    
+
     if (configFile.endsWith('.json')) {
       config = JSON.parse(configContent);
     } else {
@@ -40,7 +40,7 @@ export async function loadConfig(configPath?: string): Promise<CLIConfig> {
       delete require.cache[path.resolve(configFile)];
       config = require(path.resolve(configFile));
     }
-    
+
     return { ...defaultConfig, ...config };
   } catch (error) {
     console.warn(`Warning: Could not load config from ${configFile}, using defaults`);
@@ -77,7 +77,7 @@ export async function saveConfig(config: Partial<CLIConfig>, configPath = 'theag
 export function getConfigValue(config: CLIConfig, key: string): any {
   const keys = key.split('.');
   let value: any = config;
-  
+
   for (const k of keys) {
     if (value && typeof value === 'object' && k in value) {
       value = value[k];
@@ -85,7 +85,7 @@ export function getConfigValue(config: CLIConfig, key: string): any {
       return undefined;
     }
   }
-  
+
   return value;
 }
 
@@ -93,7 +93,7 @@ export function setConfigValue(config: CLIConfig, key: string, value: any): CLIC
   const keys = key.split('.');
   const newConfig = JSON.parse(JSON.stringify(config)); // Deep clone
   let current = newConfig;
-  
+
   for (let i = 0; i < keys.length - 1; i++) {
     const k = keys[i];
     if (!current[k] || typeof current[k] !== 'object') {
@@ -101,7 +101,7 @@ export function setConfigValue(config: CLIConfig, key: string, value: any): CLIC
     }
     current = current[k];
   }
-  
+
   current[keys[keys.length - 1]] = value;
   return newConfig;
 }

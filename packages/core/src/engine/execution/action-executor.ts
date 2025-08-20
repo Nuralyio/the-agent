@@ -5,9 +5,9 @@
  * clicking, typing, filling forms, waiting, extracting content, scrolling, and screenshots.
  */
 
+import { loadEnvironmentConfig } from '../../environment';
 import { executionStream } from '../../streaming/execution-stream';
 import { ActionStep, ActionType, BrowserManager, PageState } from '../../types';
-import { loadEnvironmentConfig } from '../../environment';
 
 /**
  * Handles the execution of individual action steps
@@ -224,7 +224,7 @@ export class ActionExecutor {
     if (!page) throw new Error('No active page');
     //@todo: Implement scroll by selector or coordinates
     await page.evaluate(() => {
-       window.scrollBy( <number>(<unknown>step.value?.x) ?? 0, <number>(<unknown>step.value?.y) ?? 500);
+      window.scrollBy(<number>(<unknown>step.value?.x) ?? 0, <number>(<unknown>step.value?.y) ?? 500);
     });
 
     return { success: true };
