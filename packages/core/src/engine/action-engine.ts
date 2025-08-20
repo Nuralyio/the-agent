@@ -9,7 +9,6 @@ import {
   TaskResult
 } from '../types';
 import { ExecutionLogger } from '../utils/execution-logger';
-import { ContextualStepAnalyzer } from './analysis/contextual-analyzer';
 import { StepContextManager } from './analysis/step-context';
 import { ActionExecutor } from './execution/action-executor';
 import { ActionSequenceExecutor } from './execution/action-sequence-executor';
@@ -32,7 +31,6 @@ import { Planner } from './planning/planner';
 export class ActionEngine implements IActionEngine {
   private planner: Planner;
   private readonly stepContextManager: StepContextManager;
-  private readonly contextualAnalyzer?: ContextualStepAnalyzer;
 
   // Execution modules
   private readonly actionExecutor: ActionExecutor;
@@ -42,14 +40,6 @@ export class ActionEngine implements IActionEngine {
   constructor(browserManager: BrowserManager, aiEngine: AIEngine) {
     this.stepContextManager = new StepContextManager();
     this.planner = new Planner(aiEngine, this.stepContextManager);
-
-    // Initialize contextual analyzer
-    try {
-      this.contextualAnalyzer = new ContextualStepAnalyzer();
-      console.log('✅ Contextual step analyzer initialized');
-    } catch (error) {
-      console.warn('⚠️ Contextual analyzer not initialized:', error);
-    }
 
     // Initialize execution modules
     this.actionExecutor = new ActionExecutor(browserManager);

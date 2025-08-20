@@ -1,7 +1,6 @@
 import * as crypto from 'crypto';
 import { PromptTemplate } from '../../prompt-template';
 import { ActionStep, ActionType, PageState } from '../../types';
-import { ContextualStepAnalyzer } from '../analysis/contextual-analyzer';
 import { StepContextManager } from '../analysis/step-context';
 import { ActionPlanner } from '../planning/action-planner';
 
@@ -13,8 +12,7 @@ export class StepRefinementManager {
 
   constructor(
     private actionPlanner: ActionPlanner,
-    private stepContextManager: StepContextManager,
-    private contextualAnalyzer?: ContextualStepAnalyzer
+    private stepContextManager: StepContextManager
   ) {
     this.promptTemplate = new PromptTemplate();
   }
@@ -235,19 +233,13 @@ export class StepRefinementManager {
     pageState: PageState | undefined
   ): Promise<ActionStep> {
     try {
-      // If we have contextual analyzer and page state, use it
-      if (this.contextualAnalyzer && pageState) {
-        console.log('   🧠 Using contextual analysis for step refinement...');
-        const successfulSelectors = this.stepContextManager.getSuccessfulSelectors();
-        return await this.contextualAnalyzer.improveStepWithContext(step, stepContext, successfulSelectors, pageState.content || '');
-      }
-
-      // Fallback to regular page content refinement with context-aware prompt (if page state available)
+      // Use AI-powered refinement with page content (since it's more sophisticated than pattern matching)
       if (!pageState) {
         console.log('   ⚠️  No page state available, returning original step');
         return step;
       }
 
+      console.log('   🤖 Using AI-powered step refinement with page context...');
       const contextualPrompt = this.createContextualPrompt(step, stepContext, pageState);
 
       const refinedPlan = await this.actionPlanner.createActionPlan(contextualPrompt, {
