@@ -4,6 +4,7 @@ import { styles } from '../../../Dashboard.styles';
 import { TabNavigation } from '../../shared/TabNavigation';
 import { PreviewTab } from './PreviewTab';
 import { LogsTab } from './LogsTab';
+import { LiveVideoStream } from './LiveVideoStream';
 
 interface TabSectionProps {
   activeTab: string;
@@ -14,6 +15,7 @@ interface TabSectionProps {
   getDisplayScreenshot: () => string | null;
   selectedEngine: string;
   currentPlan: ExecutionStep[];
+  sessionId?: string;
 }
 
 export const TabSection: React.FC<TabSectionProps> = ({
@@ -25,6 +27,7 @@ export const TabSection: React.FC<TabSectionProps> = ({
   getDisplayScreenshot,
   selectedEngine,
   currentPlan,
+  sessionId,
 }) => {
   return (
     <div style={styles.rightTabSection}>
@@ -45,6 +48,19 @@ export const TabSection: React.FC<TabSectionProps> = ({
             getDisplayScreenshot={getDisplayScreenshot}
             currentPlan={currentPlan}
           />
+        )}
+
+        {activeTab === 'video' && (
+          <div>
+            <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px', color: '#ffffff' }}>
+              Live Browser Video Stream
+            </h2>
+            <LiveVideoStream
+              isVisible={activeTab === 'video'}
+              sessionId={sessionId}
+              style={{ width: '100%' }}
+            />
+          </div>
         )}
 
         {activeTab === 'logs' && (

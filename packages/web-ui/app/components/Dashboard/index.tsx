@@ -14,6 +14,9 @@ export const meta: MetaFunction = () => [
 ];
 
 export const Dashboard: React.FC = () => {
+  // Generate a simple session ID for video streaming
+  const sessionId = React.useMemo(() => `session_${Date.now()}`, []);
+
   const {
     chatMessages,
     setChatMessages,
@@ -107,6 +110,7 @@ export const Dashboard: React.FC = () => {
         getDisplayScreenshot={getDisplayScreenshot}
         selectedEngine={selectedEngine}
         handleStepClick={handleStepClick}
+        sessionId={sessionId}
       />
     </div>
   );

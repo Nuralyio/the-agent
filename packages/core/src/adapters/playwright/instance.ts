@@ -62,6 +62,9 @@ export class PlaywrightBrowserInstance implements BrowserInstance {
     if (this.options.timezone) {
       contextOptions.timezoneId = this.options.timezone;
     }
+    if (this.options.recordVideo) {
+      contextOptions.recordVideo = this.options.recordVideo;
+    }
 
     const context = await this.browser.newContext(contextOptions);
     const page = await context.newPage();

@@ -1,11 +1,16 @@
 import type { BrowserContext, Page } from 'playwright';
-import { ElementHandle, PageInstance, ScreenshotOptions, WaitOptions } from '../../types';
+import { ElementHandle, PageInstance, ScreenshotOptions, WaitOptions, VideoRecordingOptions } from '../../types';
 import { PlaywrightElementHandle } from './element';
+import * as path from 'path';
+import * as fs from 'fs';
 
 /**
  * Playwright implementation of PageInstance
  */
 export class PlaywrightPageInstance implements PageInstance {
+  private isRecording = false;
+  private videoPath: string | null = null;
+
   constructor(
     private page: Page,
     private context: BrowserContext
@@ -188,5 +193,54 @@ export class PlaywrightPageInstance implements PageInstance {
    */
   async scrollTo(selector: string): Promise<void> {
     await this.page.locator(selector).scrollIntoViewIfNeeded();
+  }
+
+  /**
+   * Start video recording
+   */
+  async startVideoRecording(options?: VideoRecordingOptions): Promise<void> {
+    if (this.isRecording) {
+      throw new Error('Video recording is already in progress');
+    }
+
+    // Check if the context already has video recording enabled
+    const video = this.page.video();
+    if (video) {
+      this.isRecording = true;
+      this.videoPath = await video.path();
+      return;
+    }
+
+    // If no video recording is set up at context level, we can't start recording
+    // for an existing page. This would require creating a new context with video recording enabled.
+    throw new Error('Video recording must be enabled when creating the browser context. Please restart the browser with video recording enabled.');
+  }
+
+  /**
+   * Stop video recording
+   */
+  async stopVideoRecording(): Promise<string | null> {
+    if (!this.isRecording) {
+      return null;
+    }
+
+    const video = this.page.video();
+    if (video) {
+      await this.page.close();
+      const videoPath = await video.path();
+      this.isRecording = false;
+      this.videoPath = null;
+      return videoPath;
+    }
+
+    this.isRecording = false;
+    return this.videoPath;
+  }
+
+  /**
+   * Check if video recording is active
+   */
+  isVideoRecording(): boolean {
+    return this.isRecording;
   }
 }

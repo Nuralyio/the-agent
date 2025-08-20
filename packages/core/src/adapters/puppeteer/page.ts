@@ -1,4 +1,4 @@
-import { PageInstance, ElementHandle, ScreenshotOptions, WaitOptions } from '../../types';
+import { PageInstance, ElementHandle, ScreenshotOptions, WaitOptions, VideoRecordingOptions } from '../../types';
 import { PuppeteerElementHandle } from './element';
 import type { Page, ScreenshotOptions as PuppeteerScreenshotOptions } from 'puppeteer';
 
@@ -164,5 +164,26 @@ export class PuppeteerPageInstance implements PageInstance {
           break;
       }
     }, { direction, amount });
+  }
+
+  /**
+   * Start video recording (not supported by Puppeteer)
+   */
+  async startVideoRecording(options?: VideoRecordingOptions): Promise<void> {
+    throw new Error('Video recording is not supported by Puppeteer adapter. Please use Playwright adapter for video recording.');
+  }
+
+  /**
+   * Stop video recording (not supported by Puppeteer)
+   */
+  async stopVideoRecording(): Promise<string | null> {
+    throw new Error('Video recording is not supported by Puppeteer adapter. Please use Playwright adapter for video recording.');
+  }
+
+  /**
+   * Check if video recording is active (not supported by Puppeteer)
+   */
+  isVideoRecording(): boolean {
+    return false;
   }
 }

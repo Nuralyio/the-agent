@@ -59,4 +59,30 @@ export class AutomationController {
         };
         res.json(response);
     }
+
+    /**
+     * Get current browser screenshot for live streaming
+     */
+    static async getScreenshot(req: Request, res: Response): Promise<void> {
+        try {
+            const screenshot = await automationService.getCurrentScreenshot();
+            
+            if (screenshot) {
+                res.setHeader('Content-Type', 'image/png');
+                res.setHeader('Cache-Control', 'no-cache');
+                res.send(screenshot);
+            } else {
+                res.status(404).json({
+                    success: false,
+                    error: 'No active browser session or screenshot available'
+                });
+            }
+        } catch (error) {
+            console.error('Screenshot error:', error);
+            res.status(500).json({
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
+        }
+    }
 }

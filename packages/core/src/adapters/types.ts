@@ -36,6 +36,9 @@ export interface PageInstance {
   waitForSelector(selector: string, options?: WaitOptions): Promise<ElementHandle>;
   evaluate<T>(fn: () => T): Promise<T>;
   waitForLoad(): Promise<void>;
+  startVideoRecording(options?: VideoRecordingOptions): Promise<void>;
+  stopVideoRecording(): Promise<string | null>;
+  isVideoRecording(): boolean;
 }
 
 export interface ElementHandle {
@@ -75,6 +78,10 @@ export interface LaunchOptions {
     bypass?: string[];
   };
   executablePath?: string;
+  recordVideo?: {
+    dir: string;
+    size?: { width: number; height: number };
+  };
 }
 
 export interface ScreenshotOptions {
@@ -91,4 +98,11 @@ export interface WaitOptions {
   visible?: boolean;
   hidden?: boolean;
   state?: 'attached' | 'detached' | 'visible' | 'hidden';
+}
+
+export interface VideoRecordingOptions {
+  dir?: string;
+  size?: { width: number; height: number };
+  aspectRatio?: { width: number; height: number };
+  mode?: 'record-on-failure' | 'retain-on-failure' | 'record-and-replay';
 }

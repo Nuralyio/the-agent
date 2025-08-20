@@ -16,6 +16,7 @@ interface RightPanelProps {
   getDisplayScreenshot: () => string | null;
   selectedEngine: string;
   handleStepClick: (stepIndex: number, step: ExecutionStep) => void;
+  sessionId?: string;
 }
 
 export default function RightPanel({
@@ -30,6 +31,7 @@ export default function RightPanel({
   getDisplayScreenshot,
   selectedEngine,
   handleStepClick,
+  sessionId,
 }: RightPanelProps) {
   return (
     <div style={styles.rightPanel}>
@@ -50,6 +52,7 @@ export default function RightPanel({
         getDisplayScreenshot={getDisplayScreenshot}
         selectedEngine={selectedEngine}
         currentPlan={currentPlan}
+        sessionId={sessionId}
       />
     </div>
   );

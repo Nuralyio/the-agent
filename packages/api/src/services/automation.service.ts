@@ -9,6 +9,8 @@ import { configService } from './config.service';
  * Service for handling browser automation tasks
  */
 export class AutomationService {
+    private currentAutomation: TheAgent | null = null;
+
     /**
      * Execute automation task and stream events
      */
@@ -27,6 +29,7 @@ export class AutomationService {
 
         // Create new automation instance with config
         const automation = new TheAgent(automationConfig);
+        this.currentAutomation = automation;
 
         try {
             // Initialize automation
@@ -70,6 +73,7 @@ export class AutomationService {
             // Clean up automation
             try {
                 await automation.close();
+                this.currentAutomation = null;
             } catch (cleanupError) {
                 console.error('Cleanup error:', cleanupError);
             }
@@ -81,6 +85,112 @@ export class AutomationService {
      */
     getAvailableEngines(): string[] {
         return ['playwright', 'puppeteer', 'selenium'];
+    }
+
+    /**
+     * Get current screenshot from active automation instance
+     */
+    async getCurrentScreenshot(options?: { quality?: number; format?: 'png' | 'jpeg'; fullPage?: boolean }): Promise<Buffer | null> {
+        if (!this.currentAutomation) {
+            return null;
+        }
+
+        try {
+            // Get the current page from the browser manager
+            const browserManager = this.currentAutomation.getBrowserManager();
+            const currentPage = await browserManager.getCurrentPage();
+            
+            if (!currentPage) {
+                return null;
+            }
+
+            // Take screenshot with optimized options for performance
+            const screenshotOptions = {
+                fullPage: options?.fullPage || false,
+                type: options?.format || 'jpeg',
+                quality: options?.quality || 70 // Lower quality for better performance
+            };
+
+            return await currentPage.screenshot(screenshotOptions);
+        } catch (error) {
+            console.error('Error taking screenshot:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Start video recording for current automation session
+     */
+    async startVideoRecording(): Promise<void> {
+        if (!this.currentAutomation) {
+            throw new Error('No active automation session');
+        }
+
+        try {
+            const browserManager = this.currentAutomation.getBrowserManager();
+            const currentPage = await browserManager.getCurrentPage();
+            
+            if (!currentPage) {
+                throw new Error('No active page found');
+            }
+
+            // Check if page supports video recording
+            if (typeof (currentPage as any).startVideoRecording === 'function') {
+                await (currentPage as any).startVideoRecording({
+                    dir: './videos',
+                    size: { width: 1280, height: 720 }
+                });
+            } else {
+                throw new Error('Video recording not supported by current page adapter');
+            }
+        } catch (error) {
+            console.error('Error starting video recording:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Stop video recording and return video path
+     */
+    async stopVideoRecording(): Promise<string | null> {
+        if (!this.currentAutomation) {
+            return null;
+        }
+
+        try {
+            const browserManager = this.currentAutomation.getBrowserManager();
+            const currentPage = await browserManager.getCurrentPage();
+            
+            if (!currentPage) {
+                return null;
+            }
+
+            // Check if page supports video recording
+            if (typeof (currentPage as any).stopVideoRecording === 'function') {
+                return await (currentPage as any).stopVideoRecording();
+            } else {
+                throw new Error('Video recording not supported by current page adapter');
+            }
+        } catch (error) {
+            console.error('Error stopping video recording:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Check if video recording is active
+     */
+    isVideoRecording(): boolean {
+        if (!this.currentAutomation) {
+            return false;
+        }
+
+        try {
+            // This would need to be implemented based on the page instance
+            return false; // Placeholder - could check (page as any).isVideoRecording()
+        } catch (error) {
+            return false;
+        }
     }
 
     /**

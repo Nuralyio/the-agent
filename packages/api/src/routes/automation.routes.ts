@@ -9,4 +9,7 @@ router.post('/execute', AutomationController.executeTask);
 // Get available automation engines
 router.get('/engines', AutomationController.getEngines);
 
+// Get current screenshot for live streaming
+router.get('/screenshot', AutomationController.getScreenshot);
+
 export default router;
