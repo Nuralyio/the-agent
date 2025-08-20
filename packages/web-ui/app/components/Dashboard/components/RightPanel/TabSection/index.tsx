@@ -1,10 +1,10 @@
 import React from 'react';
-import type { ExecutionStep, TabItem } from '../../../Dashboard.types';
 import { styles } from '../../../Dashboard.styles';
+import type { ExecutionStep, TabItem } from '../../../Dashboard.types';
 import { TabNavigation } from '../../shared/TabNavigation';
-import { PreviewTab } from './PreviewTab';
-import { LogsTab } from './LogsTab';
 import { LiveVideoStream } from './LiveVideoStream';
+import { LogsTab } from './LogsTab';
+import { PreviewTab } from './PreviewTab';
 
 interface TabSectionProps {
   activeTab: string;
@@ -32,12 +32,7 @@ export const TabSection: React.FC<TabSectionProps> = ({
   return (
     <div style={styles.rightTabSection}>
       {/* Tab Navigation */}
-      <TabNavigation
-        tabs={tabs}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        variant="right"
-      />
+      <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} variant='right' />
 
       {/* Tab Content */}
       <div style={styles.rightTabContent}>
@@ -55,17 +50,11 @@ export const TabSection: React.FC<TabSectionProps> = ({
             <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px', color: '#ffffff' }}>
               Live Browser Video Stream
             </h2>
-            <LiveVideoStream
-              isVisible={activeTab === 'video'}
-              sessionId={sessionId}
-              style={{ width: '100%' }}
-            />
+            <LiveVideoStream isVisible={activeTab === 'video'} sessionId={sessionId} style={{ width: '100%' }} />
           </div>
         )}
 
-        {activeTab === 'logs' && (
-          <LogsTab />
-        )}
+        {activeTab === 'logs' && <LogsTab />}
       </div>
     </div>
   );

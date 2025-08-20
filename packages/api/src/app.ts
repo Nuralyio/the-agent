@@ -1,9 +1,9 @@
 import express from 'express';
 import { Server } from 'http';
-import { createApp } from './utils/app.utils';
-import { videoStreamController } from './controllers/video-stream.controller';
 import { v4 as uuidv4 } from 'uuid';
 import { WebSocketServer } from 'ws';
+import { videoStreamController } from './controllers/video-stream.controller';
+import { createApp } from './utils/app.utils';
 
 /**
  * AutomationApiServer - HTTP server with WebSocket support for video streaming
@@ -30,10 +30,10 @@ export class AutomationApiServer {
                 console.log(`📡 Stream endpoint: http://localhost:${this.port}/api/execution/stream`);
                 console.log(`🔧 API endpoints: /api/automation/execute, /api/automation/engines`);
                 console.log(`📹 Video stream: ws://localhost:${this.port}/video-stream`);
-                
+
                 // Set up WebSocket server
                 this.setupWebSocket();
-                
+
                 resolve();
             }).on('error', reject);
         });
@@ -45,7 +45,7 @@ export class AutomationApiServer {
     private setupWebSocket(): void {
         if (!this.server) return;
 
-        this.wss = new WebSocketServer({ 
+        this.wss = new WebSocketServer({
             server: this.server,
             path: '/video-stream'
         });
@@ -53,9 +53,9 @@ export class AutomationApiServer {
         this.wss.on('connection', (ws: any, req: any) => {
             const clientId = uuidv4();
             const sessionId = req.headers['x-session-id'] as string;
-            
+
             console.log(`📹 New video stream client connected: ${clientId}`);
-            
+
             // Add client to video streaming service
             const videoService = videoStreamController.getVideoService();
             videoService.addClient(clientId, ws, sessionId);

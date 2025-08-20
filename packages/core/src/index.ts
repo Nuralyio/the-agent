@@ -1,6 +1,6 @@
 import { BrowserAdapterRegistry } from './adapters/adapter-registry';
-import { AIEngine } from './engine/ai-engine';
 import { ActionEngine } from './engine/action-engine';
+import { AIEngine } from './engine/ai-engine';
 import { BrowserManagerImpl } from './managers/browser-manager';
 import {
   AIConfig,
@@ -291,10 +291,10 @@ export class TheAgent {
 export { BrowserAdapterRegistry } from './adapters/adapter-registry';
 export { PlaywrightAdapter } from './adapters/playwright/adapter';
 export { PuppeteerAdapter } from './adapters/puppeteer/adapter';
-export { AIEngine } from './engine/ai-engine';
 export { ActionEngine } from './engine/action-engine';
+export { AIEngine } from './engine/ai-engine';
+export { setPauseChecker } from './engine/execution/action-sequence-executor';
 export { Planner } from './engine/planning/planner';
 export { ExecutionStream, executionStream } from './streaming/execution-stream';
-export { setPauseChecker } from './engine/execution/action-sequence-executor';
 export * from './types';
 

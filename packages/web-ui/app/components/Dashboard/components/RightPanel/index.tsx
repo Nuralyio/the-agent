@@ -1,6 +1,5 @@
-import React from 'react';
-import type { ExecutionStep, TabItem, ExecutionPlan } from '../../Dashboard.types';
 import { styles } from '../../Dashboard.styles';
+import type { ExecutionPlan, ExecutionStep, TabItem } from '../../Dashboard.types';
 import { ExecutionPlanComponent } from './ExecutionPlan';
 import { TabSection } from './TabSection/index';
 
@@ -56,4 +55,4 @@ export default function RightPanel({
       />
     </div>
   );
-};
+}

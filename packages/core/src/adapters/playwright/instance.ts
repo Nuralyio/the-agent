@@ -1,6 +1,6 @@
-import { BrowserInstance, PageInstance, LaunchOptions, BrowserType } from '../../types';
-import { PlaywrightPageInstance } from './page';
 import type { Browser, BrowserContextOptions } from 'playwright';
+import { BrowserInstance, BrowserType, LaunchOptions, PageInstance } from '../../types';
+import { PlaywrightPageInstance } from './page';
 
 /**
  * Playwright browser instance implementation
@@ -11,7 +11,7 @@ export class PlaywrightBrowserInstance implements BrowserInstance {
   constructor(
     private browser: Browser,
     private options: LaunchOptions
-  ) {}
+  ) { }
 
   /**
    * Create a new page instance

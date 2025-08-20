@@ -1,6 +1,4 @@
 import { EventEmitter } from 'events';
-import * as fs from 'fs';
-import * as path from 'path';
 import { AutomationService } from './automation.service';
 
 export interface VideoStreamOptions {
@@ -36,14 +34,14 @@ export class VideoStreamService extends EventEmitter {
   private lastFrameCache = new Map<string, { data: string; timestamp: number }>();
   private frameSkipCounter = new Map<string, number>();
   private interactiveClients = new Map<string, boolean>(); // Track interactive mode per client
-  private performanceMetrics = new Map<string, { 
-    framesSent: number; 
-    bytesTransferred: number; 
+  private performanceMetrics = new Map<string, {
+    framesSent: number;
+    bytesTransferred: number;
     avgFrameSize: number;
     lastFpsCheck: number;
     actualFps: number;
   }>();
-  
+
   constructor(private automationService: AutomationService) {
     super();
   }
@@ -146,7 +144,7 @@ export class VideoStreamService extends EventEmitter {
     }, interval);
 
     this.frameIntervals.set(clientId, frameInterval);
-    
+
     this.sendMessage(clientId, {
       type: 'stream_started',
       fps,
@@ -194,7 +192,7 @@ export class VideoStreamService extends EventEmitter {
       };
 
       const screenshot = await this.automationService.getCurrentScreenshot();
-      
+
       if (screenshot) {
         // Convert buffer to base64
         const base64Frame = screenshot.toString('base64');
@@ -215,7 +213,7 @@ export class VideoStreamService extends EventEmitter {
           // Check for frame similarity to reduce redundant data (only when not interactive)
           const lastFrame = this.lastFrameCache.get(clientId);
           const isSimilarFrame = lastFrame && this.isFrameSimilar(base64Frame, lastFrame.data);
-          
+
           if (isSimilarFrame) {
             // Skip similar frames to save bandwidth
             this.incrementSkipCounter(clientId);
@@ -327,13 +325,13 @@ export class VideoStreamService extends EventEmitter {
 
     const skipCount = this.frameSkipCounter.get(clientId) || 0;
     const metrics = this.performanceMetrics.get(clientId);
-    
+
     if (!metrics) return false;
 
     // Skip frames if average frame size is too large (adaptive quality)
     const avgFrameSize = metrics.avgFrameSize;
     const skipThreshold = avgFrameSize > 300 ? 2 : avgFrameSize > 150 ? 1 : 0;
-    
+
     return skipCount < skipThreshold;
   }
 
@@ -349,14 +347,14 @@ export class VideoStreamService extends EventEmitter {
     // Sample comparison - compare every 1000th character for performance
     const sampleSize = Math.min(1000, Math.floor(currentFrame.length / 100));
     let matches = 0;
-    
+
     for (let i = 0; i < sampleSize; i++) {
       const index = Math.floor(i * currentFrame.length / sampleSize);
       if (currentFrame[index] === lastFrame[index]) {
         matches++;
       }
     }
-    
+
     return (matches / sampleSize) >= threshold;
   }
 
@@ -425,12 +423,12 @@ export class VideoStreamService extends EventEmitter {
     try {
       // Update interactive state tracking
       this.interactiveClients.set(clientId, enabled);
-      
+
       if (enabled) {
         // Enable interactive mode - pause automation
         this.automationService.pauseExecution();
         console.log(`🖱️ Interactive mode enabled for client ${clientId} - automation paused, frame optimizations disabled`);
-        
+
         this.sendMessage(clientId, {
           type: 'interactive_mode_enabled',
           timestamp: Date.now(),
@@ -440,7 +438,7 @@ export class VideoStreamService extends EventEmitter {
         // Disable interactive mode - resume automation and ensure stream is running
         this.automationService.resumeExecution();
         console.log(`🤖 Interactive mode disabled for client ${clientId} - automation resumed, frame optimizations enabled`);
-        
+
         // Always restart the stream to ensure it's working properly after interactive mode
         console.log(`🔄 Ensuring video stream is active for client ${clientId} after disabling interactive mode`);
         try {
@@ -456,7 +454,7 @@ export class VideoStreamService extends EventEmitter {
         } catch (restartError) {
           console.error(`❌ Failed to restart stream for client ${clientId}:`, restartError);
         }
-        
+
         this.sendMessage(clientId, {
           type: 'interactive_mode_disabled',
           timestamp: Date.now(),

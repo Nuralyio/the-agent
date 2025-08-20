@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AUTOMATION_SERVER_URL } from '../../../utils/constants';
 
 interface LiveVideoStreamProps {
@@ -30,24 +30,21 @@ interface VideoStreamMessage {
   automationResumed?: boolean;
 }
 
-export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
-  isVisible,
-  sessionId,
-  className,
-  style
-}) => {
+export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({ isVisible, sessionId, className, style }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentFrame, setCurrentFrame] = useState<string | null>(null);
   const [frameCount, setFrameCount] = useState(0);
   const [actualFps, setActualFps] = useState<number>(0);
-  const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
+  const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>(
+    'disconnected',
+  );
   const [frameSize, setFrameSize] = useState<number>(0);
   const [avgFrameSize, setAvgFrameSize] = useState<number>(0);
   const [bytesTransferred, setBytesTransferred] = useState<number>(0);
   const [interactionEnabled, setInteractionEnabled] = useState<boolean>(false);
-  const [canvasSize, setCanvasSize] = useState<{width: number, height: number}>({width: 0, height: 0});
+  const [canvasSize, setCanvasSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   const [showHoverMessage, setShowHoverMessage] = useState<boolean>(false);
 
   const wsRef = useRef<WebSocket | null>(null);
@@ -82,11 +79,11 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
 
     setConnectionStatus('connecting');
     setError(null);
-    
+
     // Use the automation server URL and convert to WebSocket
     const wsUrl = AUTOMATION_SERVER_URL.replace('http://', 'ws://').replace('https://', 'wss://');
     const fullWsUrl = `${wsUrl}/video-stream`;
-    
+
     console.log('📹 Connecting to video stream:', fullWsUrl);
     const ws = new WebSocket(fullWsUrl);
 
@@ -102,7 +99,7 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
       }
     };
 
-    ws.onmessage = (event) => {
+    ws.onmessage = event => {
       try {
         const message: VideoStreamMessage = JSON.parse(event.data);
         handleWebSocketMessage(message);
@@ -119,7 +116,7 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
       setConnectionStatus('disconnected');
     };
 
-    ws.onerror = (error) => {
+    ws.onerror = error => {
       console.error('WebSocket error:', error);
       setConnectionStatus('error');
       setError('Connection failed');
@@ -160,7 +157,7 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
           setCurrentFrame(`data:image/png;base64,${message.data}`);
           setFrameCount(prev => prev + 1);
           fpsCounterRef.current++;
-          
+
           // Update performance metrics
           if (message.frameSize) {
             setFrameSize(message.frameSize);
@@ -209,18 +206,20 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
       return;
     }
 
-    wsRef.current.send(JSON.stringify({
-      type: 'start_stream',
-      options: {
-        fps: 10,
-        quality: 70, // Optimized for performance
-        width: 1280,
-        height: 720,
-        format: 'jpeg', // JPEG is more efficient than PNG
-        enableAdaptiveFps: true,
-        maxFrameSize: 400 // 400KB max frame size
-      }
-    }));
+    wsRef.current.send(
+      JSON.stringify({
+        type: 'start_stream',
+        options: {
+          fps: 10,
+          quality: 70, // Optimized for performance
+          width: 1280,
+          height: 720,
+          format: 'jpeg', // JPEG is more efficient than PNG
+          enableAdaptiveFps: true,
+          maxFrameSize: 400, // 400KB max frame size
+        },
+      }),
+    );
   }, []);
 
   const stopStream = useCallback(() => {
@@ -228,37 +227,49 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
       return;
     }
 
-    wsRef.current.send(JSON.stringify({
-      type: 'stop_stream'
-    }));
+    wsRef.current.send(
+      JSON.stringify({
+        type: 'stop_stream',
+      }),
+    );
   }, []);
 
   // Send click event to server
-  const sendClick = useCallback((x: number, y: number) => {
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN || !interactionEnabled) {
-      return;
-    }
+  const sendClick = useCallback(
+    (x: number, y: number) => {
+      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN || !interactionEnabled) {
+        return;
+      }
 
-    wsRef.current.send(JSON.stringify({
-      type: 'click_event',
-      x,
-      y,
-      timestamp: Date.now()
-    }));
-  }, [interactionEnabled]);
+      wsRef.current.send(
+        JSON.stringify({
+          type: 'click_event',
+          x,
+          y,
+          timestamp: Date.now(),
+        }),
+      );
+    },
+    [interactionEnabled],
+  );
 
   // Send keyboard event to server
-  const sendKeyboard = useCallback((text: string) => {
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN || !interactionEnabled) {
-      return;
-    }
+  const sendKeyboard = useCallback(
+    (text: string) => {
+      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN || !interactionEnabled) {
+        return;
+      }
 
-    wsRef.current.send(JSON.stringify({
-      type: 'keyboard_event',
-      text,
-      timestamp: Date.now()
-    }));
-  }, [interactionEnabled]);
+      wsRef.current.send(
+        JSON.stringify({
+          type: 'keyboard_event',
+          text,
+          timestamp: Date.now(),
+        }),
+      );
+    },
+    [interactionEnabled],
+  );
 
   // Toggle interactive mode
   const toggleInteractiveMode = useCallback(() => {
@@ -267,63 +278,77 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
 
     // Send toggle message to server
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        type: 'toggle_interactive',
-        enabled: newState,
-        timestamp: Date.now()
-      }));
+      wsRef.current.send(
+        JSON.stringify({
+          type: 'toggle_interactive',
+          enabled: newState,
+          timestamp: Date.now(),
+        }),
+      );
     }
 
     console.log(`🔄 Interactive mode ${newState ? 'enabled' : 'disabled'}`);
   }, [interactionEnabled]);
 
   // Handle canvas click events
-  const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!interactionEnabled || !canvasRef.current) return;
+  const handleCanvasClick = useCallback(
+    (event: React.MouseEvent<HTMLCanvasElement>) => {
+      if (!interactionEnabled || !canvasRef.current) return;
 
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    
-    // Calculate relative coordinates within the actual browser viewport
-    const scaleX = canvasSize.width / rect.width;
-    const scaleY = canvasSize.height / rect.height;
-    
-    const x = (event.clientX - rect.left) * scaleX;
-    const y = (event.clientY - rect.top) * scaleY;
-    
-    console.log(`📍 Canvas click at: (${Math.round(x)}, ${Math.round(y)})`);
-    sendClick(Math.round(x), Math.round(y));
-  }, [interactionEnabled, canvasSize, sendClick]);
+      const canvas = canvasRef.current;
+      const rect = canvas.getBoundingClientRect();
+
+      // Calculate relative coordinates within the actual browser viewport
+      const scaleX = canvasSize.width / rect.width;
+      const scaleY = canvasSize.height / rect.height;
+
+      const x = (event.clientX - rect.left) * scaleX;
+      const y = (event.clientY - rect.top) * scaleY;
+
+      console.log(`📍 Canvas click at: (${Math.round(x)}, ${Math.round(y)})`);
+      sendClick(Math.round(x), Math.round(y));
+    },
+    [interactionEnabled, canvasSize, sendClick],
+  );
 
   // Handle keyboard events (when canvas is focused)
-  const handleCanvasKeyDown = useCallback((event: React.KeyboardEvent<HTMLCanvasElement>) => {
-    if (!interactionEnabled) return;
+  const handleCanvasKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLCanvasElement>) => {
+      if (!interactionEnabled) return;
 
-    // Handle special keys
-    if (event.key.length === 1) {
-      // Regular character
-      sendKeyboard(event.key);
-    } else {
-      // Special keys like Enter, Tab, etc.
-      sendKeyboard(`{${event.key}}`);
-    }
-    
-    event.preventDefault();
-  }, [interactionEnabled, sendKeyboard]);
+      // Handle special keys
+      if (event.key.length === 1) {
+        // Regular character
+        sendKeyboard(event.key);
+      } else {
+        // Special keys like Enter, Tab, etc.
+        sendKeyboard(`{${event.key}}`);
+      }
+
+      event.preventDefault();
+    },
+    [interactionEnabled, sendKeyboard],
+  );
 
   // Handle canvas hover for showing interaction hint
   const handleCanvasMouseEnter = useCallback(() => {
     // Only show if ALL conditions are met: not interactive, streaming, connected, and has current frame
     // And if we haven't already started the hover sequence
-    if (!interactionEnabled && isStreaming && connectionStatus === 'connected' && currentFrame && !hoverStartedRef.current) {
+    if (
+      !interactionEnabled &&
+      isStreaming &&
+      connectionStatus === 'connected' &&
+      currentFrame &&
+      !hoverStartedRef.current
+    ) {
       hoverStartedRef.current = true;
       setShowHoverMessage(true);
-      
+
       // Clear any existing timeout
       if (hoverMessageTimeoutRef.current) {
         clearTimeout(hoverMessageTimeoutRef.current);
       }
-      
+
       // Hide message after 3 seconds
       const timeout = setTimeout(() => {
         setShowHoverMessage(false);
@@ -376,10 +401,10 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
       // Resize canvas to match image
       canvas.width = img.width;
       canvas.height = img.height;
-      
+
       // Update canvas size state for coordinate calculations
       setCanvasSize({ width: img.width, height: img.height });
-      
+
       // Draw the frame
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
@@ -405,19 +430,27 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
 
   const getStatusColor = () => {
     switch (connectionStatus) {
-      case 'connected': return '#22c55e';
-      case 'connecting': return '#eab308';
-      case 'error': return '#ef4444';
-      default: return '#6b7280';
+      case 'connected':
+        return '#22c55e';
+      case 'connecting':
+        return '#eab308';
+      case 'error':
+        return '#ef4444';
+      default:
+        return '#6b7280';
     }
   };
 
   const getStatusText = () => {
     switch (connectionStatus) {
-      case 'connected': return isStreaming ? 'LIVE' : 'CONNECTED';
-      case 'connecting': return 'CONNECTING';
-      case 'error': return 'ERROR';
-      default: return 'DISCONNECTED';
+      case 'connected':
+        return isStreaming ? 'LIVE' : 'CONNECTED';
+      case 'connecting':
+        return 'CONNECTING';
+      case 'error':
+        return 'ERROR';
+      default:
+        return 'DISCONNECTED';
     }
   };
 
@@ -440,7 +473,7 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
           backgroundColor: '#000000',
           minHeight: '200px',
           cursor: interactionEnabled ? 'pointer' : 'default',
-          outline: interactionEnabled ? '2px solid rgba(34, 197, 94, 0.3)' : 'none'
+          outline: interactionEnabled ? '2px solid rgba(34, 197, 94, 0.3)' : 'none',
         }}
         title={interactionEnabled ? 'Click to interact with the browser' : 'Video display only'}
       />
@@ -461,10 +494,10 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
               zIndex: 9,
               pointerEvents: 'none', // Don't interfere with mouse events
               transition: 'opacity 0.15s ease-out',
-              opacity: showHoverMessage ? 1 : 0
+              opacity: showHoverMessage ? 1 : 0,
             }}
           />
-          
+
           {/* Message */}
           <div
             onClick={() => {
@@ -496,16 +529,24 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
               transition: 'opacity 0.15s ease-out, transform 0.1s ease-out',
-              opacity: showHoverMessage ? 1 : 0
+              opacity: showHoverMessage ? 1 : 0,
             }}
-            onMouseEnter={(e) => {
+            onMouseEnter={e => {
               e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1.02)';
             }}
-            onMouseLeave={(e) => {
+            onMouseLeave={e => {
               e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1)';
             }}
           >
-            <div style={{ marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <div
+              style={{
+                marginBottom: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+              }}
+            >
               <span style={{ fontSize: '16px' }}>🖱️</span>
               <span>Click to {interactionEnabled ? 'disable' : 'enable'} interactive mode</span>
             </div>
@@ -530,7 +571,7 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
           fontWeight: 'bold',
           display: 'flex',
           alignItems: 'center',
-          gap: '4px'
+          gap: '4px',
         }}
       >
         <div
@@ -539,7 +580,7 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
             height: '6px',
             borderRadius: '50%',
             backgroundColor: getStatusColor(),
-            animation: isStreaming ? 'pulse 2s infinite' : 'none'
+            animation: isStreaming ? 'pulse 2s infinite' : 'none',
           }}
         />
         {getStatusText()}
@@ -576,7 +617,7 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
             padding: '4px 8px',
             borderRadius: '4px',
             fontSize: '10px',
-            lineHeight: '1.2'
+            lineHeight: '1.2',
           }}
         >
           <div>{frameSize}KB/frame</div>
@@ -612,7 +653,7 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
             transform: 'translate(-50%, -50%)',
             textAlign: 'center',
             color: '#6b7280',
-            fontSize: '14px'
+            fontSize: '14px',
           }}
         >
           <div style={{ fontSize: '24px', marginBottom: '8px' }}>�</div>
@@ -640,7 +681,7 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
             borderRadius: '8px',
             fontSize: '14px',
             textAlign: 'center',
-            maxWidth: '80%'
+            maxWidth: '80%',
           }}
         >
           ⚠️ {error}
@@ -662,7 +703,7 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
             fontWeight: 'bold',
             display: 'flex',
             alignItems: 'center',
-            gap: '4px'
+            gap: '4px',
           }}
         >
           <div
@@ -671,7 +712,7 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
               height: '6px',
               borderRadius: '50%',
               backgroundColor: '#22c55e',
-              animation: 'pulse 1.5s infinite'
+              animation: 'pulse 1.5s infinite',
             }}
           />
           INTERACTIVE (AI PAUSED)
@@ -686,7 +727,7 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
             bottom: '8px',
             left: '8px',
             display: 'flex',
-            gap: '4px'
+            gap: '4px',
           }}
         >
           <button
@@ -699,12 +740,12 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
               padding: '4px 8px',
               fontSize: '11px',
               cursor: 'pointer',
-              fontWeight: 'bold'
+              fontWeight: 'bold',
             }}
           >
             {isStreaming ? '⏹ Stop' : '▶ Start'}
           </button>
-          
+
           {/* Interaction toggle button */}
           <button
             onClick={toggleInteractiveMode}
@@ -716,9 +757,13 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({
               padding: '4px 8px',
               fontSize: '11px',
               cursor: 'pointer',
-              fontWeight: 'bold'
+              fontWeight: 'bold',
             }}
-            title={interactionEnabled ? 'Disable click/type interaction (resume automation)' : 'Enable click/type interaction (pause automation)'}
+            title={
+              interactionEnabled
+                ? 'Disable click/type interaction (resume automation)'
+                : 'Enable click/type interaction (pause automation)'
+            }
           >
             {interactionEnabled ? '🖱 ON' : '🖱 OFF'}
           </button>

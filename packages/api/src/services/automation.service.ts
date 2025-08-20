@@ -1,7 +1,7 @@
+import { setPauseChecker } from '@theagent/core/dist/engine/execution/action-sequence-executor';
 import { TheAgent } from '@theagent/core/dist/index';
 import { executionStream } from '@theagent/core/dist/streaming/execution-stream';
 import { BrowserType } from '@theagent/core/dist/types';
-import { setPauseChecker } from '@theagent/core/dist/engine/execution/action-sequence-executor';
 import { v4 as uuidv4 } from 'uuid';
 import { ExecutionEvent, ExecutionStreamWithClients } from '../types';
 import { configService } from './config.service';
@@ -18,7 +18,7 @@ export class AutomationService {
     constructor() {
         // Store reference for global pause checking
         AutomationService.instance = this;
-        
+
         // Set up the pause checker for the core execution engine
         setPauseChecker(async () => {
             await this.waitForResume();
@@ -122,7 +122,7 @@ export class AutomationService {
         if (!this.isPaused) {
             this.isPaused = true;
             console.log('⏸️ Automation execution paused for interactive mode');
-            
+
             // Broadcast pause event
             this.broadcastCustomEvent({
                 type: 'execution_paused',
@@ -139,13 +139,13 @@ export class AutomationService {
         if (this.isPaused) {
             this.isPaused = false;
             console.log('▶️ Automation execution resumed');
-            
+
             // Resolve the pause promise if waiting
             if (this.pauseResolver) {
                 this.pauseResolver();
                 this.pauseResolver = null;
             }
-            
+
             // Broadcast resume event
             this.broadcastCustomEvent({
                 type: 'execution_resumed',
@@ -184,7 +184,7 @@ export class AutomationService {
             // Get the current page from the browser manager
             const browserManager = this.currentAutomation.getBrowserManager();
             const currentPage = await browserManager.getCurrentPage();
-            
+
             if (!currentPage) {
                 return null;
             }
@@ -214,7 +214,7 @@ export class AutomationService {
         try {
             const browserManager = this.currentAutomation.getBrowserManager();
             const currentPage = await browserManager.getCurrentPage();
-            
+
             if (!currentPage) {
                 throw new Error('No active page found');
             }
@@ -245,7 +245,7 @@ export class AutomationService {
         try {
             const browserManager = this.currentAutomation.getBrowserManager();
             const currentPage = await browserManager.getCurrentPage();
-            
+
             if (!currentPage) {
                 return null;
             }

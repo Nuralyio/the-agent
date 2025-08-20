@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { automationService } from '../services/automation.service';
-import { AutomationExecuteRequest, ApiResponse } from '../types';
+import { ApiResponse, AutomationExecuteRequest } from '../types';
 
 /**
  * Controller for automation endpoints
@@ -66,7 +66,7 @@ export class AutomationController {
     static async getScreenshot(req: Request, res: Response): Promise<void> {
         try {
             const screenshot = await automationService.getCurrentScreenshot();
-            
+
             if (screenshot) {
                 res.setHeader('Content-Type', 'image/png');
                 res.setHeader('Cache-Control', 'no-cache');

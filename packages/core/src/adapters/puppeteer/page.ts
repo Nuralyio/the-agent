@@ -1,12 +1,12 @@
-import { PageInstance, ElementHandle, ScreenshotOptions, WaitOptions, VideoRecordingOptions } from '../../types';
-import { PuppeteerElementHandle } from './element';
 import type { Page, ScreenshotOptions as PuppeteerScreenshotOptions } from 'puppeteer';
+import { ElementHandle, PageInstance, ScreenshotOptions, VideoRecordingOptions, WaitOptions } from '../../types';
+import { PuppeteerElementHandle } from './element';
 
 /**
  * Puppeteer page instance implementation
  */
 export class PuppeteerPageInstance implements PageInstance {
-  constructor(private page: Page) {}
+  constructor(private page: Page) { }
 
   /**
    * Navigate to a URL
@@ -34,7 +34,7 @@ export class PuppeteerPageInstance implements PageInstance {
    */
   async screenshot(options?: ScreenshotOptions): Promise<Buffer> {
     const screenshotOptions: PuppeteerScreenshotOptions = {};
-    
+
     if (options?.path) screenshotOptions.path = options.path as `${string}.png` | `${string}.jpeg` | `${string}.webp`;
     if (options?.type) screenshotOptions.type = options.type;
     if (options?.quality) screenshotOptions.quality = options.quality;
@@ -58,7 +58,7 @@ export class PuppeteerPageInstance implements PageInstance {
    */
   async waitForSelector(selector: string, options?: WaitOptions): Promise<ElementHandle> {
     const waitOptions: Parameters<Page['waitForSelector']>[1] = {};
-    
+
     if (options?.timeout) waitOptions.timeout = options.timeout;
     if (options?.visible !== undefined) waitOptions.visible = options.visible;
     if (options?.hidden !== undefined) waitOptions.hidden = options.hidden;
@@ -67,7 +67,7 @@ export class PuppeteerPageInstance implements PageInstance {
     if (!element) {
       throw new Error(`Element not found: ${selector}`);
     }
-    
+
     return new PuppeteerElementHandle(element);
   }
 

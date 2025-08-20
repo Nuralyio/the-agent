@@ -96,7 +96,7 @@ export class ActionSequenceExecutor {
 
         if (enableStepRefinement && this.stepRefinementManager.needsRefinement(step)) {
           console.log(`\n🔄 Refining step ${i + 1} with AI and page content...`);
-          const originalStep = { ...step }; 
+          const originalStep = { ...step };
           const contextForRefinement = this.stepContextManager.getCurrentContext(i, currentPlan.steps.length);
           const refinedStep = await this.stepRefinementManager.refineStepWithContext(step, contextForRefinement, pageStateBefore);
 

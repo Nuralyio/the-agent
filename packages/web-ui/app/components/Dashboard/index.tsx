@@ -1,11 +1,11 @@
-import React from 'react';
 import type { MetaFunction } from '@remix-run/node';
+import React from 'react';
 import { LeftSidebar } from './components/LeftSidebar/index';
 import RightPanel from './components/RightPanel/index';
+import { styles } from './Dashboard.styles';
+import { useAutomationState } from './hooks/useAutomationState';
 import { useChatMessages } from './hooks/useChatMessages';
 import { useEventStreamSimple } from './hooks/useEventStreamSimple';
-import { useAutomationState } from './hooks/useAutomationState';
-import { styles } from './Dashboard.styles';
 import { DEFAULT_TABS } from './utils/constants';
 
 export const meta: MetaFunction = () => [
@@ -17,13 +17,7 @@ export const Dashboard: React.FC = () => {
   // Generate a simple session ID for video streaming
   const sessionId = React.useMemo(() => `session_${Date.now()}`, []);
 
-  const {
-    chatMessages,
-    setChatMessages,
-    chatContainerRef,
-    addMessage,
-    updateLastStepMessage,
-  } = useChatMessages();
+  const { chatMessages, setChatMessages, chatContainerRef, addMessage, updateLastStepMessage } = useChatMessages();
 
   const {
     taskDescription,

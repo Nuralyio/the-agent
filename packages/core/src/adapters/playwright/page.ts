@@ -1,8 +1,6 @@
 import type { BrowserContext, Page } from 'playwright';
-import { ElementHandle, PageInstance, ScreenshotOptions, WaitOptions, VideoRecordingOptions } from '../../types';
+import { ElementHandle, PageInstance, ScreenshotOptions, VideoRecordingOptions, WaitOptions } from '../../types';
 import { PlaywrightElementHandle } from './element';
-import * as path from 'path';
-import * as fs from 'fs';
 
 /**
  * Playwright implementation of PageInstance

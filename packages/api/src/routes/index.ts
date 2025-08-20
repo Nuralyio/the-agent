@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import executionRoutes from './execution.routes';
 import automationRoutes from './automation.routes';
+import executionRoutes from './execution.routes';
 import healthRoutes from './health.routes';
 import { videoStreamRoutes } from './video-stream.routes';
 
