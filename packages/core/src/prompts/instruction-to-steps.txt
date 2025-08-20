@@ -1,0 +1,42 @@
+Convert the following instruction into executable browser automation steps.
+
+Instruction: {instruction}
+
+Current page context:
+- URL: {pageUrl}
+- Title: {pageTitle}
+
+Page content in Emmet: {pageContent}
+
+{executionContext}
+
+Generate a JSON response with executable action steps. Each step must have:
+- type: NAVIGATE, CLICK, TYPE, WAIT, EXTRACT, SCREENSHOT, SCROLL, HOVER
+- description: what this step does (REQUIRED)
+- target: { "selector": "css-selector", "description": "element description" } (for element interactions)
+- value: text to type or URL to navigate (when applicable)
+
+RULES:
+- Use ACTUAL selectors from the page content above
+- LEVERAGE execution context patterns from previous successful steps
+- Reference form/interactive elements for precise targeting
+- Break complex actions into simple steps
+- For "Add" buttons, prioritize elements with "Add" text or classes
+- NEVER use SELECT action type or pseudo-selectors
+- When similar elements were targeted before, use similar selector patterns
+- CSS selectors are provided as "selector1 OR selector2 OR selector3" - choose the most reliable option
+- Prefer ID or name selectors over positional selectors when available
+- Use nth-of-type or nth-child selectors only when other options fail
+
+Required format:
+{
+  "steps": [
+    {
+      "type": "ACTION_TYPE",
+      "description": "what this step does",
+      "target": { "selector": "css-selector", "description": "element description" },
+      "value": "optional value"
+    }
+  ],
+  "reasoning": "brief explanation including how execution context influenced decisions"
+}

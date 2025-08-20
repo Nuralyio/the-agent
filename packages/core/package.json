@@ -48,6 +48,7 @@
   ],
   "devDependencies": {
     "@types/jest": "^30.0.0",
+    "@types/jsdom": "^21.1.7",
     "@types/node": "^24.2.0",
     "@types/uuid": "^9.0.8",
     "jest": "^30.0.5",
@@ -60,6 +61,8 @@
     "@langchain/ollama": "^0.2.3",
     "axios": "^1.11.0",
     "dotenv": "^16.4.5",
+    "emmet": "^2.4.11",
+    "jsdom": "^26.1.0",
     "langchain": "^0.3.30",
     "openai": "^4.62.1",
     "playwright": "^1.54.2",

@@ -1,5 +1,5 @@
-import { AIEngine } from '../ai-engine';
 import { PromptTemplate } from '../../prompt-template';
+import { AIEngine } from '../ai-engine';
 import { ActionPlan, PageState, TaskContext } from './types/types';
 import {
   AIResponseParser,
@@ -34,6 +34,31 @@ export class ActionPlanner {
   }
 
   /**
+   * Extract structured content from page HTML for external use
+   */
+  extractStructuredContentFromPage(pageContent: string): any {
+    return this.contentExtractor.extractStructuredContent(pageContent);
+  }
+
+  /**
+   * Get form fields with structural context for external use
+   */
+  getFormFieldsWithStructure(pageContent: string): string {
+    return this.contentExtractor.getFormFieldsWithStructure(pageContent);
+  }
+
+  /**
+   * Get all content in simplified format for external use
+   */
+  getAllContentFromPage(pageContent: string): {
+    structure: string;
+    forms: string;
+    interactions: string;
+  } {
+    return this.contentExtractor.getAllContent(pageContent);
+  }
+
+  /**
    * Create an action plan from natural language instruction
    */
   async createActionPlan(instruction: string, context: TaskContext, pageState?: PageState): Promise<ActionPlan> {
@@ -41,7 +66,7 @@ export class ActionPlanner {
       // Use provided pageState or create a minimal one
       const currentPageState: PageState = pageState || this.createDefaultPageState(context);
 
-      const parsedInstruction = await this.parseInstructionWithAI(instruction, currentPageState);
+      const parsedInstruction = await this.parseInstructionWithAI(instruction, currentPageState, context);
 
       return this.planBuilder.buildPlan(
         instruction,
@@ -72,56 +97,45 @@ export class ActionPlanner {
   }
 
   /**
-   * Parse instruction using AI with improved structured output handling
+   * Parse instruction using AI with current page context
    */
-  private async parseInstructionWithAI(instruction: string, pageState: PageState): Promise<ParsedInstruction> {
-    // Extract relevant content from page for better selector identification
-    const pageContent = this.contentExtractor.extractRelevantContent(pageState.content || '');
+  private async parseInstructionWithAI(instruction: string, pageState: PageState, context: TaskContext): Promise<ParsedInstruction> {
+    // Get all content in one call - includes Emmet structure, form elements, and interactive elements
+    const allContent = this.contentExtractor.getAllContent(pageState.content || '');
 
-    // Extract structured form and interactive elements
-    const structuredContent = this.contentExtractor.extractStructuredContent(pageState.content || '');
+    // Prepare execution context - use provided context or fall back to task history
+    const executionContext = context.executionContextSummary || this.prepareExecutionContext(context);
 
-    // Combine form fields and select elements into formElements
-    const formElements = {
-      formFields: structuredContent.formFields,
-      selectElements: structuredContent.selectElements
-    };
-
-    const systemPrompt = this.promptTemplate.render('action-planning', {
+    // Use the instruction-to-steps template with page context
+    const userPrompt = this.promptTemplate.render('instruction-to-steps', {
+      instruction: instruction,
       pageUrl: pageState.url,
       pageTitle: pageState.title,
-      pageContent: pageContent,
-      formElements: JSON.stringify(formElements, null, 2),
-      interactiveElements: JSON.stringify(structuredContent.interactableElements, null, 2)
+      pageContent: allContent.structure,
+      formElements: allContent.forms,
+      interactiveElements: allContent.interactions,
+      executionContext: executionContext
     });
 
-    const userPrompt = `Instruction: "${instruction}"
-
-Convert this to browser automation steps following the expected format.`;
-
     try {
-      // Try structured output first
-      const response = await this.aiService.generateStructuredResponse(userPrompt, systemPrompt);
+      // Try structured output first with empty system prompt for instruction-to-steps
+      const response = await this.aiService.generateStructuredResponse(userPrompt, '');
       const parsed = JSON.parse(response);
       return this.responseParser.convertStructuredResponse(parsed);
 
     } catch (error) {
       console.error('❌ Structured output failed, falling back to text parsing:', error);
       // Fallback to text parsing
-      return this.parseInstructionWithTextFallback(instruction, systemPrompt);
+      return this.parseInstructionWithTextFallback(instruction, userPrompt);
     }
   }
 
   /**
    * Fallback method using text generation when structured output fails
    */
-  private async parseInstructionWithTextFallback(instruction: string, systemPrompt: string): Promise<ParsedInstruction> {
-    const userPrompt = `Instruction: "${instruction}"
-
-Convert this to browser automation steps. Respond with ONLY valid JSON, no other text.`;
-
+  private async parseInstructionWithTextFallback(instruction: string, userPrompt: string): Promise<ParsedInstruction> {
     try {
-      const response = await this.aiService.generateTextWithRetries(userPrompt, systemPrompt);
+      const response = await this.aiService.generateTextWithRetries(userPrompt, '');
       return this.responseParser.parseTextResponse(response);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -130,25 +144,112 @@ Convert this to browser automation steps. Respond with ONLY valid JSON, no other
   }
 
   /**
+   * Prepare execution context from task history for AI planning
+   */
+  private prepareExecutionContext(context: TaskContext): string {
+    // If we have pre-computed execution context summary, use it
+    if (context.executionContextSummary) {
+      try {
+        const parsedContext = JSON.parse(context.executionContextSummary);
+        if (parsedContext.extractedData && parsedContext.extractedData.length > 0) {
+          const contextLines: string[] = [];
+          contextLines.push("=== EXECUTION CONTEXT ===");
+          contextLines.push("Previously extracted data:");
+          contextLines.push("");
+          
+          parsedContext.extractedData.forEach((item: any, index: number) => {
+            contextLines.push(`Extracted Data ${index + 1}:`);
+            contextLines.push(`- Description: ${item.description}`);
+            contextLines.push(`- Data: ${JSON.stringify(item.data, null, 2)}`);
+            contextLines.push(`- Timestamp: ${item.timestamp}`);
+            contextLines.push("");
+          });
+
+          if (parsedContext.recentSteps && parsedContext.recentSteps.length > 0) {
+            contextLines.push("Recent steps executed:");
+            parsedContext.recentSteps.forEach((step: any, index: number) => {
+              contextLines.push(`${index + 1}. ${step.type.toUpperCase()}: ${step.description} (${step.success ? 'SUCCESS' : 'FAILED'})`);
+            });
+          }
+
+          return contextLines.join("\n");
+        }
+      } catch (error) {
+        console.warn('Failed to parse execution context summary:', error);
+      }
+    }
+
+    // Fallback to legacy method using task history
+    if (!context.history || context.history.length === 0) {
+      return "No previous execution context available.";
+    }
+
+    const recentSteps = context.history.slice(-5); // Get last 5 steps
+    const contextLines: string[] = [];
+    
+    contextLines.push("=== EXECUTION CONTEXT ===");
+    contextLines.push(`Previous ${recentSteps.length} step(s) executed:`);
+    contextLines.push("");
+
+    // Include extracted data if available
+    const extractedData: string[] = [];
+
+    recentSteps.forEach((step, index) => {
+      const stepNumber = context.history.length - recentSteps.length + index + 1;
+      contextLines.push(`Step ${stepNumber}:`);
+      contextLines.push(`  Type: ${step.type}`);
+      contextLines.push(`  Description: ${step.description}`);
+      
+      if (step.target?.selector) {
+        contextLines.push(`  Selector: ${step.target.selector}`);
+      }
+      
+      if (step.value) {
+        contextLines.push(`  Value: ${step.value}`);
+      }
+      
+      // Note: Extracted data from EXTRACT actions will be included below
+      // from the StepContextManager's recent results
+      
+      contextLines.push("");
+    });
+
+    // Extract successful selector patterns
+    const successfulSelectors = recentSteps
+      .filter(step => step.target?.selector)
+      .map(step => step.target!.selector);
+
+    if (successfulSelectors.length > 0) {
+      contextLines.push("Successful selector patterns to consider:");
+      successfulSelectors.forEach(selector => {
+        contextLines.push(`  - ${selector}`);
+      });
+      contextLines.push("");
+    }
+
+    // TODO: Add extracted data from StepContextManager when available
+    // The ActionPlanner currently doesn't have direct access to StepContextManager
+    // This will be resolved when execution context is properly passed through
+
+    contextLines.push("Use this context to inform better selector choices and action planning.");
+    contextLines.push("=========================");
+
+    return contextLines.join('\n');
+  }
+
+  /**
    * Adapt an existing plan based on current page state using AI
    */
   async adaptPlan(currentPlan: ActionPlan, currentState: PageState): Promise<ActionPlan> {
     try {
-      const systemPrompt = this.promptTemplate.render('plan-adaptation', {});
+      const systemPrompt = await this.promptTemplate.render('plan-adaptation', {});
 
-      const adaptPrompt = `The current action plan failed or needs adjustment.
-
-Current plan:
-${JSON.stringify(currentPlan.steps, null, 2)}
-
-Current page state:
-- URL: ${currentState.url}
-- Title: ${currentState.title}
-
-Current page content (for accurate selector refinement):
-${currentState.content || 'No content available'}
-
-Please analyze the situation and the actual page HTML content above to provide an updated action plan with correct selectors based on what's actually on the page. Respond with ONLY valid JSON, no other text.`;
+      const adaptPrompt = this.promptTemplate.render('plan-adaptation-analysis', {
+        currentPlan: JSON.stringify(currentPlan.steps, null, 2),
+        url: currentState.url,
+        title: currentState.title,
+        pageContent: currentState.content || 'No content available'
+      });
 
       const response = await this.aiService.generateTextWithRetries(adaptPrompt, systemPrompt);
       const adaptedInstruction = this.responseParser.parseTextResponse(response);

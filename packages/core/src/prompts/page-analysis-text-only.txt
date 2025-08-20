@@ -1,0 +1,7 @@
+Analyze this webpage content and describe the key elements:
+
+URL: {{url}}
+Title: {{title}}
+Content Preview: {{contentPreview}}...
+
+{{query}}

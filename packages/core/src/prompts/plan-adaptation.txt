@@ -20,6 +20,9 @@ SELECTOR REFINEMENT RULES:
 2. If `a[href*="addCandidate"]` fails, look for `button` elements with "Add" text
 3. Use actual class names from page content like `oxd-button`, `oxd-button--secondary`
 4. Never retry the same failed selector - always generate new ones based on page content
+5. Do NOT use full CSS selectors with all parent elements (e.g., avoid `div.container > div.row > button.btn`)
+6. Prefer simple, specific selectors like `.oxd-button`, `#username`, or `[name="password"]`
+7. Use the most specific unique identifier available (ID > unique class > attribute)
 
 IMPORTANT RULES:
 1. ONLY respond with valid JSON - no markdown, no explanations, no comments

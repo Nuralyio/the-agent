@@ -1,7 +1,9 @@
-import { ActionStep, ActionType } from './planning/types/types';
 import { PromptTemplate } from '../prompt-template';
-import { PageState } from '../types';
 import { OllamaProvider, OpenAIProvider } from '../providers';
+import { PageState } from '../types';
+import { ActionStep, ActionType } from './planning/types/types';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -156,7 +158,17 @@ export class AIEngine {
    * Generate text using the default provider
    */
   async generateText(prompt: string, systemPrompt?: string): Promise<AIResponse> {
-    return this.getDefaultProvider().generateText(prompt, systemPrompt);
+    const provider = this.getDefaultProvider();
+    
+    // Log the request
+    this.logAIRequest('generateText', prompt, systemPrompt, provider.name);
+    
+    const response = await provider.generateText(prompt, systemPrompt);
+    
+    // Log the response
+    this.logAIResponse('generateText', response, provider.name, prompt);
+    
+    return response;
   }
 
   /**
@@ -165,18 +177,28 @@ export class AIEngine {
   async generateStructuredJSON(prompt: string, systemPrompt?: string): Promise<AIResponse> {
     const provider = this.getDefaultProvider();
 
+    // Log the request
+    this.logAIRequest('generateStructuredJSON', prompt, systemPrompt, provider.name);
+
+    let response: AIResponse;
+    
     // Use provider's structured JSON method if available
     if (provider.generateStructuredJSON) {
-      return provider.generateStructuredJSON(prompt, systemPrompt);
+      response = await provider.generateStructuredJSON(prompt, systemPrompt);
+    } else {
+      // Fallback to regular text generation with enhanced prompting
+      const structuredJsonPrompt = this.promptTemplate.render('structured-json', {});
+      const enhancedSystemPrompt = systemPrompt
+        ? `${systemPrompt}\n\n${structuredJsonPrompt}`
+        : structuredJsonPrompt;
+
+      response = await this.generateText(prompt, enhancedSystemPrompt);
     }
-
-    // Fallback to regular text generation with enhanced prompting
-    const structuredJsonPrompt = this.promptTemplate.render('structured-json', {});
-    const enhancedSystemPrompt = systemPrompt
-      ? `${systemPrompt}\n\n${structuredJsonPrompt}`
-      : structuredJsonPrompt;
-
-    return this.generateText(prompt, enhancedSystemPrompt);
+    
+    // Log the response
+    this.logAIResponse('generateStructuredJSON', response, provider.name, prompt);
+    
+    return response;
   }
 
   /**
@@ -187,7 +209,16 @@ export class AIEngine {
     if (!provider.generateWithVision) {
       throw new Error(`Provider '${provider.name}' does not support vision capabilities`);
     }
-    return provider.generateWithVision(prompt, images, systemPrompt);
+
+    // Log the request (with image info but not the actual image data)
+    this.logAIVisionRequest('generateWithVision', prompt, systemPrompt, provider.name, images);
+    
+    const response = await provider.generateWithVision(prompt, images, systemPrompt);
+    
+    // Log the response
+    this.logAIResponse('generateWithVision', response, provider.name, prompt);
+    
+    return response;
   }
 
   /**
@@ -201,9 +232,9 @@ export class AIEngine {
       viewportHeight: pageState.viewport?.height || 720
     });
 
-    const prompt = `Convert this instruction into browser automation steps: "${instruction}"
-
-Return only the JSON array, no additional text.`;
+    const prompt = this.promptTemplate.render('instruction-to-steps-simple', {
+      instruction: instruction
+    });
 
     try {
       const response = await this.generateText(prompt, systemPrompt);
@@ -255,18 +286,17 @@ Return only the JSON array, no additional text.`;
     const provider = this.getDefaultProvider();
 
     if (provider.visionCapabilities.supportsImages && provider.generateWithVision && pageState.screenshot) {
-      const prompt = query || 'Analyze this webpage and describe what you see. Focus on interactive elements, forms, buttons, and navigation.';
+      const prompt = query || this.promptTemplate.render('page-analysis-default', {});
       const response = await provider.generateWithVision(prompt, [pageState.screenshot]);
       return response.content;
     } else {
       // Text-only analysis
-      const prompt = `Analyze this webpage content and describe the key elements:
-
-URL: ${pageState.url}
-Title: ${pageState.title}
-Content Preview: ${pageState.content?.substring(0, 2000) || 'No content available'}...
-
-${query || 'Describe the key interactive elements, forms, buttons, and navigation options available on this page.'}`;
+      const prompt = this.promptTemplate.render('page-analysis-text-only', {
+        url: pageState.url,
+        title: pageState.title,
+        contentPreview: pageState.content?.substring(0, 2000) || 'No content available',
+        query: query || this.promptTemplate.render('page-analysis-fallback', {})
+      });
 
       const response = await this.generateText(prompt);
       return response.content;
@@ -295,5 +325,128 @@ ${query || 'Describe the key interactive elements, forms, buttons, and navigatio
     }
 
     return results;
+  }
+
+  /**
+   * Log AI request (prompt + system prompt)
+   */
+  private logAIRequest(method: string, prompt: string, systemPrompt: string | undefined, providerName: string): void {
+    try {
+      const timestamp = new Date().toISOString();
+      const requestData = {
+        timestamp,
+        method,
+        providerName,
+        promptLength: prompt.length,
+        systemPromptLength: systemPrompt?.length || 0,
+        prompt: prompt,
+        systemPrompt: systemPrompt || null
+      };
+
+      // Create request log file
+      const sanitizedMethod = method.replace(/[^a-zA-Z0-9-]/g, '-');
+      const logFileName = `${sanitizedMethod}-REQUEST-${timestamp.split('T')[0]}-${timestamp.split('T')[1].split('.')[0].replace(/:/g, '-')}.log`;
+      const logFilePath = this.getLogFilePath(logFileName);
+
+      // Format request log entry
+      const logEntry = `${JSON.stringify(requestData, null, 2)}\n\n--- AI REQUEST PROMPT ---\n${prompt}\n\n${systemPrompt ? `--- SYSTEM PROMPT ---\n${systemPrompt}\n\n` : ''}${'='.repeat(80)}\n\n`;
+
+      // Write to file
+      fs.writeFileSync(logFilePath, logEntry);
+
+      if (process.env.NODE_ENV === 'development' || process.env.AI_DEBUG === 'true') {
+        console.log(`🤖 Logged AI request for '${method}' to: ${logFileName}`);
+      }
+    } catch (error) {
+      console.warn(`Failed to log AI request: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * Log AI response
+   */
+  private logAIResponse(method: string, response: AIResponse, providerName: string, originalPrompt: string): void {
+    try {
+      const timestamp = new Date().toISOString();
+      const responseData = {
+        timestamp,
+        method,
+        providerName,
+        responseContentLength: response.content?.length || 0,
+        finishReason: response.finishReason || 'unknown',
+        usage: response.usage || null,
+        originalPromptLength: originalPrompt.length
+      };
+
+      // Create response log file
+      const sanitizedMethod = method.replace(/[^a-zA-Z0-9-]/g, '-');
+      const logFileName = `${sanitizedMethod}-RESPONSE-${timestamp.split('T')[0]}-${timestamp.split('T')[1].split('.')[0].replace(/:/g, '-')}.log`;
+      const logFilePath = this.getLogFilePath(logFileName);
+
+      // Format response log entry
+      const logEntry = `${JSON.stringify(responseData, null, 2)}\n\n--- AI RESPONSE ---\n${response.content || 'No content'}\n\n${'='.repeat(80)}\n\n`;
+
+      // Write to file
+      fs.writeFileSync(logFilePath, logEntry);
+
+      if (process.env.NODE_ENV === 'development' || process.env.AI_DEBUG === 'true') {
+        console.log(`🤖 Logged AI response for '${method}' to: ${logFileName}`);
+      }
+    } catch (error) {
+      console.warn(`Failed to log AI response: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * Log AI vision request (prompt + system prompt + image info)
+   */
+  private logAIVisionRequest(method: string, prompt: string, systemPrompt: string | undefined, providerName: string, images: Buffer[]): void {
+    try {
+      const timestamp = new Date().toISOString();
+      const requestData = {
+        timestamp,
+        method,
+        providerName,
+        promptLength: prompt.length,
+        systemPromptLength: systemPrompt?.length || 0,
+        imageCount: images.length,
+        imageSizes: images.map(img => img.length),
+        totalImageDataSize: images.reduce((total, img) => total + img.length, 0),
+        prompt: prompt,
+        systemPrompt: systemPrompt || null
+      };
+
+      // Create request log file
+      const sanitizedMethod = method.replace(/[^a-zA-Z0-9-]/g, '-');
+      const logFileName = `${sanitizedMethod}-REQUEST-${timestamp.split('T')[0]}-${timestamp.split('T')[1].split('.')[0].replace(/:/g, '-')}.log`;
+      const logFilePath = this.getLogFilePath(logFileName);
+
+      // Format request log entry (without actual image data)
+      const logEntry = `${JSON.stringify(requestData, null, 2)}\n\n--- AI VISION REQUEST PROMPT ---\n${prompt}\n\n${systemPrompt ? `--- SYSTEM PROMPT ---\n${systemPrompt}\n\n` : ''}--- IMAGE INFO ---\nImages: ${images.length}\nTotal size: ${requestData.totalImageDataSize} bytes\n\n${'='.repeat(80)}\n\n`;
+
+      // Write to file
+      fs.writeFileSync(logFilePath, logEntry);
+
+      if (process.env.NODE_ENV === 'development' || process.env.AI_DEBUG === 'true') {
+        console.log(`🤖 Logged AI vision request for '${method}' to: ${logFileName}`);
+      }
+    } catch (error) {
+      console.warn(`Failed to log AI vision request: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * Get log file path
+   */
+  private getLogFilePath(fileName: string): string {
+    // Use ai-debug-logs directory in packages root
+    const logsDir = path.resolve(__dirname, '../../../ai-debug-logs');
+    
+    // Ensure directory exists
+    if (!fs.existsSync(logsDir)) {
+      fs.mkdirSync(logsDir, { recursive: true });
+    }
+    
+    return path.join(logsDir, fileName);
   }
 }

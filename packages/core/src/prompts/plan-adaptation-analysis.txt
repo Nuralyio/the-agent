@@ -1,0 +1,24 @@
+The current action plan failed or needs adjustment.
+
+Current plan:
+{{currentPlan}}
+
+Current page state (captured after ensuring page is fully loaded):
+- URL: {{url}}
+- Title: {{title}}
+
+
+ANALYSIS INSTRUCTIONS:
+1. The page content above was captured AFTER waiting for the page to fully load
+2. Analyze the actual HTML structure to identify correct selectors
+3. Look for real class names, IDs, and element attributes in the page content
+4. If elements are missing, they may still be loading - consider adding WAIT steps
+5. Use the complete page content to understand the current page state
+
+REFINEMENT RULES:
+- Use actual CSS selectors from the loaded page content
+- If original selectors failed, find alternative selectors for the same functionality
+- Add WAIT steps if elements appear to be loading dynamically
+- Ensure all selectors match elements visible in the provided page content
+
+Please analyze the situation and the actual page HTML content above to provide an updated action plan with correct selectors based on what's actually on the page. Respond with ONLY valid JSON, no other text.

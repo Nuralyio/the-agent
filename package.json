@@ -77,6 +77,8 @@
     }
   },
   "dependencies": {
-    "@fluentui/react-icons": "^2.0.307"
+    "@fluentui/react-icons": "^2.0.307",
+    "@xmldom/xmldom": "^0.8.11",
+    "emmet": "^2.4.11"
   }
 }

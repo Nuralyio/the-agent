@@ -25,17 +25,23 @@ export class ActionSequenceExecutor {
   ) { }
 
   /**
-   * Execute a structured action plan with dynamic refinement and context awareness
+   * Execute an action plan with context-aware refinement
    */
-  async executeActionPlan(plan: ActionPlan, logger?: ExecutionLogger): Promise<TaskResult> {
+  async executeActionPlan(plan: ActionPlan, logger?: ExecutionLogger, preserveExtractedData: boolean = true, enableStepRefinement: boolean = false): Promise<TaskResult> {
     const executedSteps: any[] = [];
     const screenshots: Buffer[] = [];
     let currentPlan = plan;
 
     console.log(`🚀 Executing ${currentPlan.steps.length} steps with context-aware refinement`);
 
-    // Reset context for new plan execution
-    this.stepContextManager.reset();
+    // Reset plan-specific context but optionally preserve session-level extracted data
+    if (preserveExtractedData) {
+      console.log(`💾 Preserving extracted data from previous executions`);
+      this.stepContextManager.resetPlanContext();
+    } else {
+      console.log(`🔄 Full context reset for new session`);
+      this.stepContextManager.reset();
+    }
 
     for (let i = 0; i < currentPlan.steps.length; i++) {
       const step = currentPlan.steps[i];
@@ -66,11 +72,12 @@ export class ActionSequenceExecutor {
           };
         } = { wasRefined: false };
 
-        // For steps that need page interaction, refine with context and page content
-        if (this.stepRefinementManager.needsRefinement(step)) {
-          console.log(`\n🔄 Refining step ${i + 1} with context and page content...`);
+        // For steps that need page interaction, refine with context and page content (if enabled)
+        if (enableStepRefinement && this.stepRefinementManager.needsRefinement(step)) {
+          console.log(`\n🔄 Refining step ${i + 1} with AI and page content...`);
           const originalStep = { ...step }; // Keep copy of original step
-          const refinedStep = await this.stepRefinementManager.refineStepWithContext(step, stepContext, pageStateBefore);
+          const contextForRefinement = this.stepContextManager.getCurrentContext(i, currentPlan.steps.length);
+          const refinedStep = await this.stepRefinementManager.refineStepWithContext(step, contextForRefinement, pageStateBefore);
 
           // Check if step was actually refined by comparing selectors specifically
           const originalSelector = originalStep.target?.selector;
@@ -115,10 +122,11 @@ export class ActionSequenceExecutor {
         // Stream step start event
         executionStream.streamStepStart(i, currentPlan.steps[i]!);
 
-        // Execute step with retry mechanism and progressive refinement
+        // Execute step with retry mechanism and AI refinement
+        const contextForRetry = this.stepContextManager.getCurrentContext(i, currentPlan.steps.length);
         const stepResult = await this.stepRefinementManager.executeStepWithRetry(
           currentPlan.steps[i]!,
-          stepContext,
+          contextForRetry,
           pageStateBefore,
           3,
           (step: ActionStep) => this.actionExecutor.executeStep(step)
@@ -173,6 +181,11 @@ export class ActionSequenceExecutor {
         const value = currentPlan.steps[i]!.value;
         if (stepResult.success && value) {
           stepExecutionResult.valueEntered = value;
+        }
+        
+        // Add extracted data for EXTRACT actions
+        if (stepResult.success && stepResult.data && step.type === 'extract') {
+          stepExecutionResult.extractedData = stepResult.data;
         }
 
         // Add step result to context manager

@@ -1,0 +1,3 @@
+Convert this instruction into browser automation steps: "{{instruction}}"
+
+Return only the JSON array, no additional text.

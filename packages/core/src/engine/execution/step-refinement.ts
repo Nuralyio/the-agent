@@ -1,3 +1,4 @@
+import * as crypto from 'crypto';
 import { PromptTemplate } from '../../prompt-template';
 import { ActionStep, ActionType, PageState } from '../../types';
 import { ContextualStepAnalyzer } from '../analysis/contextual-analyzer';
@@ -101,33 +102,7 @@ export class StepRefinementManager {
       return step;
     }
 
-    // Strategy 1 (attempt 1): Use contextual analysis
-    if (attempt === 1 && this.contextualAnalyzer) {
-      try {
-        const successfulSelectors = this.stepContextManager.getSuccessfulSelectors();
-        return await this.contextualAnalyzer.improveStepWithContext(
-          step,
-          stepContext,
-          successfulSelectors,
-          pageState.content || ''
-        );
-      } catch (error) {
-        console.log(`   ⚠️ Contextual refinement failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      }
-    }
-
-    // Strategy 2 (attempt 2): Try alternative selector patterns
-    if (attempt === 2 && step.target?.selector) {
-      const alternativeStep = await this.generateAlternativeSelector(step, pageState);
-      if (alternativeStep.target?.selector !== step.target.selector) {
-        return alternativeStep;
-      }
-    }
-
-    // Strategy 3 (attempt 3+): Use AI-powered refinement with error context
-    if (attempt >= 3) {
-      return await this.aiRefineStepWithErrorContext(step, stepContext, pageState);
-    }
+    return await this.aiRefineStepWithErrorContext(step, stepContext, pageState);
 
     return step;
   }
@@ -183,13 +158,18 @@ export class StepRefinementManager {
     pageState: PageState
   ): Promise<ActionStep> {
     try {
+      // Get all content in one call - includes structure, forms, and interactions
+      const allContent = this.actionPlanner.getAllContentFromPage(pageState.content || '');
+
       const refinementPrompt = this.promptTemplate.render('step-refinement', {
         stepDescription: step.description,
         failedSelector: step.target?.selector || 'none',
         stepType: step.type,
         pageUrl: pageState.url,
         pageTitle: pageState.title,
-        pageContent: pageState.content || 'No content available'
+        formElements: allContent.forms,
+        interactiveElements: allContent.interactions,
+        pageContent: allContent.structure
       });
 
       const refinedPlan = await this.actionPlanner.createActionPlan(refinementPrompt, {
@@ -322,6 +302,9 @@ export class StepRefinementManager {
       `${i + 1}. ${s.step.type}: ${s.step.description} → ${s.success ? 'SUCCESS' : 'FAILED'} (selector: ${s.selectorUsed || s.step.target?.selector})`
     ).join('\n') || 'No recent steps';
 
+    // Get all content in one call - includes structure, forms, and interactions
+    const allContent = this.actionPlanner.getAllContentFromPage(pageState.content || '');
+
     return this.promptTemplate.render('context-aware-refinement', {
       recentSteps: recentStepsText,
       successfulSelectors: successfulSelectors.join(', ') || 'None yet',
@@ -329,7 +312,9 @@ export class StepRefinementManager {
       stepDescription: step.description,
       currentSelector: step.target?.selector || 'none',
       pageUrl: pageState.url,
-      pageContent: pageState.content || 'No content available'
+      formElements: allContent.forms,
+      interactiveElements: allContent.interactions,
+      pageContent: allContent.structure
     });
   }
 }

@@ -9,6 +9,7 @@ import { ResponseParser } from './parsers/response-parser';
 import { PlanExecution } from './plan-execution';
 import { PlanAssemblyService } from './services/plan-assembly.service';
 import { SubPlanService } from './services/sub-plan.service';
+import { StepContextManager } from '../analysis/step-context';
 import { GlobalPlanConfig, GlobalPlanInstruction } from './types/planning.types';
 
 /**
@@ -34,12 +35,12 @@ export class Planner {
   private promptTemplate: PromptTemplate;
   private responseParser: ResponseParser;
 
-  constructor(aiEngine: AIEngine) {
+  constructor(aiEngine: AIEngine, stepContextManager?: StepContextManager) {
     this.aiEngine = aiEngine;
     this.actionPlanner = new ActionPlanner(aiEngine);
     this.subPlanService = new SubPlanService(this.actionPlanner);
     this.planAssemblyService = new PlanAssemblyService();
-    this.executionManager = new PlanExecution();
+    this.executionManager = new PlanExecution(this.subPlanService, undefined, stepContextManager);
     this.promptTemplate = new PromptTemplate();
     this.responseParser = new ResponseParser();
   }
@@ -238,5 +239,12 @@ export class Planner {
    */
   getActionPlanner(): ActionPlanner {
     return this.actionPlanner;
+  }
+
+  /**
+   * Set the action executor for lazy action planning during execution
+   */
+  setActionExecutor(actionExecutor: any): void {
+    this.executionManager.setActionExecutor(actionExecutor);
   }
 }

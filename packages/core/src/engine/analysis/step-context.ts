@@ -14,6 +14,7 @@ export interface StepExecutionResult {
   elementFound?: boolean;
   selectorUsed?: string;
   valueEntered?: string;
+  extractedData?: string; // Data extracted from EXTRACT actions
 }
 
 /**
@@ -152,6 +153,18 @@ export class StepContextManager {
   }
 
   /**
+   * Reset only plan-specific context, preserving session-level data like extracted data
+   * Use this for new plans within the same session
+   */
+  resetPlanContext(): void {
+    // Keep stepHistory for extracted data persistence
+    // Only clear form elements and page history that are plan-specific
+    this.formElements.clear();
+    this.pageHistory = [];
+    // Don't reset sessionStartTime - this is a session-level property
+  }
+
+  /**
    * Export context for AI analysis
    */
   exportContextSummary(): string {
@@ -159,14 +172,25 @@ export class StepContextManager {
     const successfulSelectors = this.getSuccessfulSelectors();
     const formElements = this.getKnownFormElements();
 
+    // Get extracted data from EXTRACT actions
+    const extractedData = this.stepHistory
+      .filter(step => step.step.type === 'extract' && step.success && step.extractedData)
+      .map(step => ({
+        description: step.step.description,
+        data: step.extractedData,
+        timestamp: step.timestamp.toISOString()
+      }));
+
     return JSON.stringify({
       recentSteps: recentSteps.map(step => ({
         type: step.step.type,
         description: step.step.description,
         success: step.success,
         selector: step.selectorUsed || step.step.target?.selector,
+        extractedData: step.extractedData, // Include extracted data
         timestamp: step.timestamp.toISOString()
       })),
+      extractedData, // Include all extracted data summary
       successfulSelectors,
       formElements: formElements.map(el => ({
         selector: el.selector,

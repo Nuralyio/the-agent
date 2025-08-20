@@ -1,25 +1,43 @@
-SELECTOR REFINEMENT WITH ERROR CONTEXT AND PAGE CONTENT
+STEP REFINEMENT WITH ERROR ANALYSIS
 
 Failed step: {stepDescription}
 Failed selector: {failedSelector}
 Step type: {stepType}
+Error message: {errorMessage}
 
 Current page URL: {pageUrl}
 Current page title: {pageTitle}
 
-Current page content (analyze this to find correct selectors):
-{pageContent}
+Available form elements: {formElements}
+Available interactive elements: {interactiveElements}
 
-The selector "{failedSelector}" failed to find elements after multiple attempts. 
-Analyze the actual page HTML content above to provide a better selector that targets the right element.
+Current page content (analyze this to find correct selectors):
+
+The selector "{failedSelector}" failed with error: "{errorMessage}"
 
 CRITICAL REFINEMENT RULES:
-1. Look at the actual HTML structure in the page content
-2. If looking for "Add" functionality and the failed selector was `a[href*="addCandidate"]`, check for `button` elements with "Add" text
-3. Use actual class names from the page content like `oxd-button`, `oxd-button--secondary`
-4. Don't make assumptions about element types - use what's actually on the page
-5. Generate new selectors based on visible HTML attributes and classes
+1. Analyze the actual HTML structure in the page content above
+2. Find elements that match the step intent: "{stepDescription}"
+3. Use actual class names, IDs, and attributes from the page content
+4. Consider the error message to understand what went wrong
+5. Provide a better, more specific selector based on actual page elements
+6. CSS selectors are provided as "selector1 OR selector2 OR selector3" - choose the most reliable option
+7. Prefer ID or name selectors over positional selectors when available
+8. Use nth-of-type or nth-child selectors only when other options fail
 
-Focus on finding elements that match the intent: "{stepDescription}"
+Generate a JSON response with the refined step using a selector based on the actual page content and error analysis.
 
-Respond with ONLY a JSON object with the refined step using a selector based on the actual page content.
+Required format:
+{
+  "steps": [
+    {
+      "type": "{stepType}",
+      "description": "{stepDescription}",
+      "target": {
+        "selector": "improved-css-selector-here",
+        "description": "element description"
+      }
+    }
+  ],
+  "reasoning": "Explanation of why this refinement should work"
+}

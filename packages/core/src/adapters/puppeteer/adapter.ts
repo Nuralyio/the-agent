@@ -1,6 +1,6 @@
-import { BrowserAdapter, BrowserType, LaunchOptions, BrowserInstance } from '../types';
-import { PuppeteerBrowserInstance } from './instance';
 import puppeteer, { LaunchOptions as PuppeteerLaunchOptions } from 'puppeteer';
+import { BrowserAdapter, BrowserInstance, BrowserType, LaunchOptions } from '../types';
+import { PuppeteerBrowserInstance } from './instance';
 
 /**
  * Puppeteer browser adapter implementation
@@ -28,7 +28,7 @@ export class PuppeteerAdapter implements BrowserAdapter {
   getDefaultOptions(): LaunchOptions {
     return {
       headless: true,
-      timeout: 30000,
+      timeout: 5000,
       args: ['--no-sandbox', '--disable-dev-shm-usage']
     };
   }

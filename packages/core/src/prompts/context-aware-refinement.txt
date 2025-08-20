@@ -1,28 +1,39 @@
-CONTEXT-AWARE STEP REFINEMENT WITH PAGE CONTENT
+AI-POWERED STEP REFINEMENT
 
-Previous steps (recent):
-{recentSteps}
-
-Successful selectors used before:
-{successfulSelectors}
-
-Current step to refine:
+Step to refine:
 - Type: {stepType}
 - Description: {stepDescription}
 - Current selector: {currentSelector}
 
 Current page: {pageUrl}
 
-Current page content (analyze for correct selectors):
-{pageContent}
+Available form elements: {formElements}
+Available interactive elements: {interactiveElements}
 
-Based on previous successful actions, patterns, and the actual page HTML content above, provide the BEST CSS selector for this step.
 
-CRITICAL REFINEMENT STRATEGY:
-1. First, look at successful selectors from previous steps that might apply
-2. Then, analyze the actual page HTML content to find the right element
-3. If looking for "Add" functionality and current selector is `a[href*="addCandidate"]`, check for `button.oxd-button` with "Add" text
-4. Use actual class names from the page content like `oxd-button`, `oxd-button--secondary`
-5. Prefer selectors that combine successful patterns with actual page elements
+Using AI analysis of the page content above, provide the BEST CSS selector for this step.
 
-Respond with ONLY a JSON object with the refined step using a selector based on successful patterns and actual page content.
+REFINEMENT STRATEGY:
+1. Analyze the actual page HTML content to find the right element
+2. Look for elements that match the step description: "{stepDescription}"
+3. Use actual class names, IDs, and attributes from the page content
+4. Prefer specific, unique selectors over generic ones
+5. Ensure the selector targets exactly what the step needs to accomplish
+6. CSS selectors are provided as "selector1 OR selector2 OR selector3" - choose the most reliable option
+7. Prefer ID or name selectors over positional selectors when available
+8. Use nth-of-type or nth-child selectors only when other options fail
+
+Required format:
+{
+  "steps": [
+    {
+      "type": "{stepType}",
+      "description": "{stepDescription}",
+      "target": {
+        "selector": "optimized-css-selector-here",
+        "description": "element description"
+      }
+    }
+  ],
+  "reasoning": "Explanation of why this selector is optimal"
+}

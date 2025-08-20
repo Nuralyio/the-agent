@@ -40,8 +40,8 @@ export class ActionEngine implements IActionEngine {
   private planExecutionManager: ActionSequenceExecutor;
 
   constructor(browserManager: BrowserManager, aiEngine: AIEngine) {
-    this.planner = new Planner(aiEngine);
     this.stepContextManager = new StepContextManager();
+    this.planner = new Planner(aiEngine, this.stepContextManager);
 
     // Initialize contextual analyzer
     try {
@@ -55,8 +55,7 @@ export class ActionEngine implements IActionEngine {
     this.actionExecutor = new ActionExecutor(browserManager);
     this.stepRefinementManager = new StepRefinementManager(
       this.planner.getActionPlanner(),
-      this.stepContextManager,
-      this.contextualAnalyzer,
+      this.stepContextManager
     );
     this.planExecutionManager = new ActionSequenceExecutor(
       browserManager,
@@ -65,6 +64,9 @@ export class ActionEngine implements IActionEngine {
       this.actionExecutor,
       this.stepRefinementManager,
     );
+
+    // Set action executor for lazy action planning in sub-plans
+    this.planner.setActionExecutor(this.actionExecutor);
   }
 
   /**
@@ -132,7 +134,8 @@ export class ActionEngine implements IActionEngine {
         objective: objective,
         constraints: [],
         variables: {},
-        history: [],
+        history: this.stepContextManager.getRecentSteps().map(result => result.step), // Extract ActionSteps from execution results
+        executionContextSummary: this.stepContextManager.exportContextSummary(), // Include pre-computed execution context
         currentState: pageState || {
           url: '',
           title: '',
@@ -149,7 +152,7 @@ export class ActionEngine implements IActionEngine {
       // Use Planner for end-to-end planning and execution
       console.log(`🧠 Planner: Creating and executing plan`);
       const result = await this.planner.planAndExecute(objective, taskContext, (plan: ActionPlan) =>
-        this.planExecutionManager.executeActionPlan(plan, logger),
+        this.planExecutionManager.executeActionPlan(plan, logger, true, false), // Preserve extracted data, disable refinement
       );
 
       // Finalize logging
@@ -217,8 +220,8 @@ export class ActionEngine implements IActionEngine {
   /**
    * Execute a structured action plan with dynamic refinement and context awareness
    */
-  async executeActionPlan(plan: ActionPlan, logger?: ExecutionLogger): Promise<TaskResult> {
-    return this.planExecutionManager.executeActionPlan(plan, logger);
+  async executeActionPlan(plan: ActionPlan, logger?: ExecutionLogger, preserveExtractedData: boolean = true, enableStepRefinement: boolean = false): Promise<TaskResult> {
+    return this.planExecutionManager.executeActionPlan(plan, logger, preserveExtractedData, enableStepRefinement);
   }
 
   /**
@@ -233,6 +236,121 @@ export class ActionEngine implements IActionEngine {
    */
   exportExecutionContext(): string {
     return this.stepContextManager.exportContextSummary();
+  }
+
+  /**
+   * Clear all execution context (start fresh session)
+   */
+  clearExecutionContext(): void {
+    console.log(`🔄 Clearing all execution context`);
+    this.stepContextManager.reset();
+  }
+
+  /**
+   * Execute a task with step refinement enabled (for complex pages)
+   */
+  async executeTaskWithRefinement(objective: string, context?: TaskContext): Promise<TaskResult> {
+    const startTime = Date.now();
+    console.log(`🤖 Processing instruction with refinement: "${objective}"`);
+
+    // Initialize execution logger
+    const logger = new ExecutionLogger(objective);
+    console.log(`📝 Execution logging started: ${logger.getSessionId()}`);
+
+    // Start streaming session
+    executionStream.startSession(logger.getSessionId());
+
+    try {
+      // Use enhanced execution with refinement
+      return await this.executeWithPlanningAndRefinement(objective, context, logger);
+    } catch (error) {
+      console.error('❌ Task execution with refinement failed:', error);
+
+      // Stream execution completion even on failure
+      executionStream.streamExecutionComplete();
+
+      // Finalize logging even on failure
+      try {
+        await logger.completeSession(false);
+      } catch (logError) {
+        console.warn('⚠️ Failed to finalize execution log:', logError);
+      }
+
+      return {
+        success: false,
+        steps: [],
+        error: error instanceof Error ? error.message : 'Unknown error',
+        screenshots: [],
+        duration: Date.now() - startTime,
+      };
+    }
+  }
+
+  /**
+   * Execute task with refinement enabled
+   */
+  private async executeWithPlanningAndRefinement(
+    objective: string,
+    context?: TaskContext,
+    logger?: ExecutionLogger,
+  ): Promise<TaskResult> {
+    try {
+      // Capture current page state for context
+      let pageState: PageState | undefined = undefined;
+      try {
+        pageState = await this.actionExecutor.captureState();
+      } catch (error) {
+        console.log('ℹ️ No active page available for context, proceeding with planning');
+      }
+
+      // Create context from page state (or empty context if no page)
+      const taskContext: TaskContext = context || {
+        id: 'task-' + Date.now(),
+        objective: objective,
+        constraints: [],
+        variables: {},
+        history: this.stepContextManager.getRecentSteps().map(result => result.step), // Extract ActionSteps from execution results
+        executionContextSummary: this.stepContextManager.exportContextSummary(), // Pass extracted data
+        currentState: pageState || {
+          url: '',
+          title: '',
+          content: '',
+          screenshot: Buffer.alloc(0),
+          timestamp: Date.now(),
+          viewport: { width: 1280, height: 720 },
+          elements: [],
+        },
+        url: pageState?.url || '',
+        pageTitle: pageState?.title || '',
+      };
+
+      // Use Planner for end-to-end planning and execution with refinement
+      console.log(`🧠 Planner: Creating and executing plan with refinement enabled`);
+      const result = await this.planner.planAndExecute(objective, taskContext, (plan: ActionPlan) =>
+        this.planExecutionManager.executeActionPlan(plan, logger, true, true), // Preserve data + enable refinement
+      );
+
+      // Finalize logging
+      if (logger) {
+        const logPath = await logger.completeSession(result.success);
+        console.log(`📋 Complete execution log saved to: ${logPath}`);
+      }
+
+      // Stream execution completion
+      executionStream.streamExecutionComplete();
+
+      return {
+        success: result.success,
+        steps: result.results?.flatMap((r: any) => r.steps || []) || [],
+        extractedData: null,
+        screenshots: result.results?.flatMap((r: any) => r.screenshots || []) || [],
+        duration: Date.now() - Date.now(),
+        plan: result.plan,
+      };
+    } catch (error) {
+      console.error('❌ Planner execution with refinement failed:', error);
+      throw error;
+    }
   }
 
   /**

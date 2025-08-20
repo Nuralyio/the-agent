@@ -27,7 +27,7 @@ export class SubPlanService {
     } = config;
 
     console.log(`🔍 Creating sub-plan ${subPlanIndex + 1}/${totalSubPlans}: ${subObjective}`);
-
+    
     // Create enhanced context for the sub-plan
     const subPlanContext = this.createSubPlanContext(
       context,
@@ -37,31 +37,20 @@ export class SubPlanService {
       totalSubPlans
     );
 
-    // Use the existing action planner to create detailed steps for this sub-objective
-    const actionPlan = await this.actionPlanner.createActionPlan(
-      subObjective,
-      subPlanContext,
-      pageState
-    );
-
+    // Create sub-plan without detailed action steps - actions will be planned during execution
     const subPlan: SubPlan = {
       id: crypto.randomUUID(),
       parentId: context.id,
       objective: subObjective,
       description: `Sub-plan ${subPlanIndex + 1}: ${subObjective}`,
-      steps: actionPlan.steps,
-      estimatedDuration: actionPlan.estimatedDuration,
+      steps: [], // Empty steps - will be populated during execution
+      estimatedDuration: 0, // Will be calculated during execution
       priority: subPlanIndex + 1,
       dependencies: subPlanIndex > 0 ? [`sub-plan-${subPlanIndex - 1}`] : [],
       preconditions: subPlanIndex > 0 ? [`Previous sub-plan must be completed`] : undefined,
       expectedOutcome: `Successfully completed: ${subObjective}`,
       refinementLevel: 1,
-      context: {
-        originalInstruction,
-        subPlanIndex,
-        totalSubPlans,
-        ...actionPlan.context
-      }
+      context: subPlanContext // Use the enhanced context that includes executionContextSummary
     };
 
     console.log(`✅ Sub-plan ${subPlanIndex + 1} created with ${subPlan.steps.length} steps`);
@@ -95,6 +84,52 @@ export class SubPlanService {
     console.log(`✅ All ${subPlans.length} sub-plans created in parallel`);
 
     return subPlans;
+  }
+
+  /**
+   * Plan actions for a sub-plan during execution
+   * This method should be called when the sub-plan is about to be executed
+   */
+  async planActionsForExecution(
+    subPlan: SubPlan,
+    pageState: any
+  ): Promise<SubPlan> {
+    console.log(`🔍 Planning actions for sub-plan: ${subPlan.objective}`);
+
+    // Create enhanced context for action planning while preserving execution context
+    const enhancedContext = {
+      ...subPlan.context,
+      id: subPlan.id,
+      objective: subPlan.objective,
+      constraints: [
+        ...(subPlan.context.constraints || []),
+        `Sub-plan execution context for: ${subPlan.objective}`
+      ],
+      // Preserve execution context summary from the original TaskContext
+      executionContextSummary: subPlan.context.executionContextSummary
+    };
+
+    // Use the action planner to create detailed steps
+    const actionPlan = await this.actionPlanner.createActionPlan(
+      subPlan.objective,
+      enhancedContext,
+      pageState
+    );
+
+    // Update the sub-plan with the action steps
+    const updatedSubPlan: SubPlan = {
+      ...subPlan,
+      steps: actionPlan.steps,
+      estimatedDuration: actionPlan.estimatedDuration,
+      context: {
+        ...subPlan.context,
+        ...actionPlan.context
+      }
+    };
+
+    console.log(`✅ Actions planned for sub-plan with ${updatedSubPlan.steps.length} steps`);
+
+    return updatedSubPlan;
   }
 
   /**

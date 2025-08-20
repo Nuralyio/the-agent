@@ -1,0 +1,3 @@
+Instruction: "{{instruction}}"
+
+Convert this to browser automation steps. Respond with ONLY valid JSON, no other text.

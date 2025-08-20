@@ -120,4 +120,5 @@ export interface TaskContext {
   currentState: PageState;
   url?: string;
   pageTitle?: string;
+  executionContextSummary?: string; // Pre-computed execution context summary from StepContextManager
 }

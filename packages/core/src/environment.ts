@@ -74,7 +74,7 @@ export function loadEnvironmentConfig(): EnvironmentConfig {
         width: parseInt(process.env.VIEWPORT_WIDTH || '1920'),
         height: parseInt(process.env.VIEWPORT_HEIGHT || '1080'),
       },
-      timeout: parseInt(process.env.DEFAULT_TIMEOUT || '30000'),
+      timeout: parseInt(process.env.DEFAULT_TIMEOUT || '3000'),
     },
 
     // Debug Settings

@@ -188,7 +188,7 @@ export class ActionExecutor {
     // Try the specific selector first if provided
     if (step.target?.selector) {
       try {
-        const element = await page.waitForSelector(step.target.selector, { timeout: 5000 });
+        const element = await page.waitForSelector(step.target.selector, { timeout: 2000 });
         if (element) {
           const text = await element.getText();
           if (text?.trim()) {
@@ -282,6 +282,17 @@ export class ActionExecutor {
     const page = await this.browserManager.getCurrentPage();
     if (!page) {
       throw new Error('No active page');
+    }
+
+    // Wait for page to be fully loaded before extracting content
+    try {
+      console.log('⏳ Ensuring page is fully loaded before capturing state...');
+      await page.waitForLoad();
+      // Give a small additional delay to ensure content is fully rendered
+      await new Promise(resolve => setTimeout(resolve, 100));
+      console.log('✅ Page load complete, capturing state...');
+    } catch (error) {
+      console.warn('⚠️ Page load state check failed, proceeding with current state:', error);
     }
 
     const [screenshot, content, url] = await Promise.all([
