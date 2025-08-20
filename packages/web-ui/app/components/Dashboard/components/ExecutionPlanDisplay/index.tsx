@@ -39,12 +39,13 @@ export const ExecutionPlanDisplay: React.FC<ExecutionPlanDisplayProps> = ({
   onSubPlanClick,
   onStepClick,
 }) => {
+  // Hooks must be called before any conditional returns
+  const currentAction = useCurrentAction(executionPlan);
+  const { completedSubPlans, totalSubPlans } = usePlanProgress(executionPlan);
+
   if (!executionPlan) {
     return <EmptyState />;
   }
-
-  const currentAction = useCurrentAction(executionPlan);
-  const { completedSubPlans, totalSubPlans } = usePlanProgress(executionPlan);
 
   const handleSubPlanClick = (subPlanIndex: number, subPlan: SubPlan) => {
     onSubPlanClick?.(subPlanIndex, subPlan);
