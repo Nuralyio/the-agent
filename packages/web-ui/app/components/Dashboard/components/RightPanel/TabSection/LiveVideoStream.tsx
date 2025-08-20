@@ -500,6 +500,8 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({ isVisible, ses
 
           {/* Message */}
           <div
+            role="button"
+            tabIndex={0}
             onClick={() => {
               // Toggle interactive mode when message is clicked
               toggleInteractiveMode();
@@ -509,6 +511,21 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({ isVisible, ses
               if (hoverMessageTimeoutRef.current) {
                 clearTimeout(hoverMessageTimeoutRef.current);
                 hoverMessageTimeoutRef.current = null;
+              }
+            }}
+            onKeyDown={(e) => {
+              // Handle Enter and Space key presses for accessibility
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                // Toggle interactive mode when message is activated via keyboard
+                toggleInteractiveMode();
+                // Hide the message immediately after activation
+                setShowHoverMessage(false);
+                hoverStartedRef.current = false;
+                if (hoverMessageTimeoutRef.current) {
+                  clearTimeout(hoverMessageTimeoutRef.current);
+                  hoverMessageTimeoutRef.current = null;
+                }
               }
             }}
             style={{
