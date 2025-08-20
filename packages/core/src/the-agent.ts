@@ -1,8 +1,8 @@
+import * as crypto from 'crypto';
 import { BrowserAdapterRegistry } from './adapters/adapter-registry';
+import { ActionEngine } from './engine/action-engine';
 import { AIEngine } from './engine/ai-engine';
 import { BrowserManagerImpl } from './managers/browser-manager';
-import { ActionEngine } from './engine/action-engine';
-import * as crypto from 'crypto';
 import {
   AIConfig,
   BrowserAdapter,
@@ -10,14 +10,18 @@ import {
   BrowserType,
   ExecutionOptions,
   LaunchOptions,
-  TaskResult,
+  PageState,
   TaskContext,
-  PageState
+  TaskResult
 } from './types';
-import { executionStream } from './streaming/execution-stream';
 
 /**
- * Main TheAgent Framework class
+ * TheAgent - AI-Powered Browser Automation Framework
+ *
+ * A unified browser automation framework that combines traditional web automation
+ * with AI-powered natural language processing. Supports multiple browser adapters
+ * (Playwright, Puppeteer, Selenium) and enables complex automation tasks through
+ * simple instructions.
  */
 export class TheAgent {
   private readonly browserManager: BrowserManagerImpl;
@@ -45,11 +49,7 @@ export class TheAgent {
     }
   }
 
-  /**
-   * Initialize the framework with the specified configuration
-   */
   async initialize(): Promise<void> {
-    // Auto-select adapter if needed
     if (this.config.adapter === 'auto') {
       const adapter = await this.registry.autoSelectAdapter({
         browserType: this.config.browserType,
@@ -59,36 +59,29 @@ export class TheAgent {
       this.config.adapter = adapter.name;
     }
 
-    // Set up browser launch options
     const launchOptions: LaunchOptions = {
       headless: this.config.headless || false,
       viewport: this.config.viewport
     };
 
-    // Add optional launch options
     if (this.config.userAgent) launchOptions.userAgent = this.config.userAgent;
     if (this.config.locale) launchOptions.locale = this.config.locale;
     if (this.config.timezone) launchOptions.timezone = this.config.timezone;
     if (this.config.proxy) launchOptions.proxy = this.config.proxy;
 
     await this.browserManager.launchBrowser(launchOptions);
-
-    // Create an initial blank page to ensure we have an active page
     await this.browserManager.createPage();
     console.log('📄 Initial page created successfully');
 
-    // Initialize AI engine if configuration is provided
     if (this.aiConfig) {
       console.log('🤖 Initializing AI engine with config:', this.aiConfig);
       this.aiEngine = new AIEngine();
 
-      // Ensure model is provided for the AI engine
       const aiEngineConfig = {
         ...this.aiConfig,
-        model: this.aiConfig.model || 'llama3.2'  // Default model if not specified
+        model: this.aiConfig.model || 'llama3.2'
       };
 
-      // Use the provider specified in the config, fallback to 'ollama'
       const providerName = this.aiConfig.provider || 'ollama';
       this.aiEngine.addProvider(providerName, aiEngineConfig);
       this.actionEngine = new ActionEngine(this.browserManager, this.aiEngine);
@@ -98,59 +91,41 @@ export class TheAgent {
     }
   }
 
-  /**
-   * Execute a natural language task
-   */
   async execute(instruction: string, options?: ExecutionOptions): Promise<TaskResult> {
     if (!this.browserManager.isReady()) {
       await this.initialize();
     }
 
-    // If we have an ActionEngine (AI is configured), use it for intelligent planning
     if (this.actionEngine) {
-      console.log('🎯 Using ActionEngine for intelligent task planning');
-
-      // Convert ExecutionOptions to TaskContext if provided
-      let taskContext: TaskContext | undefined;
-      if (options) {
-        const currentState = await this.captureCurrentState();
-        taskContext = {
-          id: crypto.randomUUID(),
-          objective: instruction,
-          constraints: [],
-          variables: {},
-          history: [],
-          currentState,
-          url: currentState.url,
-          pageTitle: currentState.title
-        };
-      }
+      const currentState = await this.captureCurrentState();
+      const taskContext: TaskContext = {
+        id: crypto.randomUUID(),
+        objective: instruction,
+        constraints: [],
+        variables: {},
+        history: [],
+        currentState,
+        url: currentState.url,
+        pageTitle: currentState.title
+      };
 
       return await this.actionEngine.executeTask(instruction, taskContext);
+    } else {
+      return {
+        success: false,
+        error: 'AI configuration required for natural language task execution. Please configure an AI provider.',
+        steps: [],
+        duration: 0,
+        screenshots: [],
+        extractedData: null
+      };
     }
-
-    // Fallback to basic execution without AI
-    console.log('⚠️  Falling back to basic execution (no AI configuration)');
-    return this.basicExecute(instruction, options);
   }
 
-  /**
-   * Execute a task using the ActionEngine (AI-powered)
-   */
   async executeTask(instruction: string, options?: ExecutionOptions): Promise<TaskResult> {
     return this.execute(instruction, options);
   }
 
-  /**
-   * Basic execution without AI (fallback)
-   */
-  private async basicExecute(instruction: string, options?: ExecutionOptions): Promise<TaskResult> {
-    throw new Error('Basic execution not implemented. Please configure AI support.');
-  }
-
-  /**
-   * Navigate to a URL
-   */
   async navigate(url: string): Promise<void> {
     if (!this.browserManager.isReady()) {
       await this.initialize();
@@ -164,9 +139,6 @@ export class TheAgent {
     await currentPage.navigate(url);
   }
 
-  /**
-   * Take a screenshot
-   */
   async screenshot(options?: { path?: string; fullPage?: boolean }): Promise<Buffer> {
     if (!this.browserManager.isReady()) {
       await this.initialize();
@@ -180,9 +152,6 @@ export class TheAgent {
     return await currentPage.screenshot(options);
   }
 
-  /**
-   * Get the current page title
-   */
   async getTitle(): Promise<string> {
     const currentPage = await this.browserManager.getCurrentPage();
     if (!currentPage) {
@@ -192,9 +161,6 @@ export class TheAgent {
     return await currentPage.getTitle();
   }
 
-  /**
-   * Get the current page URL
-   */
   async getUrl(): Promise<string> {
     const currentPage = await this.browserManager.getCurrentPage();
     if (!currentPage) {
@@ -204,9 +170,6 @@ export class TheAgent {
     return await currentPage.getUrl();
   }
 
-  /**
-   * Wait for an element to be visible
-   */
   async waitForElement(selector: string, timeout = 10000): Promise<void> {
     const currentPage = await this.browserManager.getCurrentPage();
     if (!currentPage) {
@@ -216,9 +179,6 @@ export class TheAgent {
     await currentPage.waitForElement(selector, timeout);
   }
 
-  /**
-   * Click an element
-   */
   async click(selector: string): Promise<void> {
     const currentPage = await this.browserManager.getCurrentPage();
     if (!currentPage) {
@@ -233,9 +193,6 @@ export class TheAgent {
     await element.click();
   }
 
-  /**
-   * Type text into an element
-   */
   async type(selector: string, text: string): Promise<void> {
     const currentPage = await this.browserManager.getCurrentPage();
     if (!currentPage) {
@@ -250,9 +207,6 @@ export class TheAgent {
     await element.type(text);
   }
 
-  /**
-   * Get the current browser adapter
-   */
   getCurrentAdapter(): BrowserAdapter | null {
     return this.browserManager.getCurrentAdapter();
   }
@@ -275,53 +229,32 @@ export class TheAgent {
     this.browserManager.setAdapter(adapter);
   }
 
-  /**
-   * Close the browser and clean up resources
-   */
   async close(): Promise<void> {
     if (this.browserManager.isReady()) {
       await this.browserManager.closeBrowser();
     }
   }
 
-  /**
-   * Get browser manager for advanced operations
-   */
   getBrowserManager(): BrowserManagerImpl {
     return this.browserManager;
   }
 
-  /**
-   * Get action engine for advanced AI operations
-   */
   getActionEngine(): ActionEngine | undefined {
     return this.actionEngine;
   }
 
-  /**
-   * Check if the framework is ready
-   */
   isReady(): boolean {
     return this.browserManager.isReady();
   }
 
-  /**
-   * Get current configuration
-   */
   getConfig(): BrowserConfig {
     return { ...this.config };
   }
 
-  /**
-   * Update configuration
-   */
   updateConfig(newConfig: Partial<BrowserConfig>): void {
     this.config = { ...this.config, ...newConfig };
   }
 
-  /**
-   * Capture current page state
-   */
   private async captureCurrentState(): Promise<PageState> {
     const page = await this.browserManager.getCurrentPage();
     if (!page) {
