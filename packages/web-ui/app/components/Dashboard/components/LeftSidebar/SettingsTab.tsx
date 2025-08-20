@@ -18,7 +18,9 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
   advancedOpen,
   setAdvancedOpen,
   selectedAIProvider = 'ollama',
-  setSelectedAIProvider = () => {},
+  setSelectedAIProvider = () => {
+    console.warn('setSelectedAIProvider not implemented');
+  },
   headlessMode,
   setHeadlessMode,
 }) => {
@@ -28,15 +30,16 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
       <div style={styles.settingsGroup}>
         <div style={styles.settingsCard}>
           <label style={styles.label}>AI Provider</label>
-          <select style={styles.select} value={selectedAIProvider} onChange={e => setSelectedAIProvider(e.target.value)}>
+          <select
+            style={styles.select}
+            value={selectedAIProvider}
+            onChange={e => setSelectedAIProvider(e.target.value)}
+          >
             <option value='ollama'>Ollama (Local)</option>
             <option value='openai'>OpenAI (GPT)</option>
           </select>
           <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>
-            {selectedAIProvider === 'ollama' ? 
-              'Local AI models via Ollama server' : 
-              'Cloud-based OpenAI GPT models'
-            }
+            {selectedAIProvider === 'ollama' ? 'Local AI models via Ollama server' : 'Cloud-based OpenAI GPT models'}
           </div>
         </div>
       </div>
@@ -67,9 +70,9 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
             </div>
             <div style={{ marginBottom: '16px' }}>
               <label style={styles.label}>Browser Mode</label>
-              <select 
-                style={styles.select} 
-                value={headlessMode ? 'headless' : 'headed'} 
+              <select
+                style={styles.select}
+                value={headlessMode ? 'headless' : 'headed'}
                 onChange={e => setHeadlessMode(e.target.value === 'headless')}
               >
                 <option value='headless'>Headless (Background)</option>

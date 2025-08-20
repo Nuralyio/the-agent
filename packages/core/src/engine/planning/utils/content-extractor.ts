@@ -1,9 +1,12 @@
 
-import { JSDOM } from 'jsdom';
-
 /**
- * A simplified content extractor that converts HTML to Emmet syntax for efficient AI processing
+ * Content Extractor - Converts HTML to Emmet syntax for efficient AI processing
+ *
+ * This utility transforms HTML documents into compact Emmet abbreviations,
+ * making them more suitable for AI analysis while preserving structural information.
  */
+
+import { JSDOM } from 'jsdom';
 export class ContentExtractor {
   /**
    * Extract structured content from page HTML
@@ -14,21 +17,17 @@ export class ContentExtractor {
   }
 
   /**
- * Convert HTML to Emmet abbreviation for more token-efficient representation
- */
+   * Convert HTML to Emmet abbreviation for more token-efficient representation
+   */
   private htmlToEmmet(html: string): string {
     if (!html || typeof html !== 'string') return '';
 
     try {
-      // Use JSDOM for proper HTML parsing in Node.js
       const dom = new JSDOM(html);
       const doc = dom.window.document;
-
-      // Convert the document to Emmet format
       const result = this.convertElementToEmmet(doc.documentElement);
       return result;
     } catch (error) {
-      // Fallback: return original HTML if parsing fails
       console.warn('Failed to parse HTML with JSDOM:', error);
       return html;
     }
@@ -43,26 +42,23 @@ export class ContentExtractor {
     const tagName = element.tagName.toLowerCase();
     const attributes = this.parseElementAttributes(element);
 
-    // Handle self-closing tags
     const voidTags = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
     if (voidTags.includes(tagName)) {
       return `${tagName}${attributes}`;
     }
 
-    // Process children
     const children: string[] = [];
     let hasTextContent = false;
 
     for (const child of Array.from(element.childNodes)) {
-      if (child.nodeType === 3) { // TEXT_NODE = 3
+      if (child.nodeType === 3) {
         const text = child.textContent?.trim();
         if (text) {
           hasTextContent = true;
-          // Limit text content length for readability
           const truncatedText = text.length > 100 ? text.substring(0, 100) + '...' : text;
           children.push(`{${truncatedText}}`);
         }
-      } else if (child.nodeType === 1) { // ELEMENT_NODE = 1
+      } else if (child.nodeType === 1) {
         const childEmmet = this.convertElementToEmmet(child as Element);
         if (childEmmet) {
           children.push(childEmmet);
@@ -70,15 +66,12 @@ export class ContentExtractor {
       }
     }
 
-    // Build the Emmet representation
     let result = `${tagName}${attributes}`;
 
     if (children.length > 0) {
       if (children.length === 1 && hasTextContent && children[0].startsWith('{')) {
-        // Single text node
         result += children[0];
       } else {
-        // Multiple children or element children
         result += '>' + children.join('+');
       }
     }
@@ -92,20 +85,17 @@ export class ContentExtractor {
   private parseElementAttributes(element: Element): string {
     const result: string[] = [];
 
-    // Get ID
     const id = element.getAttribute('id');
     if (id) {
       result.push(`#${id}`);
     }
 
-    // Get classes
     const className = element.getAttribute('class');
     if (className) {
       const classes = className.split(/\s+/).filter(c => c.trim());
       result.push(...classes.map(c => `.${c}`));
     }
 
-    // Get other important attributes (limited for brevity)
     const importantAttrs = ['src', 'href', 'type', 'name', 'value', 'placeholder', 'alt', 'title'];
     for (const attr of importantAttrs) {
       const value = element.getAttribute(attr);
@@ -116,7 +106,9 @@ export class ContentExtractor {
     }
 
     return result.join('');
-  }  /**
+  }
+
+  /**
    * Remove scripts and styles from HTML
    */
   private removeScriptsAndStyles(html: string): string {
@@ -134,15 +126,8 @@ export class ContentExtractor {
     const emmetStructure = this.extractStructuredContent(html);
     return {
       structure: emmetStructure,
-      forms: '', // No longer extracting form data
-      interactions: '' // No longer extracting interaction data
+      forms: '',
+      interactions: ''
     };
-  }
-
-  /**
-   * For backwards compatibility with existing code
-   */
-  getFormFieldsWithStructure(html: string): string {
-    return ''; // No longer extracting form field structure
   }
 }

@@ -41,13 +41,6 @@ export class ActionPlanner {
   }
 
   /**
-   * Get form fields with structural context for external use
-   */
-  getFormFieldsWithStructure(pageContent: string): string {
-    return this.contentExtractor.getFormFieldsWithStructure(pageContent);
-  }
-
-  /**
    * Get all content in simplified format for external use
    */
   getAllContentFromPage(pageContent: string): {
