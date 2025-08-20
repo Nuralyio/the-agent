@@ -1,7 +1,0 @@
-Analyze this webpage content and describe the key elements:
-
-URL: {pageUrl}
-Title: {pageTitle}
-Content Preview: {pageContent}...
-
-{query}

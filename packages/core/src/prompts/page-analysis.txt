@@ -1,9 +1,0 @@
-Analyze this webpage content and describe the key elements:
-
-URL: {pageUrl}
-Title: {pageTitle}
-Content Preview: {contentPreview}
-
-{query}
-
-Focus on describing the key interactive elements, forms, buttons, and navigation options available on this page.
