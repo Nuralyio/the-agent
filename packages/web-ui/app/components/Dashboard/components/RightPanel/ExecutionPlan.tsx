@@ -10,7 +10,7 @@ interface ExecutionPlanProps {
   handleStepClick?: (stepIndex: number, step: ExecutionStep) => void;
 }
 
-export const ExecutionPlan: React.FC<ExecutionPlanProps> = ({
+export const ExecutionPlanComponent: React.FC<ExecutionPlanProps> = ({
   currentExecutionPlan,
   isLoading = false,
   handleStepClick,
@@ -25,7 +25,7 @@ export const ExecutionPlan: React.FC<ExecutionPlanProps> = ({
       </div>
       <div style={styles.executionPlanContent}>
         {isLoading ? (
-          <div style={styles.planEmptyState}>
+          <div style={{ ...styles.planEmptyState, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <div
               style={{
                 width: '24px',

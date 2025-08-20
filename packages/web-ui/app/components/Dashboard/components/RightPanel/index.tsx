@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ExecutionStep, TabItem, ExecutionPlan } from '../../Dashboard.types';
 import { styles } from '../../Dashboard.styles';
-import { ExecutionPlan } from './ExecutionPlan';
+import { ExecutionPlanComponent } from './ExecutionPlan';
 import { TabSection } from './TabSection/index';
 
 interface RightPanelProps {
@@ -34,7 +34,7 @@ export default function RightPanel({
   return (
     <div style={styles.rightPanel}>
       {/* Execution Plan Section */}
-      <ExecutionPlan
+      <ExecutionPlanComponent
         currentExecutionPlan={currentExecutionPlan}
         isLoading={isLoading}
         handleStepClick={handleStepClick}
