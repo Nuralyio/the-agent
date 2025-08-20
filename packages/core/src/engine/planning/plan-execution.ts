@@ -1,8 +1,8 @@
 import { executionStream } from '../../streaming/execution-stream';
 import { ActionPlan, Plan } from '../../types';
-import { SubPlanService } from './services/sub-plan.service';
-import { ActionExecutor } from '../execution/action-executor';
 import { StepContextManager } from '../analysis/step-context';
+import { ActionExecutor } from '../execution/action-executor';
+import { SubPlanService } from './services/sub-plan.service';
 import {
   ExecutionContext,
   PlanExecutionResult
@@ -16,7 +16,8 @@ export class PlanExecution {
     private subPlanService?: SubPlanService,
     private actionExecutor?: ActionExecutor,
     private stepContextManager?: StepContextManager
-  ) {}
+  ) {
+  }
 
   /**
    * Set the action executor for page state capture during execution
@@ -66,7 +67,7 @@ export class PlanExecution {
     this.completeExecution(context);
 
     const successfulSubPlans = results.filter(r => r.success).length;
-    const overallSuccess = successfulSubPlans > 0; // Success if at least one sub-plan succeeded
+    const overallSuccess = successfulSubPlans > 0;
 
     console.log(`🎯 Execution complete: ${successfulSubPlans}/${results.length} sub-plans succeeded`);
 
@@ -83,12 +84,10 @@ export class PlanExecution {
   ): Promise<any> {
     let actualSubPlan = subPlan;
 
-    // If sub-plan has no steps, plan actions during execution
     if (this.subPlanService && (!subPlan.steps || subPlan.steps.length === 0)) {
       console.log(`🔍 Planning actions for sub-plan during execution: ${subPlan.objective}`);
-      
+
       try {
-        // Get current page state for planning
         let pageState;
         if (this.actionExecutor) {
           try {
@@ -99,29 +98,24 @@ export class PlanExecution {
           }
         }
 
-        // Get fresh execution context from StepContextManager
         if (this.stepContextManager) {
           const freshExecutionContext = this.stepContextManager.exportContextSummary();
           console.log(`🔄 Using fresh execution context for sub-plan planning:`, JSON.stringify(freshExecutionContext, null, 2));
-          
-          // Update the sub-plan context with fresh execution context
+
           subPlan.context = {
             ...subPlan.context,
             executionContextSummary: freshExecutionContext
           };
         }
 
-        // Plan actions for this sub-plan
         actualSubPlan = await this.subPlanService.planActionsForExecution(subPlan, pageState);
         console.log(`✅ Actions planned: ${actualSubPlan.steps.length} steps generated`);
       } catch (error) {
         console.error(`❌ Failed to plan actions for sub-plan: ${error}`);
-        // Fall back to original sub-plan if action planning fails
         actualSubPlan = subPlan;
       }
     }
 
-    // Create an action plan from the sub-plan
     const subActionPlan: ActionPlan = {
       id: actualSubPlan.id,
       objective: actualSubPlan.objective,

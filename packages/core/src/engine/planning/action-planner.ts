@@ -63,7 +63,6 @@ export class ActionPlanner {
    */
   async createActionPlan(instruction: string, context: TaskContext, pageState?: PageState): Promise<ActionPlan> {
     try {
-      // Use provided pageState or create a minimal one
       const currentPageState: PageState = pageState || this.createDefaultPageState(context);
 
       const parsedInstruction = await this.parseInstructionWithAI(instruction, currentPageState, context);
@@ -100,13 +99,10 @@ export class ActionPlanner {
    * Parse instruction using AI with current page context
    */
   private async parseInstructionWithAI(instruction: string, pageState: PageState, context: TaskContext): Promise<ParsedInstruction> {
-    // Get all content in one call - includes Emmet structure, form elements, and interactive elements
     const allContent = this.contentExtractor.getAllContent(pageState.content || '');
 
-    // Prepare execution context - use provided context or fall back to task history
     const executionContext = context.executionContextSummary || this.prepareExecutionContext(context);
 
-    // Use the instruction-to-steps template with page context
     const userPrompt = this.promptTemplate.render('instruction-to-steps', {
       instruction: instruction,
       pageUrl: pageState.url,
@@ -118,7 +114,6 @@ export class ActionPlanner {
     });
 
     try {
-      // Try structured output first with empty system prompt for instruction-to-steps
       const response = await this.aiService.generateStructuredResponse(userPrompt, '');
       const parsed = JSON.parse(response);
       return this.responseParser.convertStructuredResponse(parsed);
@@ -147,7 +142,6 @@ export class ActionPlanner {
    * Prepare execution context from task history for AI planning
    */
   private prepareExecutionContext(context: TaskContext): string {
-    // If we have pre-computed execution context summary, use it
     if (context.executionContextSummary) {
       try {
         const parsedContext = JSON.parse(context.executionContextSummary);
@@ -156,7 +150,7 @@ export class ActionPlanner {
           contextLines.push("=== EXECUTION CONTEXT ===");
           contextLines.push("Previously extracted data:");
           contextLines.push("");
-          
+
           parsedContext.extractedData.forEach((item: any, index: number) => {
             contextLines.push(`Extracted Data ${index + 1}:`);
             contextLines.push(`- Description: ${item.description}`);
@@ -179,14 +173,13 @@ export class ActionPlanner {
       }
     }
 
-    // Fallback to legacy method using task history
     if (!context.history || context.history.length === 0) {
       return "No previous execution context available.";
     }
 
     const recentSteps = context.history.slice(-5); // Get last 5 steps
     const contextLines: string[] = [];
-    
+
     contextLines.push("=== EXECUTION CONTEXT ===");
     contextLines.push(`Previous ${recentSteps.length} step(s) executed:`);
     contextLines.push("");
@@ -199,22 +192,19 @@ export class ActionPlanner {
       contextLines.push(`Step ${stepNumber}:`);
       contextLines.push(`  Type: ${step.type}`);
       contextLines.push(`  Description: ${step.description}`);
-      
+
       if (step.target?.selector) {
         contextLines.push(`  Selector: ${step.target.selector}`);
       }
-      
+
       if (step.value) {
         contextLines.push(`  Value: ${step.value}`);
       }
-      
-      // Note: Extracted data from EXTRACT actions will be included below
-      // from the StepContextManager's recent results
-      
+
+
       contextLines.push("");
     });
 
-    // Extract successful selector patterns
     const successfulSelectors = recentSteps
       .filter(step => step.target?.selector)
       .map(step => step.target!.selector);
@@ -226,10 +216,6 @@ export class ActionPlanner {
       });
       contextLines.push("");
     }
-
-    // TODO: Add extracted data from StepContextManager when available
-    // The ActionPlanner currently doesn't have direct access to StepContextManager
-    // This will be resolved when execution context is properly passed through
 
     contextLines.push("Use this context to inform better selector choices and action planning.");
     contextLines.push("=========================");
@@ -261,7 +247,6 @@ export class ActionPlanner {
       );
     } catch (error) {
       console.error('Failed to adapt plan:', error);
-      // Return original plan as fallback
       return currentPlan;
     }
   }

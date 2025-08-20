@@ -8,14 +8,11 @@ import { AutomationApiServer } from './app';
 async function startServer() {
   console.log('🚀 Starting Automation API Server');
 
-  // Load environment configuration first
   loadEnvironmentConfig();
   console.log('📋 Environment configuration loaded');
 
-  // Get port from environment or use default
   const PORT = process.env.PORT || 3002;
 
-  // Initialize automation API server
   const automationApiServer = new AutomationApiServer(Number(PORT));
 
   try {
@@ -28,7 +25,6 @@ async function startServer() {
   }
 }
 
-// Graceful shutdown handler
 let serverInstance: AutomationApiServer | null = null;
 
 process.on('SIGINT', async () => {
@@ -47,7 +43,6 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-// Start the server
 startServer()
   .then((server) => {
     serverInstance = server;

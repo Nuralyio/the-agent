@@ -65,7 +65,7 @@ export interface Plan {
   globalPlan: ActionPlan;
   subPlans: SubPlan[];
   totalEstimatedDuration: number;
-  planningStrategy: 'sequential' | 'parallel' | 'conditional'; // @todo: strategy is not been developed yet
+  planningStrategy: 'sequential' | 'parallel' | 'conditional'; // Currently only 'sequential' is implemented
   metadata?: any;
 }
 

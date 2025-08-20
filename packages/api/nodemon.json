@@ -1,5 +1,7 @@
 {
-  "watch": ["src"],
+  "watch": [
+    "src"
+  ],
   "ext": "ts,js",
   "ignore": [
     "**/*.test.*",
@@ -19,7 +21,7 @@
     "**/*.jpeg",
     "**/*.gif",
     "**/*.md",
-    "**/*.xml", 
+    "**/*.xml",
     "**/*.puml",
     "screenshots/**/*"
   ],
