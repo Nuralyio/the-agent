@@ -14,6 +14,9 @@ export interface CLIConfig {
     enabled: boolean;
     path: string;
   };
+  execution: {
+    logsDir: string;
+  };
 }
 
 export interface RunOptions {

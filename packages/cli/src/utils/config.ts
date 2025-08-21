@@ -16,6 +16,9 @@ const defaultConfig: CLIConfig = {
   screenshots: {
     enabled: true,
     path: './screenshots'
+  },
+  execution: {
+    logsDir: './execution-logs'
   }
 };
 

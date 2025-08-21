@@ -7,11 +7,14 @@
 
 import { executionStream } from '../../streaming/execution-stream';
 import { ActionStep, ActionType, BrowserManager, PageState } from '../../types';
+import { loadEnvironmentConfig } from '../../environment';
 
 /**
  * Handles the execution of individual action steps
  */
 export class ActionExecutor {
+  private envConfig = loadEnvironmentConfig();
+
   constructor(private browserManager: BrowserManager) { }
 
   /**
@@ -43,21 +46,17 @@ export class ActionExecutor {
   private async executeNavigate(step: ActionStep): Promise<any> {
     let page = await this.browserManager.getCurrentPage();
 
-    // If no page exists, create one
     if (!page) {
       console.log('📄 No active page found, creating new page for navigation...');
       page = await this.browserManager.createPage();
     }
 
-    // Get URL from value or target description
     let url = step.value;
     if (!url && step.target?.description) {
-      // Check if the target description contains a URL
       const urlMatch = step.target.description.match(/https?:\/\/[^\s]+/);
       if (urlMatch) {
         url = urlMatch[0];
       } else if (step.target.description.includes('.')) {
-        // If it looks like a domain (contains dot), add https://
         url = `https://${step.target.description}`;
       }
     }
@@ -123,29 +122,22 @@ export class ActionExecutor {
     try {
       let formData: { [key: string]: string } = {};
 
-      if (typeof step.value === 'string') {
-        try {
-          formData = JSON.parse(step.value);
-        } catch {
-          if (step.target?.selector) {
-            formData[step.target.selector] = step.value;
-          } else {
-            throw new Error('No target selector specified for single value fill');
-          }
+      try {
+        formData = JSON.parse(step.value);
+      } catch {
+        if (step.target?.selector) {
+          formData[step.target.selector] = step.value;
+        } else {
+          throw new Error('No target selector specified for single value fill');
         }
-      } else if (typeof step.value === 'object') {
-        formData = step.value as { [key: string]: string };
       }
 
       console.log(`📝 Filling form with data:`, formData);
       for (const [selector, value] of Object.entries(formData)) {
         try {
           console.log(`📝 Filling field "${selector}" with value "${value}"`);
-
-          // Wait for the element to be available
           await page.waitForSelector(selector);
 
-          // Clear the field first by selecting all and typing
           await page.click(selector);
           await page.evaluate(() => document.execCommand('selectAll'));
           await page.type(selector, value);
@@ -193,11 +185,11 @@ export class ActionExecutor {
           }
         }
       } catch (error) {
-        console.log(`⚠️ Primary selector failed, trying generic extraction...`);
+        console.error(`⚠️ Primary selector failed, trying generic extraction...`, error);
       }
     }
 
-    const contentSelectors = ['p', 'div', 'span', '.info', '.note', '.help'];
+    const contentSelectors = ['p', 'div', 'span'];
 
     for (const selector of contentSelectors) {
       try {
@@ -210,7 +202,7 @@ export class ActionExecutor {
           }
         }
       } catch (error) {
-        continue;
+        console.error(`⚠️ Failed to extract text with selector "${selector}":`, error);
       }
     }
 
@@ -230,9 +222,9 @@ export class ActionExecutor {
   private async executeScroll(step: ActionStep): Promise<any> {
     const page = await this.browserManager.getCurrentPage();
     if (!page) throw new Error('No active page');
-
+    //@todo: Implement scroll by selector or coordinates
     await page.evaluate(() => {
-      window.scrollBy(0, 500);
+       window.scrollBy( <number>(<unknown>step.value?.x) ?? 0, <number>(<unknown>step.value?.y) ?? 500);
     });
 
     return { success: true };
@@ -244,12 +236,11 @@ export class ActionExecutor {
 
     const screenshot = await page.screenshot();
 
-    // If a filename is provided in the value, save it there
     if (step.value) {
       const fs = require('fs');
       const path = require('path');
 
-      const executionLogsDir = path.join(process.cwd(), 'execution-logs');
+      const executionLogsDir = path.join(process.cwd(), this.envConfig.execution.logsDir);
       const screenshotPath = path.join(executionLogsDir, step.value);
 
       if (!fs.existsSync(executionLogsDir)) {

@@ -34,6 +34,11 @@ export interface EnvironmentConfig {
     timeout: number;
   };
 
+  // Execution Settings
+  execution: {
+    logsDir: string;
+  };
+
   // Debug Settings
   debug: {
     enabled: boolean;
@@ -77,7 +82,10 @@ export function loadEnvironmentConfig(): EnvironmentConfig {
       timeout: parseInt(process.env.DEFAULT_TIMEOUT || '3000'),
     },
 
-    // Debug Settings
+    execution: {
+      logsDir: process.env.EXECUTION_LOGS_DIR || './execution-logs',
+    },
+
     debug: {
       enabled: process.env.DEBUG === 'true',
       logLevel: process.env.LOG_LEVEL || 'info',

@@ -1,12 +1,10 @@
 import path from 'path';
-import { ActionStep } from '../../types';
-import { StepExecutionResult } from '../../engine/analysis/step-context';
-import { ExecutionSessionLog, ExecutionLogEntry, StepLogConfig } from './types/logging.types';
-import { FileManagementService } from './services/file-management.service';
-import { StatisticsService } from './services/statistics.service';
-import { ScreenshotHandler } from './handlers/screenshot-handler';
+import { loadEnvironmentConfig } from '../../environment';
 import { EntryBuilderService } from './services/entry-builder.service';
+import { FileManagementService } from './services/file-management.service';
 import { MonitorGeneratorService } from './services/monitor-generator.service';
+import { StatisticsService } from './services/statistics.service';
+import { ExecutionSessionLog, StepLogConfig } from './types/logging.types';
 
 /**
  * Handles execution logging with session tracking, screenshots, and statistics
@@ -21,12 +19,12 @@ export class ExecutionLogger {
    */
   constructor(
     private instruction: string,
-    private baseDir: string = './execution-logs'
+    private baseDir: string = loadEnvironmentConfig().execution.logsDir
   ) {
-    this.sessionLog = this.initializeSessionLog(instruction);
+    this.sessionLog = this.initializeSessionLog(this.instruction);
     this.statisticsService = new StatisticsService();
     this.screenshotDir = path.join(baseDir, 'screenshots', this.sessionLog.sessionId);
-    
+
     // Ensure directories exist synchronously
     this.ensureDirectories();
   }
@@ -125,7 +123,7 @@ export class ExecutionLogger {
    */
   private initializeSessionLog(instruction: string): ExecutionSessionLog {
     const sessionId = FileManagementService.generateSessionId();
-    
+
     return {
       sessionId,
       startTime: new Date().toISOString(),
@@ -151,7 +149,7 @@ export class ExecutionLogger {
   private async writeLogFile(): Promise<void> {
     const filename = `execution-${this.sessionLog.sessionId}.json`;
     const filePath = path.join(this.baseDir, filename);
-    
+
     await FileManagementService.writeJsonFile(filePath, this.sessionLog);
   }
 
@@ -162,7 +160,7 @@ export class ExecutionLogger {
     const html = MonitorGeneratorService.generateMonitor(this.sessionLog);
     const filename = `execution-${this.sessionLog.sessionId}.html`;
     const filePath = path.join(this.baseDir, filename);
-    
+
     await FileManagementService.writeHtmlFile(filePath, html);
     return filePath;
   }
@@ -172,7 +170,7 @@ export class ExecutionLogger {
    */
   private calculateSessionDuration(): number {
     if (!this.sessionLog.endTime) return 0;
-    
+
     const startTime = new Date(this.sessionLog.startTime).getTime();
     const endTime = new Date(this.sessionLog.endTime).getTime();
     return endTime - startTime;
@@ -186,11 +184,11 @@ export class ExecutionLogger {
     baseDir?: string
   ): Promise<ExecutionLogger> {
     const logger = new ExecutionLogger(instruction, baseDir);
-    
+
     // Ensure directories exist
-    await FileManagementService.ensureDirectoryExists(path.join(baseDir || './execution-logs'));
+    await FileManagementService.ensureDirectoryExists(path.join(baseDir || loadEnvironmentConfig().execution.logsDir));
     await FileManagementService.ensureDirectoryExists(logger.screenshotDir);
-    
+
     return logger;
   }
 }
