@@ -136,18 +136,12 @@ export class TheAgent {
   /**
    * Execute a task using the smart ActionEngine (same as execute())
    * This method is identical to execute() - both use planning
-   * Kept for backward compatibility with existing code
    */
   async executeTask(instruction: string): Promise<TaskResult> {
-    if (this.actionEngine) {
-      console.log('🎯 Using ActionEngine.executeTask for intelligent task planning');
-      console.log('🧠 ActionEngine will use Planner for planning');
-      console.log(`📝 Task instruction: "${instruction}"`);
-      return await this.actionEngine.executeTask(instruction);
-    } else {
-      console.log('⚠️ No ActionEngine available, falling back to basic execute');
-      return await this.execute(instruction);
+    if (!this.actionEngine) {
+      throw new Error('ActionEngine is not available. Make sure AI configuration is provided during initialization.');
     }
+    return await this.actionEngine.executeTask(instruction);
   }
 
   /**

@@ -51,13 +51,6 @@ export class ExecutionStream extends EventEmitter {
   }
 
   /**
-   * Notify plan creation (legacy method name for backward compatibility)
-   */
-  streamPlanCreated(totalSteps: number, steps?: ActionStep[]): void {
-    this.notifyPlanCreated(totalSteps, steps);
-  }
-
-  /**
    * Legacy method for plan creation
    */
   streamExecutionPlanCreated(
