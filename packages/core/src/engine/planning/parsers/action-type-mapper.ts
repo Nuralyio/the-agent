@@ -8,7 +8,6 @@ export class ActionTypeMapper {
 
   constructor() {
     this.typeMap = {
-      // Uppercase variants
       'NAVIGATE': ActionType.NAVIGATE,
       'CLICK': ActionType.CLICK,
       'TYPE': ActionType.TYPE,
@@ -18,17 +17,6 @@ export class ActionTypeMapper {
       'EXTRACT': ActionType.EXTRACT,
       'VERIFY': ActionType.VERIFY,
       'SCREENSHOT': ActionType.SCREENSHOT,
-
-      // Lowercase variants
-      'navigate': ActionType.NAVIGATE,
-      'click': ActionType.CLICK,
-      'type': ActionType.TYPE,
-      'fill': ActionType.FILL,
-      'scroll': ActionType.SCROLL,
-      'wait': ActionType.WAIT,
-      'extract': ActionType.EXTRACT,
-      'verify': ActionType.VERIFY,
-      'screenshot': ActionType.SCREENSHOT
     };
   }
 
@@ -43,7 +31,7 @@ export class ActionTypeMapper {
    * Map from AI response action type to internal ActionType
    */
   mapFromAIResponse(type: string): ActionType | null {
-    const mapped = this.typeMap[type] || this.typeMap[type.toUpperCase()];
+    const mapped = this.typeMap[type.toUpperCase()];
     return mapped || null;
   }
 
