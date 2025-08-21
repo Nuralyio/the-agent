@@ -6,7 +6,7 @@ import {
   PageState,
   TaskResult
 } from '../../types';
-import { ExecutionLogger } from '../../utils/execution-logger';
+import { ExecutionLogger } from '../../utils/logging';
 import { StepContextManager, StepExecutionResult } from '../analysis/step-context';
 import { ActionPlanner } from '../planning/action-planner';
 import { ActionExecutor } from './action-executor';
@@ -25,7 +25,7 @@ export function setPauseChecker(checker: (() => Promise<void>) | null): void {
 }
 
 /**
- * Check for pause if pause checker is available
+ * Check for pause if a pause checker is available
  */
 async function checkForPause(): Promise<void> {
   if (pauseChecker) {
@@ -69,7 +69,6 @@ export class ActionSequenceExecutor {
       const step = currentPlan.steps[i];
       if (!step) continue;
 
-      // Check for pause before executing each step
       await checkForPause();
 
       console.log(`📍 Step ${i + 1}: ${step.description}`);
@@ -79,7 +78,7 @@ export class ActionSequenceExecutor {
         try {
           pageStateBefore = await this.actionExecutor.captureState();
         } catch (error) {
-          console.log(`🔍 No active page for step ${i + 1}, proceeding without state context`);
+          console.error(`🔍 No active page for step ${i + 1}, proceeding without state context`, error);
         }
 
         const stepContext = this.stepContextManager.getCurrentContext(i, currentPlan.steps.length);
@@ -125,7 +124,6 @@ export class ActionSequenceExecutor {
                 pageContentAnalysis: `Refined "${originalSelector}" to "${refinedSelector}"`
               }
             };
-
             console.log(`   🎯 Selector refined: "${originalSelector}" → "${refinedSelector}"`);
           }
 
@@ -136,7 +134,7 @@ export class ActionSequenceExecutor {
           }
         }
 
-        console.log(''); // Add spacing before step execution
+        console.log('');
 
         executionStream.streamStepStart(i, currentPlan.steps[i]!);
 
@@ -159,7 +157,7 @@ export class ActionSequenceExecutor {
             try {
               pageStateAfter = await this.actionExecutor.captureState();
             } catch (retryError) {
-              console.warn('⚠️ Could not capture page state after navigation, using minimal state');
+              console.warn('⚠️ Could not capture page state after navigation, using minimal state' , retryError);
               pageStateAfter = {
                 url: 'unknown',
                 title: 'Navigation in progress',

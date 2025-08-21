@@ -54,12 +54,10 @@ export class StepRefinementManager {
         console.log(`   ❌ Attempt ${attempt} failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
 
-      // If this wasn't the last attempt, try to refine the step
       if (attempt < maxRetries) {
         console.log(`   🔧 Refining step for retry ${attempt + 1}...`);
 
         try {
-          // Progressive refinement strategies
           const refinedStep = await this.progressivelyRefineStep(currentStep, stepContext, pageState, attempt);
 
           if (refinedStep.target?.selector !== currentStep.target?.selector) {
@@ -67,18 +65,15 @@ export class StepRefinementManager {
             currentStep = refinedStep;
           } else {
             console.log(`   ⚠️ No refinement found, will retry with same selector`);
-            // Add a small delay before retry
             await new Promise(resolve => setTimeout(resolve, 100));
           }
         } catch (refinementError) {
           console.log(`   ⚠️ Refinement failed: ${refinementError instanceof Error ? refinementError.message : 'Unknown error'}`);
-          // Add a delay before raw retry
           await new Promise(resolve => setTimeout(resolve, 100));
         }
       }
     }
 
-    // All retries failed
     console.log(`   💥 All ${maxRetries} attempts failed. Final error: ${lastError instanceof Error ? lastError.message : lastError}`);
     return {
       success: false,
@@ -99,64 +94,18 @@ export class StepRefinementManager {
     if (!pageState) {
       return step;
     }
-
     return await this.aiRefineStepWithErrorContext(step, stepContext, pageState);
-
-    return step;
   }
 
   /**
-   * Generate alternative selector patterns for common failure cases
-   */
-  private async generateAlternativeSelector(step: ActionStep, pageState: PageState): Promise<ActionStep> {
-    if (!step.target?.selector) {
-      return step;
-    }
-
-    const originalSelector = step.target.selector;
-    let alternativeSelector = originalSelector;
-
-    // Common selector alternatives based on patterns
-    if (originalSelector.includes('li:first-child a')) {
-      // Try more specific patterns
-      alternativeSelector = originalSelector.replace('li:first-child a', 'li:first-of-type a, .article:first-child a, article:first-child a');
-    } else if (originalSelector.includes(':first-child')) {
-      // Try :first-of-type instead
-      alternativeSelector = originalSelector.replace(':first-child', ':first-of-type');
-    } else if (originalSelector.includes('article')) {
-      // Try multiple article patterns
-      alternativeSelector = 'article a, .article a, [class*="article"] a, .post a, .entry a';
-    } else if (originalSelector.startsWith('.') && !originalSelector.includes(' ')) {
-      // For single class selectors, try variations
-      const className = originalSelector.substring(1);
-      alternativeSelector = `${originalSelector}, [class*="${className}"], [class^="${className}"], [class$="${className}"]`;
-    }
-
-    if (alternativeSelector !== originalSelector) {
-      console.log(`   🔄 Trying alternative selector pattern: ${alternativeSelector}`);
-
-      return {
-        ...step,
-        target: {
-          ...step.target,
-          selector: alternativeSelector
-        }
-      };
-    }
-
-    return step;
-  }
-
-  /**
-   * Use AI to refine step with error context
+   * Use AI to refine a step with error context
    */
   private async aiRefineStepWithErrorContext(
     step: ActionStep,
-    stepContext: any,
+    _stepContext: any,
     pageState: PageState
   ): Promise<ActionStep> {
     try {
-      // Get all content in one call - includes structure, forms, and interactions
       const allContent = this.actionPlanner.getAllContentFromPage(pageState.content || '');
 
       const refinementPrompt = this.promptTemplate.render('step-refinement', {
@@ -189,18 +138,15 @@ export class StepRefinementManager {
           description: step.description
         };
 
-        // Only assign target if it exists
         const targetToUse = refinedStep.target || step.target;
         if (targetToUse) {
           result.target = targetToUse;
         }
 
-        // Only assign value if it exists
         if (step.value) {
           result.value = step.value;
         }
 
-        // Only assign condition if it exists
         if (step.condition) {
           result.condition = step.condition;
         }
@@ -261,13 +207,11 @@ export class StepRefinementManager {
           description: step.description
         };
 
-        // Only assign target if it exists
         const targetToUse = refinedStep.target || step.target;
         if (targetToUse) {
           result.target = targetToUse;
         }
 
-        // Only assign value if it exists
         const valueToUse = refinedStep.value || step.value;
         if (valueToUse) {
           result.value = valueToUse;

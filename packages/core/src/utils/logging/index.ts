@@ -4,18 +4,23 @@ export { ExecutionLogger } from './execution-logger';
 // Types
 export type {
   ExecutionLogEntry,
-  ExecutionSessionLog,
-  StepLogConfig,
-  LoggingStats,
-  FileConfig,
-  RefinementInfo
+  ExecutionSessionLog, FileConfig, LoggingStats, RefinementInfo, StepLogConfig
 } from './types/logging.types';
 
+// AI Logging Types
+export type {
+  AILogConfig,
+  AILogMethod, AIRequestLogEntry,
+  AIResponseLogEntry,
+  AIVisionRequestLogEntry
+} from './types/ai-logging.types';
+
 // Services
-export { FileManagementService } from './services/file-management.service';
-export { StatisticsService } from './services/statistics.service';
+export { AILoggingService } from './services/ai-logging.service';
 export { EntryBuilderService } from './services/entry-builder.service';
+export { FileManagementService } from './services/file-management.service';
 export { MonitorGeneratorService } from './services/monitor-generator.service';
+export { StatisticsService } from './services/statistics.service';
 
 // Handlers
 export { ScreenshotHandler } from './handlers/screenshot-handler';

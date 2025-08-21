@@ -7,7 +7,7 @@ export interface ActionStep {
   type: ActionType;
   description: string;
   selector?: string;
-  value?: string;
+  value?: any;
   url?: string;
   timeout?: number;
   expected?: string;

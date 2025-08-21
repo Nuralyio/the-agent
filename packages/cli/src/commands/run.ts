@@ -1,19 +1,19 @@
 import { TheAgent } from '@theagent/core';
-import { getBrowserType, formatDuration } from '../utils/browser';
-import { loadConfig } from '../utils/config';
-import { createLogger } from '../utils/logger';
-import { checkBrowserInstallations, autoInstallBrowsers, suggestBrowserInstallation } from '../utils/installer';
 import { RunOptions } from '../types';
+import { formatDuration, getBrowserType } from '../utils/browser';
+import { loadConfig } from '../utils/config';
+import { autoInstallBrowsers, checkBrowserInstallations, suggestBrowserInstallation } from '../utils/installer';
+import { createLogger } from '../utils/logger';
 
 export async function runCommand(task: string, options: RunOptions) {
   const logger = createLogger();
-  
+
   try {
     // Load configuration
     const config = await loadConfig(options.config);
-    
+
     const adapter = options.adapter || config.adapter;
-    
+
     // Handle browser check option
     if (options.checkBrowsers) {
       logger.info('🔍 Checking browser installations...');
@@ -21,24 +21,24 @@ export async function runCommand(task: string, options: RunOptions) {
       process.exit(0);
       return;
     }
-    
+
     // Check and optionally install browsers
     const status = await checkBrowserInstallations();
-    const needsInstallation = (adapter === 'playwright' && !status.playwright) || 
-                             (adapter === 'puppeteer' && !status.puppeteer);
-    
+    const needsInstallation = (adapter === 'playwright' && !status.playwright) ||
+      (adapter === 'puppeteer' && !status.puppeteer);
+
     if (needsInstallation) {
       if (options.installBrowsers) {
         logger.info(`🔧 Auto-installing browsers for ${adapter}...`);
         const installSuccess = await autoInstallBrowsers(adapter);
-        
+
         if (!installSuccess) {
           logger.error(`❌ Failed to install browsers for ${adapter}`);
           await suggestBrowserInstallation(adapter);
           process.exit(1);
           return;
         }
-        
+
         logger.success(`✅ Browsers installed successfully for ${adapter}!`);
       } else {
         logger.warn(`⚠️  Browser dependencies missing for ${adapter}`);
@@ -49,7 +49,7 @@ export async function runCommand(task: string, options: RunOptions) {
         return;
       }
     }
-    
+
     // Override AI configuration with command-line options
     const aiConfig = {
       provider: options.aiProvider || config.ai.provider,
@@ -57,7 +57,7 @@ export async function runCommand(task: string, options: RunOptions) {
       baseUrl: options.aiBaseUrl || config.ai.baseUrl,
       apiKey: options.aiApiKey || config.ai.apiKey
     };
-    
+
     logger.info(`🤖 Starting The Agent automation task: ${task}`);
     logger.info(`📋 Configuration:`);
     logger.info(`   Adapter: ${options.adapter || config.adapter}`);
@@ -75,7 +75,7 @@ export async function runCommand(task: string, options: RunOptions) {
 
     logger.info('🚀 Initializing The Agent...');
     await automation.initialize();
-    
+
     const startTime = Date.now();
     const result = await automation.execute(task, {
       timeout: options.timeout || config.timeout,
@@ -89,23 +89,23 @@ export async function runCommand(task: string, options: RunOptions) {
     }
 
     await automation.close();
-    
+
     if (result.success) {
       logger.success(`✅ Task completed successfully in ${formatDuration(duration)}`);
-      
+
       if (result.steps && result.steps.length > 0) {
         logger.info(`📊 Execution Summary:`);
         logger.info(`   Steps executed: ${result.steps.length}`);
-        
+
         result.steps.forEach((step, index) => {
           logger.info(`   ${index + 1}. ${step.description}`);
         });
       }
-      
+
       if (result.extractedData) {
         logger.info(`📦 Data extracted: ${JSON.stringify(result.extractedData, null, 2)}`);
       }
-      
+
       process.exit(0);
     } else {
       logger.error(`❌ Task failed: ${result.error}`);
@@ -113,11 +113,11 @@ export async function runCommand(task: string, options: RunOptions) {
     }
   } catch (error) {
     logger.error(`💥 Execution failed: ${error instanceof Error ? error.message : error}`);
-    
+
     if (error instanceof Error && error.stack) {
       logger.debug(`Stack trace: ${error.stack}`);
     }
-    
+
     process.exit(1);
   }
 }

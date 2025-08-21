@@ -1,8 +1,8 @@
-import * as fs from 'fs';
 import * as path from 'path';
 import { PromptTemplate } from '../prompt-template';
 import { OllamaProvider, OpenAIProvider } from '../providers';
 import { PageState } from '../types';
+import { AILogConfig, AILoggingService } from '../utils/logging';
 import { ActionStep, ActionType } from './planning/types/types';
 
 export interface AIMessage {
@@ -86,10 +86,18 @@ export class AIEngine {
   private providers: Map<string, AIProvider> = new Map();
   private defaultProvider?: AIProvider;
   private promptTemplate: PromptTemplate;
+  private aiLogger: AILoggingService;
 
   constructor() {
     // Initialize with available providers
     this.promptTemplate = new PromptTemplate();
+
+    // Initialize AI logging service
+    const aiLogConfig: AILogConfig = {
+      logDir: path.resolve(__dirname, '../../../ai-debug-logs'),
+      enableFileSystemLogging: process.env.AI_ENABLE_FILE_LOGGING === 'true' // Disabled by default, enable via env var
+    };
+    this.aiLogger = new AILoggingService(aiLogConfig);
   }
 
   /**
@@ -161,12 +169,12 @@ export class AIEngine {
     const provider = this.getDefaultProvider();
 
     // Log the request
-    this.logAIRequest('generateText', prompt, systemPrompt, provider.name);
+    this.aiLogger.logRequest('generateText', prompt, systemPrompt, provider.name);
 
     const response = await provider.generateText(prompt, systemPrompt);
 
     // Log the response
-    this.logAIResponse('generateText', response, provider.name, prompt);
+    this.aiLogger.logResponse('generateText', response, provider.name, prompt);
 
     return response;
   }
@@ -178,7 +186,7 @@ export class AIEngine {
     const provider = this.getDefaultProvider();
 
     // Log the request
-    this.logAIRequest('generateStructuredJSON', prompt, systemPrompt, provider.name);
+    this.aiLogger.logRequest('generateStructuredJSON', prompt, systemPrompt, provider.name);
 
     let response: AIResponse;
 
@@ -196,7 +204,7 @@ export class AIEngine {
     }
 
     // Log the response
-    this.logAIResponse('generateStructuredJSON', response, provider.name, prompt);
+    this.aiLogger.logResponse('generateStructuredJSON', response, provider.name, prompt);
 
     return response;
   }
@@ -211,12 +219,12 @@ export class AIEngine {
     }
 
     // Log the request (with image info but not the actual image data)
-    this.logAIVisionRequest('generateWithVision', prompt, systemPrompt, provider.name, images);
+    this.aiLogger.logVisionRequest('generateWithVision', prompt, systemPrompt, provider.name, images);
 
     const response = await provider.generateWithVision(prompt, images, systemPrompt);
 
     // Log the response
-    this.logAIResponse('generateWithVision', response, provider.name, prompt);
+    this.aiLogger.logResponse('generateWithVision', response, provider.name, prompt);
 
     return response;
   }
@@ -333,125 +341,9 @@ export class AIEngine {
   }
 
   /**
-   * Log AI request (prompt + system prompt)
+   * Get AI logging service for external access if needed
    */
-  private logAIRequest(method: string, prompt: string, systemPrompt: string | undefined, providerName: string): void {
-    try {
-      const timestamp = new Date().toISOString();
-      const requestData = {
-        timestamp,
-        method,
-        providerName,
-        promptLength: prompt.length,
-        systemPromptLength: systemPrompt?.length || 0,
-        prompt: prompt,
-        systemPrompt: systemPrompt || null
-      };
-
-      // Create request log file
-      const sanitizedMethod = method.replace(/[^a-zA-Z0-9-]/g, '-');
-      const logFileName = `${sanitizedMethod}-REQUEST-${timestamp.split('T')[0]}-${timestamp.split('T')[1].split('.')[0].replace(/:/g, '-')}.log`;
-      const logFilePath = this.getLogFilePath(logFileName);
-
-      // Format request log entry
-      const logEntry = `${JSON.stringify(requestData, null, 2)}\n\n--- AI REQUEST PROMPT ---\n${prompt}\n\n${systemPrompt ? `--- SYSTEM PROMPT ---\n${systemPrompt}\n\n` : ''}${'='.repeat(80)}\n\n`;
-
-      // Write to file
-      fs.writeFileSync(logFilePath, logEntry);
-
-      if (process.env.NODE_ENV === 'development' || process.env.AI_DEBUG === 'true') {
-        console.log(`🤖 Logged AI request for '${method}' to: ${logFileName}`);
-      }
-    } catch (error) {
-      console.warn(`Failed to log AI request: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  }
-
-  /**
-   * Log AI response
-   */
-  private logAIResponse(method: string, response: AIResponse, providerName: string, originalPrompt: string): void {
-    try {
-      const timestamp = new Date().toISOString();
-      const responseData = {
-        timestamp,
-        method,
-        providerName,
-        responseContentLength: response.content?.length || 0,
-        finishReason: response.finishReason || 'unknown',
-        usage: response.usage || null,
-        originalPromptLength: originalPrompt.length
-      };
-
-      // Create response log file
-      const sanitizedMethod = method.replace(/[^a-zA-Z0-9-]/g, '-');
-      const logFileName = `${sanitizedMethod}-RESPONSE-${timestamp.split('T')[0]}-${timestamp.split('T')[1].split('.')[0].replace(/:/g, '-')}.log`;
-      const logFilePath = this.getLogFilePath(logFileName);
-
-      // Format response log entry
-      const logEntry = `${JSON.stringify(responseData, null, 2)}\n\n--- AI RESPONSE ---\n${response.content || 'No content'}\n\n${'='.repeat(80)}\n\n`;
-
-      // Write to file
-      fs.writeFileSync(logFilePath, logEntry);
-
-      if (process.env.NODE_ENV === 'development' || process.env.AI_DEBUG === 'true') {
-        console.log(`🤖 Logged AI response for '${method}' to: ${logFileName}`);
-      }
-    } catch (error) {
-      console.warn(`Failed to log AI response: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  }
-
-  /**
-   * Log AI vision request (prompt + system prompt + image info)
-   */
-  private logAIVisionRequest(method: string, prompt: string, systemPrompt: string | undefined, providerName: string, images: Buffer[]): void {
-    try {
-      const timestamp = new Date().toISOString();
-      const requestData = {
-        timestamp,
-        method,
-        providerName,
-        promptLength: prompt.length,
-        systemPromptLength: systemPrompt?.length || 0,
-        imageCount: images.length,
-        imageSizes: images.map(img => img.length),
-        totalImageDataSize: images.reduce((total, img) => total + img.length, 0),
-        prompt: prompt,
-        systemPrompt: systemPrompt || null
-      };
-
-      // Create request log file
-      const sanitizedMethod = method.replace(/[^a-zA-Z0-9-]/g, '-');
-      const logFileName = `${sanitizedMethod}-REQUEST-${timestamp.split('T')[0]}-${timestamp.split('T')[1].split('.')[0].replace(/:/g, '-')}.log`;
-      const logFilePath = this.getLogFilePath(logFileName);
-
-      // Format request log entry (without actual image data)
-      const logEntry = `${JSON.stringify(requestData, null, 2)}\n\n--- AI VISION REQUEST PROMPT ---\n${prompt}\n\n${systemPrompt ? `--- SYSTEM PROMPT ---\n${systemPrompt}\n\n` : ''}--- IMAGE INFO ---\nImages: ${images.length}\nTotal size: ${requestData.totalImageDataSize} bytes\n\n${'='.repeat(80)}\n\n`;
-
-      // Write to file
-      fs.writeFileSync(logFilePath, logEntry);
-
-      if (process.env.NODE_ENV === 'development' || process.env.AI_DEBUG === 'true') {
-        console.log(`🤖 Logged AI vision request for '${method}' to: ${logFileName}`);
-      }
-    } catch (error) {
-      console.warn(`Failed to log AI vision request: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  }
-
-  /**
-   * Get log file path
-   */
-  private getLogFilePath(fileName: string): string {
-    // Use ai-debug-logs directory in packages root
-    const logsDir = path.resolve(__dirname, '../../../ai-debug-logs');
-
-    // Ensure directory exists
-    if (!fs.existsSync(logsDir)) {
-      fs.mkdirSync(logsDir, { recursive: true });
-    }
-
-    return path.join(logsDir, fileName);
+  getAILogger(): AILoggingService {
+    return this.aiLogger;
   }
 }

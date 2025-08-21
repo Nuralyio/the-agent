@@ -18,7 +18,7 @@ export interface StepExecutionResult {
 }
 
 /**
- * Contextual information about previous steps for AI decision making
+ * Contextual information about previous steps for AI decision-making
  */
 export interface StepContext {
   previousSteps: StepExecutionResult[];
@@ -42,11 +42,7 @@ export interface FormElementContext {
   filled?: boolean;
   stepIndex?: number;
 }
-
-/**
- * LangChain schema for step context analysis
- */
-export const StepContextAnalysisSchema = z.object({
+z.object({
   recommendations: z.array(z.object({
     type: z.enum(['SELECTOR_IMPROVEMENT', 'VALUE_ADJUSTMENT', 'TIMING_DELAY', 'ALTERNATIVE_APPROACH']),
     description: z.string(),
@@ -64,11 +60,8 @@ export const StepContextAnalysisSchema = z.object({
     alternativeActions: z.array(z.string()).optional()
   })
 });
-
-export type StepContextAnalysis = z.infer<typeof StepContextAnalysisSchema>;
-
 /**
- * Manages the context and history of executed steps for better AI decision making
+ * Manages the context and history of executed steps for better AI decision-making
  */
 export class StepContextManager {
   private stepHistory: StepExecutionResult[] = [];
@@ -82,12 +75,10 @@ export class StepContextManager {
   addStepResult(result: StepExecutionResult): void {
     this.stepHistory.push(result);
 
-    // Track form elements if this was a form interaction
     if (result.step.target?.selector && this.isFormInteraction(result.step)) {
       this.updateFormElementContext(result);
     }
 
-    // Track page state changes
     if (result.pageStateAfter) {
       this.pageHistory.push(result.pageStateAfter);
     }
@@ -130,18 +121,6 @@ export class StepContextManager {
       .map(step => step.selectorUsed!)
       .filter((selector, index, array) => array.indexOf(selector) === index);
   }
-
-  /**
-   * Get patterns from previous interactions
-   */
-  getInteractionPatterns(): { selector: string; action: string; success: boolean }[] {
-    return this.stepHistory.map(step => ({
-      selector: step.selectorUsed || step.step.target?.selector || '',
-      action: step.step.type,
-      success: step.success
-    }));
-  }
-
   /**
    * Clear the context (for new automation sessions)
    */
@@ -172,7 +151,6 @@ export class StepContextManager {
     const successfulSelectors = this.getSuccessfulSelectors();
     const formElements = this.getKnownFormElements();
 
-    // Get extracted data from EXTRACT actions
     const extractedData = this.stepHistory
       .filter(step => step.step.type === 'extract' && step.success && step.extractedData)
       .map(step => ({
@@ -190,7 +168,7 @@ export class StepContextManager {
         extractedData: step.extractedData, // Include extracted data
         timestamp: step.timestamp.toISOString()
       })),
-      extractedData, // Include all extracted data summary
+      extractedData, // Include all extracted data summaries
       successfulSelectors,
       formElements: formElements.map(el => ({
         selector: el.selector,
@@ -229,7 +207,6 @@ export class StepContextManager {
       ...existing
     };
 
-    // Only add optional properties if they have values
     if (extractedName) {
       updated.name = extractedName;
     }
