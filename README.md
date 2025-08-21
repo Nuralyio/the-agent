@@ -1,4 +1,6 @@
-# The agent - AI-Powered Brows## 📊 Web Dashboard Preview
+# The agent - AI-Powered Brows
+
+## 📊 Web Dashboard Preview
 
 <div align="center">
   <a href="https://youtu.be/-kNVYzFXkLk" target="_blank">
