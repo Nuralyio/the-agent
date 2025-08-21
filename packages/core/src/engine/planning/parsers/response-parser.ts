@@ -34,7 +34,6 @@ export class ResponseParser {
   private cleanJsonResponse(content: string): string {
     let cleanContent = content.trim();
 
-    // Remove code block markers
     if (cleanContent.startsWith('```json')) {
       cleanContent = cleanContent.substring(7);
     }
@@ -64,12 +63,9 @@ export class ResponseParser {
       return false;
     }
 
-    // Ensure all sub-objectives are strings
-    if (!parsed.subObjectives.every((obj: any) => typeof obj === 'string')) {
-      return false;
-    }
+    return parsed.subObjectives.every((obj: any) => typeof obj === 'string');
 
-    return true;
+
   }
 
   /**

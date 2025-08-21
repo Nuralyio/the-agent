@@ -79,12 +79,12 @@ export class AIResponseParser {
   }
 
   /**
-   * Clean the response by removing markdown and fixing common issues
+   * Clean the response by removing Markdown and fixing common issues
    */
   private cleanResponse(response: string): string {
     let trimmed = response.trim();
 
-    // Strip markdown code blocks if present
+    // Strip Markdown code blocks if present
     if (trimmed.startsWith('```json')) {
       trimmed = trimmed.replace(/^```json[ \t\r\n]*/, '').replace(/[ \t\r\n]*```$/, '');
       console.log('🔧 Removed markdown code block wrapper');
@@ -100,14 +100,11 @@ export class AIResponseParser {
    * Fix common JSON formatting issues
    */
   private fixCommonJSONIssues(jsonString: string): string {
-    // Handle incomplete reasoning field by ensuring it ends properly
     if (jsonString.includes('"reasoning":') && !jsonString.endsWith('}')) {
       const reasoningMatch = jsonString.match(/"reasoning":[ \t]*"([^"]*)"?$/);
       if (reasoningMatch && !reasoningMatch[1].endsWith('"')) {
-        // Fix incomplete reasoning field
         jsonString = jsonString.replace(/"reasoning":[ \t]*"([^"]*)"?$/, '"reasoning": "$1"}');
       } else if (jsonString.includes('"reasoning":') && !jsonString.includes('}', jsonString.lastIndexOf('"reasoning":'))) {
-        // Add missing closing brace
         jsonString += '}';
       }
     }
@@ -126,7 +123,6 @@ export class AIResponseParser {
       console.error('❌ JSON parse error:', errorMsg);
       console.error('📝 Response preview:', jsonString.substring(0, 200) + '...');
 
-      // Try one more fix for malformed JSON at the end
       if (errorMsg.includes('Expected') && errorMsg.includes('after property value')) {
         const fixedJson = jsonString.replace(/,[ \t]*$/, '').replace(/([^}])$/, '$1}');
         return JSON.parse(fixedJson);

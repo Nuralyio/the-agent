@@ -80,7 +80,6 @@ export enum ActionType {
   HOVER = 'hover',
   EXTRACT = 'extract',
   VERIFY = 'verify',
-  // Sub-plan action types
   EXECUTE_SUB_PLAN = 'execute_sub_plan',
   PLAN = 'plan'
 }
