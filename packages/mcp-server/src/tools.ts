@@ -196,7 +196,7 @@ export class BrowserMCPTools {
 
     if (takeScreenshot) {
       const screenshotPath = `/tmp/screenshot-${Date.now()}.png`;
-      await automation.screenshot(screenshotPath);
+      await automation.screenshot({ path: screenshotPath });
       content.push({
         type: 'image',
         data: screenshotPath,
@@ -213,9 +213,9 @@ export class BrowserMCPTools {
     if (selector) {
       // Take screenshot of specific element
       // Note: This might need to be implemented in the core package
-      await automation.screenshot(screenshotPath);
+      await automation.screenshot({ path: screenshotPath });
     } else {
-      await automation.screenshot(screenshotPath);
+      await automation.screenshot({ path: screenshotPath });
     }
 
     return {

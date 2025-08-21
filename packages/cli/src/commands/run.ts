@@ -84,7 +84,7 @@ export async function runCommand(task: string, options: RunOptions) {
     const duration = Date.now() - startTime;
 
     if (options.output && config.screenshots.enabled) {
-      await automation.screenshot(options.output);
+      await automation.screenshot({ path: options.output });
       logger.success(`📸 Screenshot saved to ${options.output}`);
     }
 
