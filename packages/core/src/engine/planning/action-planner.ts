@@ -48,7 +48,12 @@ export class ActionPlanner {
     forms: string;
     interactions: string;
   } {
-    return this.contentExtractor.getAllContent(pageContent);
+    const structure = this.contentExtractor.extractStructuredContent(pageContent);
+    return {
+      structure,
+      forms: '',
+      interactions: '',
+    };
   }
 
   /**
@@ -92,7 +97,12 @@ export class ActionPlanner {
    * Parse instruction using AI with current page context
    */
   private async parseInstructionWithAI(instruction: string, pageState: PageState, context: TaskContext): Promise<ParsedInstruction> {
-    const allContent = this.contentExtractor.getAllContent(pageState.content || '');
+    const structure = this.contentExtractor.extractStructuredContent(pageState.content || '');
+    const allContent = {
+      structure,
+      forms: '',
+      interactions: '',
+    };
 
     const executionContext = context.executionContextSummary || this.prepareExecutionContext(context);
 

@@ -16,16 +16,4 @@ export class ContentExtractor {
     if (!html) return 'No page content available';
     return htmlToEmmet(removeScriptsAndStyles(html));
   }
-
-  /**
-   * For backwards compatibility with existing code
-   */
-  getAllContent(html: string): { structure: string; forms: string; interactions: string } {
-    const emmetStructure = this.extractStructuredContent(html);
-    return {
-      structure: emmetStructure,
-      forms: '',
-      interactions: '',
-    };
-  }
 }

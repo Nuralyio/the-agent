@@ -4,7 +4,7 @@ export { AIResponseParser, ParsedInstruction } from '../parsers/ai-response-pars
 
 // Extractors
 export { ContentExtractor } from './content-extractor';
-export { htmlToEmmet, convertElementToEmmet, parseElementAttributes, removeScriptsAndStyles } from './emmet-utils';
+export { convertElementToEmmet, htmlToEmmet, parseElementAttributes, removeScriptsAndStyles } from './emmet-utils';
 
 // Builders
 export { PlanBuilder, PlanBuilderOptions } from '../plan-builder';
