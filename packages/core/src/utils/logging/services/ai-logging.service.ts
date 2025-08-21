@@ -175,7 +175,6 @@ export class AILoggingService {
       '',
       systemPrompt ? '--- SYSTEM PROMPT ---' : '',
       systemPrompt ? systemPrompt : '',
-      systemPrompt ? '' : '',
       '='.repeat(80),
       '',
       ''
@@ -220,7 +219,6 @@ export class AILoggingService {
       '',
       systemPrompt ? '--- SYSTEM PROMPT ---' : '',
       systemPrompt ? systemPrompt : '',
-      systemPrompt ? '' : '',
       '--- IMAGE INFO ---',
       `Images: ${images?.length || 0}`,
       `Total size: ${requestData.totalImageDataSize} bytes`,
