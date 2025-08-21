@@ -29,21 +29,16 @@ export const useAutomationState = ({
   const [isLoading, setIsLoading] = useState(false);
   const [headlessMode, setHeadlessMode] = useState(true); // Default to headless mode
 
-  // Effect to sync currentPlan and currentExecutionPlan from chatMessages
   useEffect(() => {
-    // Find the latest plan or plan in chat messages
     const latestPlanMessage = [...chatMessages]
       .reverse()
       .find(msg => msg.type === 'plan' || msg.type === 'execution_plan');
 
     if (latestPlanMessage) {
       if (latestPlanMessage.type === 'execution_plan' && latestPlanMessage.executionPlan) {
-        // Set plan if it's not already set
         if (!currentExecutionPlan) {
           setCurrentExecutionPlan(latestPlanMessage.executionPlan);
         }
-
-        // Set current plan to sub-plan overview if currentPlan is empty
         if (currentPlan.length === 0) {
           const subPlanSteps: ExecutionStep[] = latestPlanMessage.executionPlan.subPlans.map((subPlan, index) => ({
             id: index,
@@ -55,7 +50,6 @@ export const useAutomationState = ({
           setCurrentPlan(subPlanSteps);
         }
       } else if (latestPlanMessage.type === 'plan' && latestPlanMessage.steps) {
-        // Set regular plan if currentPlan is empty
         if (currentPlan.length === 0) {
           setCurrentPlan(latestPlanMessage.steps);
         }
@@ -66,9 +60,7 @@ export const useAutomationState = ({
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      // You could add a toast notification here
     } catch (err) {
-      // Fallback for browsers that don't support clipboard API
       const textArea = document.createElement('textarea');
       textArea.value = text;
       document.body.appendChild(textArea);
@@ -97,11 +89,9 @@ export const useAutomationState = ({
 
     setIsLoading(true);
 
-    // Clear existing plans to show loading state immediately
     setCurrentPlan([]);
     setCurrentExecutionPlan(null);
 
-    // Add user message
     const userMessage: ChatMessage = {
       id: Date.now(),
       type: 'user',
@@ -112,7 +102,6 @@ export const useAutomationState = ({
     addMessage(userMessage);
 
     try {
-      // Call the automation server
       const result = await executeAutomationTask({
         taskDescription,
         engine: selectedEngine,
@@ -123,7 +112,6 @@ export const useAutomationState = ({
       });
 
       if (result.success) {
-        // Add system response
         const systemResponse: ChatMessage = {
           id: Date.now() + 1,
           type: 'system',
@@ -132,7 +120,6 @@ export const useAutomationState = ({
         };
         addMessage(systemResponse);
       } else {
-        // Add error message
         const errorMessage: ChatMessage = {
           id: Date.now() + 1,
           type: 'system',
@@ -140,10 +127,9 @@ export const useAutomationState = ({
           timestamp: new Date(),
         };
         addMessage(errorMessage);
-        setIsLoading(false); // Stop loading on API error
+        setIsLoading(false);
       }
     } catch (error) {
-      // Add network error message
       const errorMessage: ChatMessage = {
         id: Date.now() + 1,
         type: 'system',
@@ -151,7 +137,7 @@ export const useAutomationState = ({
         timestamp: new Date(),
       };
       addMessage(errorMessage);
-      setIsLoading(false); // Stop loading on error
+      setIsLoading(false);
     }
 
     setTaskDescription('');
