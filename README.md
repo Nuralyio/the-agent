@@ -1,4 +1,4 @@
-# The agent - AI-Powered Brows
+# The agent - AI-Powered Browser Automation Framework
 
 <div align="center">
   <a href="https://youtu.be/-kNVYzFXkLk" target="_blank">
