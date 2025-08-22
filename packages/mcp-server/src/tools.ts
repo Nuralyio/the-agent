@@ -1,8 +1,8 @@
-import { TheAgent } from '@theagent/core';
 import { Tool } from '@modelcontextprotocol/sdk/types';
+import { TheAgent } from '@theagent/core';
 
 export class BrowserMCPTools {
-  
+
   getToolDefinitions(): Tool[] {
     return [
       {
@@ -142,31 +142,31 @@ export class BrowserMCPTools {
     switch (name) {
       case 'browser_navigate':
         return await this.navigate(automation, args.url);
-      
+
       case 'browser_execute':
         return await this.execute(automation, args.instruction, args.take_screenshot);
-      
+
       case 'browser_screenshot':
         return await this.screenshot(automation, args.selector, args.path);
-      
+
       case 'browser_extract_text':
         return await this.extractText(automation, args.selector);
-      
+
       case 'browser_get_page_info':
         return await this.getPageInfo(automation);
-      
+
       case 'browser_click':
         return await this.click(automation, args.selector);
-      
+
       case 'browser_type':
         return await this.type(automation, args.selector, args.text);
-      
+
       case 'browser_wait':
         return await this.wait(automation, args.selector, args.timeout);
-      
+
       case 'browser_close':
         return await this.close(automation);
-      
+
       default:
         throw new Error(`Unknown tool: ${name}`);
     }
@@ -186,7 +186,7 @@ export class BrowserMCPTools {
 
   private async execute(automation: TheAgent, instruction: string, takeScreenshot = false) {
     const result = await automation.execute(instruction);
-    
+
     const content: any[] = [
       {
         type: 'text',
@@ -209,7 +209,7 @@ export class BrowserMCPTools {
 
   private async screenshot(automation: TheAgent, selector?: string, path?: string) {
     const screenshotPath = path || `/tmp/screenshot-${Date.now()}.png`;
-    
+
     if (selector) {
       // Take screenshot of specific element
       // Note: This might need to be implemented in the core package
@@ -237,7 +237,7 @@ export class BrowserMCPTools {
     // This functionality would need to be added to the core package
     // For now, we'll use a workaround
     const result = await automation.execute(
-      selector 
+      selector
         ? `Extract text content from element with selector: ${selector}`
         : 'Extract all text content from the page'
     );

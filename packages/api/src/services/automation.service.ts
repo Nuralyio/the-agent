@@ -3,7 +3,7 @@ import { TheAgent } from '@theagent/core/dist/index';
 import { executionStream } from '@theagent/core/dist/streaming/execution-stream';
 import { BrowserType } from '@theagent/core/dist/types';
 import { v4 as uuidv4 } from 'uuid';
-import { ExecutionEvent, ExecutionStreamWithClients } from '../types';
+import { ExecutionEvent } from '../types';
 import { configService } from './config.service';
 
 /**

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { ChatMessage, ExecutionStep, ExecutionPlan } from '../Dashboard.types';
+import type { ChatMessage, ExecutionPlan, ExecutionStep } from '../Dashboard.types';
 import { executeAutomationTask } from '../utils/api';
 
 interface UseAutomationProps {
