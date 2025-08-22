@@ -1,4 +1,12 @@
-# The agent - AI-Powered Browser Automation Framework
+# The agent - AI-Powered Brows## 📊 Web Dashboard Preview
+
+<div align="center">
+  <a href="https://youtu.be/-kNVYzFXkLk" target="_blank">
+    <img src="./assets/webui.png" alt="The Agent Web Dashboard" width="800"/>
+  </a>
+  <br/>
+  <em>Real-time browser automation dashboard with plan monitor</em>
+</div>mation Framework
 
 [![CI Tests](https://github.com/Nuralyio/the-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/Nuralyio/the-agent/actions/workflows/ci.yml)
 [![Release](https://github.com/Nuralyio/the-agent/actions/workflows/release.yml/badge.svg)](https://github.com/Nuralyio/the-agent/actions/workflows/release.yml)
@@ -31,7 +39,7 @@ real-time monitor and monitoring capabilities.
 ## � Web Dashboard Preview
 
 <div align="center">
-[![Demo](./assets/webui.png)](https://www.youtube.com/watch?v=VIDEO_ID)
+  <img src="./assets/webui.png" alt="The Agent Web Dashboard" width="800"/>
   <br/>
   <em>Real-time browser automation dashboard with plan monitor</em>
 </div>
