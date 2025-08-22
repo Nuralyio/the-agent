@@ -31,7 +31,7 @@ real-time monitor and monitoring capabilities.
 ## � Web Dashboard Preview
 
 <div align="center">
-  <img src="./assets/webui.png" alt="The Agent Web Dashboard" width="800"/>
+[![Demo](./assets/webui.png)](https://www.youtube.com/watch?v=VIDEO_ID)
   <br/>
   <em>Real-time browser automation dashboard with plan monitor</em>
 </div>
