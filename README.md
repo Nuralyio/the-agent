@@ -1,7 +1,5 @@
 # The agent - AI-Powered Brows
 
-## 📊 Web Dashboard Preview
-
 <div align="center">
   <a href="https://youtu.be/-kNVYzFXkLk" target="_blank">
     <img src="./assets/webui.png" alt="The Agent Web Dashboard" width="800"/>
