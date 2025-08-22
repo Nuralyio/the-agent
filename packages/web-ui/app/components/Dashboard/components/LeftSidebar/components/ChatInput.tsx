@@ -15,12 +15,31 @@ const EXAMPLE_PROMPTS = [
 ];
 
 export const ChatInput: React.FC<ChatInputProps> = ({ taskDescription, setTaskDescription, onRunTask, isLoading }) => {
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.ctrlKey && e.key === 'Enter') {
       e.preventDefault();
       onRunTask();
     }
   };
+
+  const autoResize = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 300) + 'px';
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setTaskDescription(e.target.value);
+    autoResize();
+  };
+
+  React.useEffect(() => {
+    autoResize();
+  }, [taskDescription]);
 
   const handleSuggestionClick = (prompt: string) => {
     setTaskDescription(prompt);
@@ -79,10 +98,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({ taskDescription, setTaskDe
 
       <div style={styles.inputWrapper}>
         <textarea
+          ref={textareaRef}
           style={styles.textInput}
           placeholder='Message AI Assistant...'
           value={taskDescription}
-          onChange={e => setTaskDescription(e.target.value)}
+          onChange={handleChange}
           onKeyDown={handleKeyDown}
           disabled={isLoading}
         />
