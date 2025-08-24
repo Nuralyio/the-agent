@@ -2,7 +2,7 @@
  * Browser types and configuration options
  */
 
-import { Viewport, ProxyConfig, VideoConfig, ClipArea, WaitOptions } from './types';
+import { ClipArea, ProxyConfig, VideoConfig, Viewport } from './types';
 
 export enum BrowserType {
   CHROME = 'chrome',

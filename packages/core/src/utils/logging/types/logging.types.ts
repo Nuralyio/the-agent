@@ -1,5 +1,5 @@
-import { ActionStep } from '../../../types';
 import { StepExecutionResult } from '../../../engine/analysis/step-context';
+import { ActionStep } from '../../../engine/planning/types/types';
 
 /**
  * Execution log entry for JSON format

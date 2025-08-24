@@ -1,14 +1,10 @@
 import { executionStream } from '../../events/execution-stream';
-import {
-  ActionPlan,
-  ActionStep,
-  BrowserManager,
-  PageState,
-  TaskResult
-} from '../../types';
+import { BrowserManager } from '../../types/browser.types';
+import { TaskResult } from '../../types/task.types';
 import { ExecutionLogger } from '../../utils/logging';
 import { StepContextManager, StepExecutionResult } from '../analysis/step-context';
 import { ActionPlanner } from '../planning/action-planner';
+import { ActionPlan, ActionStep, PageState } from '../planning/types/types';
 import { ActionExecutor } from './action-executor';
 import { StepRefinementManager } from './step-refinement';
 

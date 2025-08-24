@@ -1,5 +1,4 @@
 import { executionStream } from '../../events/execution-stream';
-import { ActionPlan, Plan } from '../../types';
 import { StepContextManager } from '../analysis/step-context';
 import { ActionExecutor } from '../execution/action-executor';
 import { SubPlanService } from './services/sub-plan.service';
@@ -7,6 +6,7 @@ import {
   ExecutionContext,
   PlanExecutionResult
 } from './types/planning.types';
+import { ActionPlan, Plan } from './types/types';
 
 /**
  * Manages execution of execution plans with streaming support

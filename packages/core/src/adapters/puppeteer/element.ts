@@ -1,11 +1,11 @@
-import { ElementHandle } from '../../types';
 import type { ElementHandle as PuppeteerElementHandleType } from 'puppeteer';
+import { ElementHandle } from '../interfaces';
 
 /**
  * Puppeteer element handle implementation
  */
 export class PuppeteerElementHandle implements ElementHandle {
-  constructor(private element: PuppeteerElementHandleType) {}
+  constructor(private element: PuppeteerElementHandleType) { }
 
   /**
    * Click the element

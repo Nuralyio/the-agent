@@ -2,12 +2,12 @@ import { BrowserAdapterRegistry } from '../adapters/adapter-registry';
 import {
   BrowserAdapter,
   BrowserInstance,
-  BrowserManager,
   BrowserType,
   LaunchOptions,
   PageInstance,
   ScreenshotOptions
-} from '../types';
+} from '../adapters/interfaces';
+import { BrowserManager } from '../types/browser.types';
 
 /**
  * Browser manager implementation with adapter abstraction

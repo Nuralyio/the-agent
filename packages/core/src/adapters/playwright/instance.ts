@@ -1,5 +1,6 @@
-import type { Browser, BrowserContextOptions } from 'playwright';
-import { BrowserInstance, BrowserType, LaunchOptions, PageInstance } from '../../types';
+import { Browser, BrowserContextOptions } from 'playwright';
+import type { BrowserInstance, LaunchOptions, PageInstance } from '../interfaces';
+import { BrowserType } from '../interfaces';
 import { PlaywrightPageInstance } from './page';
 
 /**

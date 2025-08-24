@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import path from 'path';
+import { BrowserType } from './adapters/interfaces';
 import { AIConfig } from './engine/ai-engine';
-import { BrowserType } from './types';
 
 dotenv.config({ path: path.join(__dirname, '../../../.env') });
 

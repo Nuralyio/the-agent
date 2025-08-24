@@ -1,9 +1,8 @@
 import * as path from 'path';
 import { OllamaProvider, OpenAIProvider } from '../providers';
-import { PageState } from '../types';
 import { AILogConfig, AILoggingService } from '../utils/logging';
 import { PromptTemplate } from '../utils/prompt-template';
-import { ActionStep, ActionType } from './planning/types/types';
+import { ActionStep, ActionType, PageState } from './planning/types/types';
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';

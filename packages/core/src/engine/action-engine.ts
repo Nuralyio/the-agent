@@ -1,12 +1,6 @@
 import { executionStream } from '../events/execution-stream';
-import {
-  ActionPlan,
-  BrowserManager,
-  ActionEngine as IActionEngine,
-  PageState,
-  TaskContext,
-  TaskResult
-} from '../types';
+import type { BrowserManager } from '../types/browser.types';
+import type { ActionEngine as IActionEngine, TaskResult } from '../types/task.types';
 import { ExecutionLogger } from '../utils/execution-logger';
 import { AIEngine } from './ai-engine';
 import { StepContextManager } from './analysis/step-context';
@@ -14,6 +8,7 @@ import { ActionExecutor } from './execution/action-executor';
 import { ActionSequenceExecutor } from './execution/action-sequence-executor';
 import { StepRefinementManager } from './execution/step-refinement';
 import { Planner } from './planning/planner';
+import type { ActionPlan, PageState, TaskContext } from './planning/types/types';
 
 /**
  * Core ActionEngine implementation that orchestrates task execution

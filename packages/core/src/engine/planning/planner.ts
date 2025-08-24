@@ -1,7 +1,7 @@
 import { executionStream } from '../../events/execution-stream';
-import { ActionPlan, PageState, Plan, TaskContext } from '../../types';
 import { PromptTemplate } from '../../utils/prompt-template';
 import { AIEngine } from '../ai-engine';
+import { ActionPlan, PageState, Plan, TaskContext } from './types/types';
 // Removed duplicate import of ActionPlanner
 import * as crypto from 'crypto';
 import { StepContextManager } from '../analysis/step-context';

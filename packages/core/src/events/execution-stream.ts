@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { ActionStep } from '../types';
+import { ActionStep } from '../engine/planning/types/types';
 import { ClientManager } from './client-manager';
 import { EventFactory } from './event-factory';
 import { EventProcessor } from './event-processor';

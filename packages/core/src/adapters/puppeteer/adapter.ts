@@ -1,5 +1,6 @@
 import puppeteer, { LaunchOptions as PuppeteerLaunchOptions } from 'puppeteer';
-import { BrowserAdapter, BrowserInstance, BrowserType, LaunchOptions } from '../types';
+import type { BrowserAdapter, BrowserInstance, LaunchOptions } from '../interfaces';
+import { BrowserType } from '../interfaces';
 import { PuppeteerBrowserInstance } from './instance';
 
 /**

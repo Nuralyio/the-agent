@@ -7,7 +7,8 @@
 
 import { loadEnvironmentConfig } from '../../environment';
 import { executionStream } from '../../events/execution-stream';
-import { ActionStep, ActionType, BrowserManager, PageState } from '../../types';
+import { BrowserManager } from '../../types/browser.types';
+import { ActionStep, ActionType, PageState } from '../planning/types/types';
 
 /**
  * Handles the execution of individual action steps

@@ -1,6 +1,6 @@
-import { BrowserInstance, PageInstance, LaunchOptions, BrowserType } from '../../types';
-import { PuppeteerPageInstance } from './page';
 import type { Browser } from 'puppeteer';
+import { BrowserInstance, BrowserType, LaunchOptions, PageInstance } from '../interfaces';
+import { PuppeteerPageInstance } from './page';
 
 /**
  * Puppeteer browser instance implementation
@@ -11,7 +11,7 @@ export class PuppeteerBrowserInstance implements BrowserInstance {
   constructor(
     private browser: Browser,
     private options: LaunchOptions
-  ) {}
+  ) { }
 
   /**
    * Create a new page (alias for createPage)
@@ -33,7 +33,7 @@ export class PuppeteerBrowserInstance implements BrowserInstance {
    */
   async createPage(url?: string): Promise<PageInstance> {
     const page = await this.browser.newPage();
-    
+
     // Set viewport if provided
     if (this.options.viewport) {
       await page.setViewport(this.options.viewport);

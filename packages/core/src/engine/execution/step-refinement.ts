@@ -1,8 +1,8 @@
 import * as crypto from 'crypto';
-import { ActionStep, ActionType, PageState } from '../../types';
 import { PromptTemplate } from '../../utils/prompt-template';
 import { StepContextManager } from '../analysis/step-context';
 import { ActionPlanner } from '../planning/action-planner';
+import { ActionStep, ActionType, PageState } from '../planning/types/types';
 
 /**
  * Handles step refinement and retry logic with progressive strategies

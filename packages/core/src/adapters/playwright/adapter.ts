@@ -1,5 +1,6 @@
 import * as playwright from 'playwright';
-import { BrowserAdapter, BrowserInstance, BrowserType, LaunchOptions } from '../types';
+import type { BrowserAdapter, BrowserInstance, LaunchOptions } from '../interfaces';
+import { BrowserType } from '../interfaces';
 import { PlaywrightBrowserInstance } from './instance';
 
 /**

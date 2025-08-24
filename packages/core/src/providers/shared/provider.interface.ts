@@ -1,4 +1,4 @@
-import { AIConfig } from '../../types';
+import { AIConfig } from '../../types/config.types';
 
 /**
  * AI Provider interface

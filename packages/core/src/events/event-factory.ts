@@ -1,7 +1,7 @@
 /**
  * EventFactory: Utility for creating execution event objects for agent workflows.
  */
-import { ActionStep } from '../types';
+import { ActionStep } from '../engine/planning/types/types';
 import { ExecutionEvent } from './streaming.types';
 
 

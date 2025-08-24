@@ -1,4 +1,5 @@
-import { BrowserAdapter, BrowserRequirements, BrowserType } from '../types';
+import { BrowserRequirements } from '../types/browser.types';
+import { BrowserAdapter, BrowserType } from './interfaces';
 import { PlaywrightAdapter } from './playwright/adapter';
 import { PuppeteerAdapter } from './puppeteer/adapter';
 

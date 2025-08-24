@@ -16,5 +16,9 @@ export { Planner } from './engine/planning/planner';
 export { ExecutionStream, executionStream } from './events/execution-stream';
 
 // Type exports
-export * from './types';
+export * from './adapters/interfaces';
+export * from './engine/planning/types/types';
+export * from './types/browser.types';
+export * from './types/config.types';
+export * from './types/task.types';
 

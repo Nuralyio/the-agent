@@ -1,5 +1,5 @@
 import type { Page, ScreenshotOptions as PuppeteerScreenshotOptions } from 'puppeteer';
-import { ElementHandle, PageInstance, ScreenshotOptions, VideoRecordingOptions, WaitOptions } from '../../types';
+import { ElementHandle, PageInstance, ScreenshotOptions, VideoRecordingOptions, WaitOptions } from '../interfaces';
 import { PuppeteerElementHandle } from './element';
 
 /**

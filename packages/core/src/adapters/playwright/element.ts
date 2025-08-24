@@ -1,11 +1,11 @@
-import { ElementHandle } from '../../types';
 import type { Locator } from 'playwright';
+import { ElementHandle } from '../interfaces';
 
 /**
  * Playwright element handle implementation
  */
 export class PlaywrightElementHandle implements ElementHandle {
-  constructor(private locator: Locator) {}
+  constructor(private locator: Locator) { }
 
   /**
    * Click the element

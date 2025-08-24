@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
-import { ActionPlan, ActionStep, ActionType, SubPlan } from '../../../types';
 import { PlanAssemblyConfig } from '../types/planning.types';
+import { ActionPlan, ActionStep, ActionType, SubPlan } from '../types/types';
 
 /**
  * Service for assembling execution plans from sub-plans

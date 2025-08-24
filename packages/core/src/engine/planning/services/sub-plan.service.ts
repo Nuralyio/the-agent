@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
-import { SubPlan, TaskContext } from '../../../types';
 import { ActionPlanner } from '../action-planner';
 import { SubPlanConfig } from '../types/planning.types';
+import { SubPlan, TaskContext } from '../types/types';
 
 /**
  * Service for creating detailed sub-plans from sub-objectives

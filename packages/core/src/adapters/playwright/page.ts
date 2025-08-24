@@ -1,5 +1,5 @@
 import type { BrowserContext, Page } from 'playwright';
-import { ElementHandle, PageInstance, ScreenshotOptions, VideoRecordingOptions, WaitOptions } from '../../types';
+import { ElementHandle, PageInstance, ScreenshotOptions, VideoRecordingOptions, WaitOptions } from '../interfaces';
 import { PlaywrightElementHandle } from './element';
 
 /**

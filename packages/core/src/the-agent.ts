@@ -1,19 +1,14 @@
 import * as crypto from 'crypto';
 import { BrowserAdapterRegistry } from './adapters/adapter-registry';
+import type { BrowserAdapter, LaunchOptions } from './adapters/interfaces';
+import { BrowserType } from './adapters/interfaces';
 import { ActionEngine } from './engine/action-engine';
 import { AIEngine } from './engine/ai-engine';
+import type { PageState, TaskContext } from './engine/planning/types/types';
 import { BrowserManagerImpl } from './managers/browser-manager';
-import {
-  AIConfig,
-  BrowserAdapter,
-  BrowserConfig,
-  BrowserType,
-  ExecutionOptions,
-  LaunchOptions,
-  PageState,
-  TaskContext,
-  TaskResult
-} from './types';
+import type { BrowserConfig } from './types/browser.types';
+import type { AIConfig, ExecutionOptions } from './types/config.types';
+import type { TaskResult } from './types/task.types';
 
 /**
  * TheAgent - AI-Powered Browser Automation Framework
