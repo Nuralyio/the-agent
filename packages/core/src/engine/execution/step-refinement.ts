@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
-import { PromptTemplate } from '../../prompt-template';
 import { ActionStep, ActionType, PageState } from '../../types';
+import { PromptTemplate } from '../../utils/prompt-template';
 import { StepContextManager } from '../analysis/step-context';
 import { ActionPlanner } from '../planning/action-planner';
 
@@ -17,9 +17,7 @@ export class StepRefinementManager {
     this.promptTemplate = new PromptTemplate();
   }
 
-  /**
-   * Execute a step with retry mechanism and progressive refinement
-   */
+
   async executeStepWithRetry(
     step: ActionStep,
     stepContext: any,
@@ -82,9 +80,7 @@ export class StepRefinementManager {
     };
   }
 
-  /**
-   * Apply progressive refinement strategies based on attempt number
-   */
+
   private async progressivelyRefineStep(
     step: ActionStep,
     stepContext: any,
@@ -97,9 +93,7 @@ export class StepRefinementManager {
     return await this.aiRefineStepWithErrorContext(step, stepContext, pageState);
   }
 
-  /**
-   * Use AI to refine a step with error context
-   */
+
   private async aiRefineStepWithErrorContext(
     step: ActionStep,
     _stepContext: any,
@@ -160,9 +154,7 @@ export class StepRefinementManager {
     return step;
   }
 
-  /**
-   * Check if a step needs context-aware refinement
-   */
+
   needsRefinement(step: ActionStep): boolean {
     return step.type === ActionType.CLICK ||
       step.type === ActionType.TYPE ||
@@ -170,16 +162,13 @@ export class StepRefinementManager {
       step.type === ActionType.EXTRACT;
   }
 
-  /**
-   * Refine a step using both previous step context and current page content
-   */
+
   async refineStepWithContext(
     step: ActionStep,
     stepContext: any,
     pageState: PageState | undefined
   ): Promise<ActionStep> {
     try {
-      // Use AI-powered refinement with page content (since it's more sophisticated than pattern matching)
       if (!pageState) {
         console.log('   ⚠️  No page state available, returning original step');
         return step;
@@ -227,9 +216,7 @@ export class StepRefinementManager {
     }
   }
 
-  /**
-   * Create a context-aware prompt for step refinement
-   */
+
   private createContextualPrompt(step: ActionStep, stepContext: any, pageState: PageState): string {
     const recentSteps = stepContext.previousSteps.slice(-2);
     const successfulSelectors = this.stepContextManager.getSuccessfulSelectors();
@@ -238,7 +225,6 @@ export class StepRefinementManager {
       `${i + 1}. ${s.step.type}: ${s.step.description} → ${s.success ? 'SUCCESS' : 'FAILED'} (selector: ${s.selectorUsed || s.step.target?.selector})`
     ).join('\n') || 'No recent steps';
 
-    // Get all content in one call - includes structure, forms, and interactions
     const allContent = this.actionPlanner.getAllContentFromPage(pageState.content || '');
 
     return this.promptTemplate.render('context-aware-refinement', {

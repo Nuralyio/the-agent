@@ -1,4 +1,4 @@
-import { PromptTemplate } from '../../prompt-template';
+import { PromptTemplate } from '../../utils/prompt-template';
 import { AIEngine } from '../ai-engine';
 import { ActionPlan, PageState, TaskContext } from './types/types';
 import {
@@ -33,16 +33,11 @@ export class ActionPlanner {
     this.promptTemplate = new PromptTemplate();
   }
 
-  /**
-   * Extract structured content from page HTML for external use
-   */
   extractStructuredContentFromPage(pageContent: string): any {
     return this.contentExtractor.extractStructuredContent(pageContent);
   }
 
-  /**
-   * Get all content in simplified format for external use
-   */
+
   getAllContentFromPage(pageContent: string): {
     structure: string;
     forms: string;
@@ -56,9 +51,6 @@ export class ActionPlanner {
     };
   }
 
-  /**
-   * Create an action plan from natural language instruction
-   */
   async createActionPlan(instruction: string, context: TaskContext, pageState?: PageState): Promise<ActionPlan> {
     try {
       const currentPageState: PageState = pageState || this.createDefaultPageState(context);
@@ -78,9 +70,7 @@ export class ActionPlanner {
     }
   }
 
-  /**
-   * Create a default page state when none is provided
-   */
+
   private createDefaultPageState(context: TaskContext): PageState {
     return {
       url: context.url || 'about:blank',
@@ -93,9 +83,7 @@ export class ActionPlanner {
     };
   }
 
-  /**
-   * Parse instruction using AI with current page context
-   */
+
   private async parseInstructionWithAI(instruction: string, pageState: PageState, context: TaskContext): Promise<ParsedInstruction> {
     const structure = this.contentExtractor.extractStructuredContent(pageState.content || '');
     const allContent = {
@@ -128,9 +116,6 @@ export class ActionPlanner {
     }
   }
 
-  /**
-   * Fallback method using text generation when structured output fails
-   */
   private async parseInstructionWithTextFallback(instruction: string, userPrompt: string): Promise<ParsedInstruction> {
     try {
       const response = await this.aiService.generateTextWithRetries(userPrompt, '');
@@ -141,9 +126,6 @@ export class ActionPlanner {
     }
   }
 
-  /**
-   * Prepare execution context from task history for AI planning
-   */
   private prepareExecutionContext(context: TaskContext): string {
     if (context.executionContextSummary) {
       try {
@@ -180,14 +162,13 @@ export class ActionPlanner {
       return "No previous execution context available.";
     }
 
-    const recentSteps = context.history.slice(-5); // Get last 5 steps
+    const recentSteps = context.history.slice(-5);
     const contextLines: string[] = [];
 
     contextLines.push("=== EXECUTION CONTEXT ===");
     contextLines.push(`Previous ${recentSteps.length} step(s) executed:`);
     contextLines.push("");
 
-    // Include extracted data if available
     const extractedData: string[] = [];
 
     recentSteps.forEach((step, index) => {
@@ -226,9 +207,7 @@ export class ActionPlanner {
     return contextLines.join('\n');
   }
 
-  /**
-   * Adapt an existing plan based on current page state using AI
-   */
+  
   async adaptPlan(currentPlan: ActionPlan, currentState: PageState): Promise<ActionPlan> {
     try {
       const systemPrompt = await this.promptTemplate.render('plan-adaptation', {});

@@ -1,15 +1,15 @@
-import { AIEngine } from '../ai-engine';
-import { PromptTemplate } from '../../prompt-template';
 import { executionStream } from '../../streaming/execution-stream';
 import { ActionPlan, PageState, Plan, TaskContext } from '../../types';
+import { PromptTemplate } from '../../utils/prompt-template';
+import { AIEngine } from '../ai-engine';
 // Removed duplicate import of ActionPlanner
 import * as crypto from 'crypto';
+import { StepContextManager } from '../analysis/step-context';
 import { ActionPlanner } from './action-planner';
 import { ResponseParser } from './parsers/response-parser';
 import { PlanExecution } from './plan-execution';
 import { PlanAssemblyService } from './services/plan-assembly.service';
 import { SubPlanService } from './services/sub-plan.service';
-import { StepContextManager } from '../analysis/step-context';
 import { GlobalPlanConfig, GlobalPlanInstruction } from './types/planning.types';
 
 /**
@@ -123,7 +123,6 @@ export class Planner {
 
     console.log(`📋 Planner: Created plan with ${plan.subPlans.length} sub-plans`);
 
-    // Stream the plan to the frontend
     console.log('📡 Planner: About to stream plan to frontend');
     executionStream.notifyExecutionPlanCreated(
       plan,

@@ -3,11 +3,9 @@ import path from 'path';
 import { AIConfig } from './engine/ai-engine';
 import { BrowserType } from './types';
 
-// Load environment variables from .env file in the project root
 dotenv.config({ path: path.join(__dirname, '../../../.env') });
 
 export interface EnvironmentConfig {
-  // AI Provider Settings
   defaultProvider: string;
   ollama: {
     baseUrl: string;
@@ -48,12 +46,9 @@ export interface EnvironmentConfig {
   };
 }
 
-/**
- * Load configuration from environment variables with sensible defaults
- */
+
 export function loadEnvironmentConfig(): EnvironmentConfig {
   return {
-    // AI Provider Settings
     defaultProvider: process.env.DEFAULT_AI_PROVIDER || 'ollama',
 
     ollama: {
@@ -70,7 +65,6 @@ export function loadEnvironmentConfig(): EnvironmentConfig {
       maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS || '2000'),
     },
 
-    // Browser Settings
     browser: {
       adapter: process.env.DEFAULT_ADAPTER || 'playwright',
       type: (process.env.DEFAULT_BROWSER as BrowserType) || BrowserType.CHROME,
@@ -95,20 +89,15 @@ export function loadEnvironmentConfig(): EnvironmentConfig {
   };
 }
 
-/**
- * Create AI provider configurations from environment
- */
 export function createAIProviderConfigs(envConfig: EnvironmentConfig): Record<string, AIConfig> {
   const configs: Record<string, AIConfig> = {};
 
-  // Ollama (always available)
   configs.ollama = {
     model: envConfig.ollama.model,
     baseUrl: envConfig.ollama.baseUrl,
     temperature: envConfig.ollama.temperature,
   };
 
-  // OpenAI (if API key is provided)
   if (envConfig.openai.apiKey) {
     configs.openai = {
       model: envConfig.openai.model,
@@ -122,30 +111,23 @@ export function createAIProviderConfigs(envConfig: EnvironmentConfig): Record<st
   return configs;
 }
 
-/**
- * Check if a provider is available based on configuration
- */
 export function isProviderAvailable(provider: string, envConfig: EnvironmentConfig): boolean {
   switch (provider.toLowerCase()) {
     case 'ollama':
       return true; // Always available (assuming Ollama is running)
     case 'openai':
-      return !!envConfig.openai.apiKey; // Available if API key is configured
+      return !!envConfig.openai.apiKey;
     default:
       return false;
   }
 }
 
-/**
- * Get the list of available providers
- */
+
 export function getAvailableProviders(envConfig: EnvironmentConfig): string[] {
   const providers: string[] = [];
 
-  // Ollama is always available
   providers.push('ollama');
 
-  // OpenAI is available if API key is configured
   if (isProviderAvailable('openai', envConfig)) {
     providers.push('openai');
   }
@@ -153,26 +135,19 @@ export function getAvailableProviders(envConfig: EnvironmentConfig): string[] {
   return providers;
 }
 
-/**
- * Validate that the default provider is available
- */
+
 export function validateDefaultProvider(envConfig: EnvironmentConfig): string {
   const requestedProvider = envConfig.defaultProvider;
   const availableProviders = getAvailableProviders(envConfig);
 
-  // Check if the requested provider is available
   if (availableProviders.includes(requestedProvider)) {
     return requestedProvider;
   }
 
-  // Fallback to the first available provider
   console.warn(`⚠️ Requested provider '${requestedProvider}' is not available. Available providers: ${availableProviders.join(', ')}`);
   return availableProviders[0] || 'ollama';
 }
 
-/**
- * Log configuration status
- */
 export function logConfigurationStatus(envConfig: EnvironmentConfig): void {
   const availableProviders = getAvailableProviders(envConfig);
   const defaultProvider = validateDefaultProvider(envConfig);
@@ -191,5 +166,4 @@ export function logConfigurationStatus(envConfig: EnvironmentConfig): void {
   }
 }
 
-// Export default configuration instance
 export const envConfig = loadEnvironmentConfig();
