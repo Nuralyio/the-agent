@@ -13,7 +13,7 @@ export { setPauseChecker } from './engine/execution/action-sequence-executor';
 export { Planner } from './engine/planning/planner';
 
 // Streaming exports
-export { ExecutionStream, executionStream } from './streaming/execution-stream';
+export { ExecutionStream, executionStream } from './events/execution-stream';
 
 // Type exports
 export * from './types';

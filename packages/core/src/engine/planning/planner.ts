@@ -1,4 +1,4 @@
-import { executionStream } from '../../streaming/execution-stream';
+import { executionStream } from '../../events/execution-stream';
 import { ActionPlan, PageState, Plan, TaskContext } from '../../types';
 import { PromptTemplate } from '../../utils/prompt-template';
 import { AIEngine } from '../ai-engine';

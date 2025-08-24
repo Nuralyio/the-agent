@@ -6,7 +6,7 @@
  */
 
 import { loadEnvironmentConfig } from '../../environment';
-import { executionStream } from '../../streaming/execution-stream';
+import { executionStream } from '../../events/execution-stream';
 import { ActionStep, ActionType, BrowserManager, PageState } from '../../types';
 
 /**
