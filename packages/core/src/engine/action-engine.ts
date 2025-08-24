@@ -75,7 +75,7 @@ export class ActionEngine implements IActionEngine {
     } catch (error) {
       console.error('❌ Task execution failed:', error);
 
-      executionStream.streamExecutionComplete();
+      executionStream.notifyExecutionComplete();
 
       try {
         await logger.completeSession(false);
@@ -139,7 +139,7 @@ export class ActionEngine implements IActionEngine {
         console.log(`📋 Complete execution log saved to: ${logPath}`);
       }
 
-      executionStream.streamExecutionComplete();
+      executionStream.notifyExecutionComplete();
 
       return {
         success: result.success,
@@ -237,7 +237,7 @@ export class ActionEngine implements IActionEngine {
     } catch (error) {
       console.error('❌ Task execution with refinement failed:', error);
 
-      executionStream.streamExecutionComplete();
+      executionStream.notifyExecutionComplete();
 
       try {
         await logger.completeSession(false);
@@ -301,7 +301,7 @@ export class ActionEngine implements IActionEngine {
         console.log(`📋 Complete execution log saved to: ${logPath}`);
       }
 
-      executionStream.streamExecutionComplete();
+      executionStream.notifyExecutionComplete();
 
       return {
         success: result.success,

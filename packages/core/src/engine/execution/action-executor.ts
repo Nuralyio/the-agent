@@ -75,7 +75,7 @@ export class ActionExecutor {
 
     try {
       const currentPage = await this.captureState();
-      executionStream.streamPageChange(url, currentPage.title, currentPage.screenshot);
+      executionStream.notifyPageChange(url, currentPage.title, currentPage.screenshot);
     } catch (error) {
       console.warn('⚠️ Failed to stream page change:', error);
     }

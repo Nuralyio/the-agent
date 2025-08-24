@@ -46,9 +46,9 @@ export class PlanExecution {
 
       context.currentSubPlanIndex = i;
 
-      executionStream.setCurrentSubPlan(i);
+      executionStream.setSubPlanContext(i);
 
-      executionStream.streamSubPlanStart(i, subPlan);
+      executionStream.notifySubPlanStart(i, subPlan);
 
       const result = await this.executeSubPlan(subPlan, executeActionPlan, plan.id);
 
@@ -144,7 +144,7 @@ export class PlanExecution {
     console.log(`📊 MARKING SUB-PLAN ${subPlanIndex + 1} AS DONE: ${isSuccess ? 'SUCCESS' : 'FAILED'}`);
 
     try {
-      executionStream.streamSubPlanComplete(subPlanIndex, subPlan, isSuccess, totalSubPlans);
+      executionStream.notifySubPlanComplete(subPlanIndex, subPlan, isSuccess, totalSubPlans);
       console.log(`✅ Sub-plan ${subPlanIndex + 1} marked as completed in UI`);
     } catch (error) {
       console.error(`❌ ERROR marking sub-plan ${subPlanIndex + 1} as completed:`, error);
@@ -161,11 +161,11 @@ export class PlanExecution {
     console.log(`🎯 CRITICAL DEBUG: All sub-plans completed. Overall success: ${overallSuccess}`);
 
     try {
-      console.log(`🔍 DEBUG: About to call streamExecutionComplete for plan`);
-      executionStream.streamExecutionComplete();
-      console.log(`✅ DEBUG: streamExecutionComplete call completed for plan`);
+      console.log(`🔍 DEBUG: About to call notifyExecutionComplete for plan`);
+      executionStream.notifyExecutionComplete();
+      console.log(`✅ DEBUG: notifyExecutionComplete call completed for plan`);
     } catch (error) {
-      console.error(`❌ ERROR in streamExecutionComplete for execution plan:`, error);
+      console.error(`❌ ERROR in notifyExecutionComplete for execution plan:`, error);
     }
   }
 

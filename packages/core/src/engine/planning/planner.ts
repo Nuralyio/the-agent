@@ -125,7 +125,7 @@ export class Planner {
 
     // Stream the plan to the frontend
     console.log('📡 Planner: About to stream plan to frontend');
-    executionStream.streamExecutionPlanCreated(
+    executionStream.notifyExecutionPlanCreated(
       plan,
       plan.globalObjective,
       plan.planningStrategy

@@ -136,7 +136,7 @@ export class ActionSequenceExecutor {
 
         console.log('');
 
-        executionStream.streamStepStart(i, currentPlan.steps[i]!);
+        executionStream.notifyStepStart(i, currentPlan.steps[i]!);
 
         const contextForRetry = this.stepContextManager.getCurrentContext(i, currentPlan.steps.length);
         const stepResult = await this.stepRefinementManager.executeStepWithRetry(
@@ -208,9 +208,9 @@ export class ActionSequenceExecutor {
         }
 
         if (stepResult.success) {
-          executionStream.streamStepComplete(i, currentPlan.steps[i]!, screenshotBuffer);
+          executionStream.notifyStepComplete(i, currentPlan.steps[i]!, screenshotBuffer);
         } else {
-          executionStream.streamStepError(i, currentPlan.steps[i]!, stepResult.error || 'Unknown error');
+          executionStream.notifyStepError(i, currentPlan.steps[i]!, stepResult.error || 'Unknown error');
         }
 
         if (logger) {

@@ -70,7 +70,7 @@ export class AutomationService {
             const result = await automation.executeTask(taskDescription);
 
             // Stream execution complete
-            executionStream.streamExecutionComplete();
+            executionStream.notifyExecutionComplete();
 
             // Broadcast custom completion event with result
             this.broadcastCustomEvent({
