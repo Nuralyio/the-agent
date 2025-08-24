@@ -1,13 +1,5 @@
 # The agent - AI-Powered Browser Automation Framework
 
-<div align="center">
-  <a href="https://youtu.be/-kNVYzFXkLk" target="_blank">
-    <img src="./assets/webui.png" alt="The Agent Web Dashboard" width="800"/>
-  </a>
-  <br/>
-  <em>Real-time browser automation dashboard with plan monitor</em>
-</div>mation Framework
-
 [![CI Tests](https://github.com/Nuralyio/the-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/Nuralyio/the-agent/actions/workflows/ci.yml)
 [![Release](https://github.com/Nuralyio/the-agent/actions/workflows/release.yml/badge.svg)](https://github.com/Nuralyio/the-agent/actions/workflows/release.yml)
 
@@ -15,6 +7,14 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-green)](https://nodejs.org/)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](./CONTRIBUTING.md)
+
+<div align="center">
+  <a href="https://youtu.be/-kNVYzFXkLk" target="_blank">
+    <img src="./assets/webui.png" alt="The Agent Web Dashboard" width="800"/>
+  </a>
+  <br/>
+  <em>Real-time browser automation</em>
+</div>
 
 ## 🚧 Project Status
 
