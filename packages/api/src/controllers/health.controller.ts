@@ -1,5 +1,5 @@
+import { executionStream } from '@theagent/core/dist/events/execution-stream';
 import { Request, Response } from 'express';
-import { executionStream } from '@theagent/core/dist/streaming/execution-stream';
 import { HealthCheckResponse } from '../types';
 
 /**

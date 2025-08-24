@@ -1,6 +1,5 @@
 import { setPauseChecker } from '@theagent/core/dist/engine/execution/action-sequence-executor';
-import { TheAgent } from '@theagent/core/dist/index';
-import { executionStream } from '@theagent/core/dist/streaming/execution-stream';
+import { executionStream, TheAgent } from '@theagent/core/dist/index';
 import { BrowserType } from '@theagent/core/dist/types';
 import { v4 as uuidv4 } from 'uuid';
 import { ExecutionEvent } from '../types';

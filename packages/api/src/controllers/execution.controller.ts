@@ -1,5 +1,5 @@
+import { executionStream } from '@theagent/core';
 import { Request, Response } from 'express';
-import { executionStream } from '@theagent/core/dist/streaming/execution-stream';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiResponse } from '../types';
 
