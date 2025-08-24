@@ -11,20 +11,13 @@ export class EventProcessor {
     private clientManager: ClientManager
   ) { }
 
-  /**
-   * Process and broadcast an execution event
-   */
   processEvent(event: ExecutionEvent): void {
-    // Validate session
     if (!this.sessionManager.isSessionActive()) {
       console.warn('⚠️ EventProcessor: No active session, ignoring event');
       return;
     }
-
-    // Add to history
     this.sessionManager.addEventToHistory(event);
 
-    // Broadcast to clients
     const message: StreamMessage = {
       type: 'execution_event',
       data: event
@@ -37,15 +30,11 @@ export class EventProcessor {
     }
   }
 
-  /**
-   * Process session start event
-   */
   processSessionStart(sessionId: string): void {
     this.sessionManager.startSession(sessionId);
 
-    // Send reset event to all clients
     const resetEvent: ExecutionEvent = {
-      type: 'execution_complete', // Reset event
+      type: 'execution_complete',
       sessionId,
       timestamp: new Date()
     };
@@ -53,9 +42,6 @@ export class EventProcessor {
     this.processEvent(resetEvent);
   }
 
-  /**
-   * Send history to a new client
-   */
   sendHistoryToClient(clientId: string): void {
     const history = this.sessionManager.getHistory();
     if (history.length > 0) {
@@ -63,24 +49,15 @@ export class EventProcessor {
     }
   }
 
-  /**
-   * Process client connection
-   */
   processClientConnection(clientId: string, response: any): void {
     this.clientManager.addClient(clientId, response);
     this.sendHistoryToClient(clientId);
   }
 
-  /**
-   * Process client disconnection
-   */
   processClientDisconnection(clientId: string): void {
     this.clientManager.removeClient(clientId);
   }
 
-  /**
-   * Get current execution status
-   */
   getExecutionStatus() {
     return {
       sessionId: this.sessionManager.getCurrentSessionId(),

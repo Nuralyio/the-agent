@@ -35,14 +35,12 @@ export class BrowserManagerImpl implements BrowserManager {
    */
   async launchBrowser(options?: LaunchOptions): Promise<BrowserInstance> {
     if (!this.currentAdapter) {
-      // Auto-select adapter if none is set
       this.currentAdapter = await this.registry.autoSelectAdapter();
     }
 
     const defaultOptions = this.currentAdapter.getDefaultOptions();
     const mergedOptions = { ...defaultOptions, ...options };
 
-    // Store the options for future auto-launches
     if (options) {
       this.defaultLaunchOptions = options;
     }
@@ -51,12 +49,8 @@ export class BrowserManagerImpl implements BrowserManager {
     return this.currentBrowser;
   }
 
-  /**
-   * Create a new page
-   */
   async createPage(url?: string): Promise<PageInstance> {
     if (!this.currentBrowser) {
-      // Use stored launch options if available, otherwise use defaults
       await this.launchBrowser(this.defaultLaunchOptions);
     }
 
@@ -64,9 +58,6 @@ export class BrowserManagerImpl implements BrowserManager {
     return this.currentPage;
   }
 
-  /**
-   * Close the current browser
-   */
   async closeBrowser(): Promise<void> {
     if (this.currentPage) {
       await this.currentPage.close();
@@ -79,9 +70,6 @@ export class BrowserManagerImpl implements BrowserManager {
     }
   }
 
-  /**
-   * Take a screenshot of the current page
-   */
   async takeScreenshot(options?: ScreenshotOptions): Promise<Buffer> {
     if (!this.currentPage) {
       throw new Error('No active page. Create a page first.');
@@ -90,9 +78,6 @@ export class BrowserManagerImpl implements BrowserManager {
     return await this.currentPage.screenshot(options);
   }
 
-  /**
-   * Get the current page content
-   */
   async getPageContent(): Promise<string> {
     if (!this.currentPage) {
       throw new Error('No active page. Create a page first.');
@@ -101,61 +86,37 @@ export class BrowserManagerImpl implements BrowserManager {
     return await this.currentPage.content();
   }
 
-  /**
-   * Switch to a different browser type
-   */
   async switchBrowser(browserType: BrowserType): Promise<void> {
-    // Close current browser if open
     await this.closeBrowser();
 
-    // Get adapter for the new browser type
     const adapter = this.registry.getAdapterForBrowser(browserType);
     this.setAdapter(adapter);
-
-    // Launch new browser
     await this.launchBrowser();
   }
 
-  /**
-   * Get the current adapter
-   */
   getCurrentAdapter(): BrowserAdapter | null {
     return this.currentAdapter;
   }
 
-  /**
-   * Get the current browser instance
-   */
   getCurrentBrowser(): BrowserInstance | null {
     return this.currentBrowser;
   }
 
-  /**
-   * Get the current page instance
-   */
   async getCurrentPage(): Promise<PageInstance | null> {
     return this.currentPage;
   }
 
-  /**
-   * Get the adapter registry
-   */
   getRegistry(): BrowserAdapterRegistry {
     return this.registry;
   }
 
-  /**
-   * Check if browser is ready
-   */
+
   isReady(): boolean {
-    return this.currentBrowser !== null && 
-           this.currentBrowser.isConnected() && 
-           this.currentPage !== null;
+    return this.currentBrowser !== null &&
+      this.currentBrowser.isConnected() &&
+      this.currentPage !== null;
   }
 
-  /**
-   * Get browser information
-   */
   getBrowserInfo(): { adapter: string; version: string; connected: boolean } | null {
     if (!this.currentAdapter || !this.currentBrowser) {
       return null;
@@ -168,9 +129,6 @@ export class BrowserManagerImpl implements BrowserManager {
     };
   }
 
-  /**
-   * Navigate to URL (convenience method)
-   */
   async navigate(url: string): Promise<void> {
     if (!this.currentPage) {
       await this.createPage();
@@ -179,36 +137,24 @@ export class BrowserManagerImpl implements BrowserManager {
     await this.currentPage!.navigate(url);
   }
 
-  /**
-   * Click element (convenience method)
-   */
   async click(selector: string): Promise<void> {
     if (!this.currentPage) {
       throw new Error('No active page. Create a page first.');
     }
-
     await this.currentPage.click(selector);
   }
 
-  /**
-   * Type text (convenience method)
-   */
   async type(selector: string, text: string): Promise<void> {
     if (!this.currentPage) {
       throw new Error('No active page. Create a page first.');
     }
-
     await this.currentPage.type(selector, text);
   }
 
-  /**
-   * Wait for selector (convenience method)
-   */
   async waitForSelector(selector: string, timeout?: number): Promise<void> {
     if (!this.currentPage) {
       throw new Error('No active page. Create a page first.');
     }
-
     const options = timeout ? { timeout } : undefined;
     await this.currentPage.waitForSelector(selector, options);
   }

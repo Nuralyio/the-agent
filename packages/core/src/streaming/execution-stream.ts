@@ -28,14 +28,12 @@ export class ExecutionStream extends EventEmitter {
     }
   }
 
-  /**
-   * Start a new execution session
-   */
+
   startSession(sessionId: string): void {
     this.sessionManager.startSession(sessionId);
 
     this.broadcastEvent({
-      type: 'execution_complete', // Reset event
+      type: 'execution_complete',
       sessionId,
       timestamp: new Date()
     });

@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from 'uuid';
-import { ExecutionStream } from '../streaming/execution-stream';
 
 export interface AutomationSession {
   id: string;
@@ -14,9 +13,7 @@ export interface AutomationSession {
   };
 }
 
-/**
- * Manages automation sessions with lifecycle tracking
- */
+
 export class SessionManager {
   private activeSessions: Map<string, AutomationSession> = new Map();
   private sessionHistory: AutomationSession[] = [];
@@ -40,7 +37,7 @@ export class SessionManager {
 
     this.activeSessions.set(sessionId, session);
     console.log(`🎯 Started automation session: ${sessionId}`);
-    
+
     return sessionId;
   }
 

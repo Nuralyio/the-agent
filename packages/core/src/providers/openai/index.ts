@@ -1,7 +1,8 @@
 /**
  * OpenAI Provider exports
  */
-export { OpenAIProvider } from './openai.provider';
 export { OpenAIApiClient } from './api-client';
-export { OpenAIModelUtils } from './model-utils';
+export { OpenAIProvider } from './provider';
 export * from './types';
+export { OpenAIModelUtils } from './utils';
+

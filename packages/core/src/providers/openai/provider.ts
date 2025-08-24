@@ -2,12 +2,12 @@ import { AIConfig, AIMessage, AIProvider, AIResponse, VisionCapabilities } from 
 import { BrowserActionSchema } from '../shared/schemas/browser-action.schema';
 import { StructuredOutputUtil, createStructuredOutputUtil } from '../shared/utils/structured-output.util';
 import { OpenAIApiClient } from './api-client';
-import { OpenAIModelUtils } from './model-utils';
 import {
   OpenAICompletionRequest,
   OpenAIMessage,
   OpenAIMessageContent
 } from './types';
+import { OpenAIModelUtils } from './utils';
 
 /**
  * OpenAI Provider - GPT models from OpenAI

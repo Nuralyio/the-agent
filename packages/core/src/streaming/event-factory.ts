@@ -1,13 +1,11 @@
+/**
+ * EventFactory: Utility for creating execution event objects for agent workflows.
+ */
 import { ActionStep } from '../types';
 import { ExecutionEvent } from './streaming.types';
 
-/**
- * Factory for creating different types of execution events
- */
+
 export class EventFactory {
-  /**
-   * Create plan created event
-   */
   static createPlanCreatedEvent(
     sessionId: string,
     totalSteps: number,
@@ -27,9 +25,6 @@ export class EventFactory {
     return event;
   }
 
-  /**
-   * Create plan created event
-   */
   static createExecutionPlanCreatedEvent(
     sessionId: string,
     executionPlan: any,
@@ -46,9 +41,6 @@ export class EventFactory {
     };
   }
 
-  /**
-   * Create step start event
-   */
   static createStepStartEvent(
     sessionId: string,
     stepIndex: number,
@@ -70,9 +62,7 @@ export class EventFactory {
     return event;
   }
 
-  /**
-   * Create step complete event
-   */
+
   static createStepCompleteEvent(
     sessionId: string,
     stepIndex: number,
@@ -99,9 +89,6 @@ export class EventFactory {
     return event;
   }
 
-  /**
-   * Create step error event
-   */
   static createStepErrorEvent(
     sessionId: string,
     stepIndex: number,
@@ -125,9 +112,7 @@ export class EventFactory {
     return event;
   }
 
-  /**
-   * Create page change event
-   */
+
   static createPageChangeEvent(
     sessionId: string,
     url: string,
@@ -149,9 +134,7 @@ export class EventFactory {
     return event;
   }
 
-  /**
-   * Create execution complete event
-   */
+
   static createExecutionCompleteEvent(sessionId: string): ExecutionEvent {
     return {
       type: 'execution_complete',
@@ -160,9 +143,7 @@ export class EventFactory {
     };
   }
 
-  /**
-   * Create sub-plan start event
-   */
+
   static createSubPlanStartEvent(
     sessionId: string,
     subPlanIndex: number,
@@ -177,9 +158,7 @@ export class EventFactory {
     };
   }
 
-  /**
-   * Create sub-plan complete event
-   */
+
   static createSubPlanCompleteEvent(
     sessionId: string,
     subPlanIndex: number,
@@ -196,12 +175,10 @@ export class EventFactory {
       timestamp: new Date()
     };
 
-    // Add total sub-plans count if provided
     if (totalSubPlans !== undefined) {
       (event as any).totalSubPlans = totalSubPlans;
     }
 
-    // Add error property if sub-plan failed
     if (!success) {
       event.error = 'Sub-plan execution failed';
     }

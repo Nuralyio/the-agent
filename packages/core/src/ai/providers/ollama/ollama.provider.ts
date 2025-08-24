@@ -1,12 +1,12 @@
 import { AIConfig, AIMessage, AIProvider, AIResponse, VisionCapabilities } from '../../../engine/ai-engine';
 import { PromptTemplate } from '../../../prompt-template';
 import { OllamaApiClient } from '../../../providers/ollama/api-client';
-import { OllamaModelUtils } from '../../../providers/ollama/model-utils';
 import {
   OllamaChatMessage,
   OllamaChatRequest,
   OllamaGenerateRequest
 } from '../../../providers/ollama/types';
+import { OllamaModelUtils } from '../../../providers/ollama/utils';
 import { BrowserActionSchema } from '../../../providers/shared/schemas/browser-action.schema';
 import { StructuredOutputUtil, createStructuredOutputUtil } from '../../../providers/shared/utils/structured-output.util';
 

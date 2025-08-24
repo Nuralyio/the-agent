@@ -2,12 +2,12 @@ import { AIConfig, AIMessage, AIProvider, AIResponse, VisionCapabilities } from 
 import { BrowserActionSchema } from '../shared/schemas/browser-action.schema';
 import { StructuredOutputUtil, createStructuredOutputUtil } from '../shared/utils/structured-output.util';
 import { OllamaApiClient } from './api-client';
-import { OllamaModelUtils } from './model-utils';
 import {
-  OllamaGenerateRequest,
+  OllamaChatMessage,
   OllamaChatRequest,
-  OllamaChatMessage
+  OllamaGenerateRequest
 } from './types';
+import { OllamaModelUtils } from './utils';
 
 /**
  * Ollama AI Provider - Local AI models

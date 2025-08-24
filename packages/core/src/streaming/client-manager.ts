@@ -8,15 +8,12 @@ export class ClientManager {
   private cleanupInterval?: NodeJS.Timeout;
 
   constructor() {
-    // Only setup cleanup interval in non-test environments
+
     if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
       this.setupCleanupInterval();
     }
   }
 
-  /**
-   * Add a new SSE client
-   */
   addClient(clientId: string, response: any): void {
     console.log(`📺 New monitor client connected: ${clientId}`);
 
@@ -27,16 +24,14 @@ export class ClientManager {
       connectionTime: new Date()
     });
 
-    // Send connection confirmation
+
     this.sendToClient(clientId, {
       type: 'connection',
       data: { connected: true, clientId }
     });
   }
 
-  /**
-   * Remove a client
-   */
+
   removeClient(clientId: string): void {
     const client = this.clients.get(clientId);
     if (client) {
@@ -45,23 +40,16 @@ export class ClientManager {
     }
   }
 
-  /**
-   * Get client count
-   */
+
   getClientCount(): number {
     return this.clients.size;
   }
 
-  /**
-   * Check if client exists
-   */
+
   hasClient(clientId: string): boolean {
     return this.clients.has(clientId);
   }
 
-  /**
-   * Send message to specific client
-   */
   sendToClient(clientId: string, message: StreamMessage): boolean {
     const client = this.clients.get(clientId);
     if (!client) {
@@ -80,9 +68,7 @@ export class ClientManager {
     }
   }
 
-  /**
-   * Broadcast message to all clients
-   */
+
   broadcastToAll(message: StreamMessage): number {
     let successCount = 0;
 
@@ -95,9 +81,6 @@ export class ClientManager {
     return successCount;
   }
 
-  /**
-   * Send history to specific client
-   */
   sendHistoryToClient(clientId: string, history: any[]): boolean {
     return this.sendToClient(clientId, {
       type: 'history',
@@ -105,29 +88,21 @@ export class ClientManager {
     });
   }
 
-  /**
-   * Get all client IDs
-   */
   getClientIds(): string[] {
     return Array.from(this.clients.keys());
   }
 
-  /**
-   * Setup cleanup interval for stale connections
-   */
+
   private setupCleanupInterval(): void {
-    // Clean up dead connections every 30 seconds
+
     this.cleanupInterval = setInterval(() => {
       this.cleanupStaleClients();
     }, 30000);
   }
 
-  /**
-   * Clean up stale clients that haven't pinged recently
-   */
   private cleanupStaleClients(): void {
     const now = new Date();
-    const timeout = 60000; // 1 minute timeout
+    const timeout = 60000;
 
     this.clients.forEach((client, clientId) => {
       if (now.getTime() - client.lastPing.getTime() > timeout) {
@@ -137,9 +112,7 @@ export class ClientManager {
     });
   }
 
-  /**
-   * Cleanup resources
-   */
+
   cleanup(): void {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
