@@ -1,17 +1,3 @@
-import { executionStream } from '../../events/execution-stream';
-import { PromptTemplate } from '../../utils/prompt-template';
-import { AIEngine } from '../ai-engine';
-import { ActionPlan, PageState, Plan, TaskContext } from './types/types';
-// Removed duplicate import of ActionPlanner
-import * as crypto from 'crypto';
-import { StepContextManager } from '../analysis/step-context';
-import { ActionPlanner } from './action-planner';
-import { ResponseParser } from './parsers/response-parser';
-import { PlanExecution } from './plan-execution';
-import { PlanAssemblyService } from './services/plan-assembly.service';
-import { SubPlanService } from './services/sub-plan.service';
-import { GlobalPlanConfig, GlobalPlanInstruction } from './types/planning.types';
-
 /**
  * Main Planner class that handles all planning and execution
  *
@@ -26,6 +12,20 @@ import { GlobalPlanConfig, GlobalPlanInstruction } from './types/planning.types'
  * - CLI tools
  * - Direct usage
  */
+
+import * as crypto from 'crypto';
+import { executionStream } from '../../events/execution-stream';
+import { PromptTemplate } from '../../utils/prompt-template';
+import { AIEngine } from '../ai-engine';
+import { StepContextManager } from '../analysis/step-context';
+import { ActionPlanner } from './action-planner';
+import { ResponseParser } from './parsers/response-parser';
+import { PlanExecution } from './plan-execution';
+import { PlanAssemblyService } from './services/plan-assembly.service';
+import { SubPlanService } from './services/sub-plan.service';
+import { GlobalPlanConfig, GlobalPlanInstruction } from './types/planning.types';
+import { ActionPlan, PageState, Plan, TaskContext } from './types/types';
+
 export class Planner {
   private subPlanService: SubPlanService;
   private planAssemblyService: PlanAssemblyService;
