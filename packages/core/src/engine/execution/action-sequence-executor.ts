@@ -157,7 +157,7 @@ export class ActionSequenceExecutor {
             try {
               pageStateAfter = await this.actionExecutor.captureState();
             } catch (retryError) {
-              console.warn('⚠️ Could not capture page state after navigation, using minimal state' , retryError);
+              console.warn('⚠️ Could not capture page state after navigation, using minimal state', retryError);
               pageStateAfter = {
                 url: 'unknown',
                 title: 'Navigation in progress',
