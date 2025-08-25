@@ -56,7 +56,6 @@ real-time monitor and monitoring capabilities.
 - 🔄 **WebSocket Integration**: Live automation streaming and status updates
 - 🛠️ **CLI Interface**: Command-line tools for scripting and automation
 - 🧪 **Unit Testing**: Comprehensive unit test coverage with CI/CD integration
-- 📦 **Monorepo Architecture**: Well-organized, modular codebase
 
 - **Live Execution Monitoring** - Watch your automation tasks execute in
   real-time
