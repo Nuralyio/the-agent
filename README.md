@@ -35,14 +35,6 @@ real-time monitor and monitoring capabilities.
 - Essential documentation and setup guides
 - Fundamental feature implementation
 
-## � Web Dashboard Preview
-
-<div align="center">
-  <img src="./assets/webui.png" alt="The Agent Web Dashboard" width="800"/>
-  <br/>
-  <em>Real-time browser automation dashboard with plan monitor</em>
-</div>
-
 ## ✨ Key Features
 
 - 🤖 **AI-Powered Automation**: Natural language instruction processing using
@@ -284,35 +276,6 @@ npm run clean
 | --------------- | -------------------------------------------------------------- | --------------------------------- |
 | **Test Server** | [`tools/test-server/README.md`](./tools/test-server/README.md) | Local test server for development |
 
-## 📁 Project Structure
-
-```
-├── .github/
-│   └── WORKFLOWS.md    # CI/CD documentation
-├── packages/
-│   ├── core/           # Core automation framework
-│   │   └── README.md   # Core API documentation
-│   ├── api/            # HTTP API server
-│   │   └── README.md   # API server documentation
-│   ├── web-ui/         # React dashboard
-│   │   └── README.md   # Web UI setup guide
-│   ├── cli/            # Command-line interface
-│   │   └── README.md   # CLI usage guide
-│   └── mcp-server/     # Model Context Protocol server
-│       └── README.md   # MCP server documentation
-├── tools/
-│   ├── test-server/    # Development test server
-│   │   └── README.md   # Test server documentation
-│   ├── scripts/        # Build and dev scripts
-│   └── config/         # Shared configurations
-├── logs/               # Execution logs
-├── mainprompt.md       # Project specifications
-├── CONTRIBUTING.md     # Contribution guidelines
-├── CHANGELOG.md        # Release history
-├── LICENSE             # MIT license
-└── README.md           # This file
-```
-
 ## ⚙️ Configuration
 
 ### Environment Variables
@@ -375,32 +338,6 @@ Husky is configured to run:
 - TypeScript type checking
 - Test suite
 
-## 🚀 Production Deployment
-
-### Building for Production
-
-```bash
-# Clean and build all packages
-npm run clean
-npm run build
-
-# Start production API server
-cd packages/api && npm start
-
-# Build and serve web UI
-cd packages/web-ui && npm run build && npm start
-```
-
-### Docker Support
-
-```bash
-# Build Docker image (if Dockerfile exists)
-docker build -t the agent .
-
-# Run with Docker Compose (if docker-compose.yml exists)
-docker-compose up -d
-```
-
 ## 🤝 Contributing
 
 We welcome contributions! Please read our
@@ -412,22 +349,6 @@ We welcome contributions! Please read our
 - 📝 **Pull Request Process**: How to submit changes
 - 🐛 **Bug Reports**: How to report issues effectively
 - 💡 **Feature Requests**: How to suggest new features
-
-### Quick Contributing Steps
-
-1. **Fork & Clone**: Fork the repo and clone your fork
-2. **Setup**: Run `npm install && npm run install:browsers`
-3. **Branch**: Create a feature branch
-   (`git checkout -b feature/amazing-feature`)
-4. **Code**: Make your changes following our
-   [code standards](./CONTRIBUTING.md#code-standards)
-5. **Test**: Ensure tests pass (`npm test`)
-6. **Commit**: Use [conventional commits](./CONTRIBUTING.md#commit-guidelines)
-7. **Push**: Push to your fork and submit a pull request
-
-**First time contributing?** Look for
-[`good first issue`](https://github.com/Nuralyio/the-agent/labels/good%20first%20issue)
-labels!
 
 ## License
 
