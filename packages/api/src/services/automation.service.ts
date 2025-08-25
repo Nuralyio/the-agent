@@ -1,6 +1,7 @@
 import { setPauseChecker } from '@theagent/core/dist/engine/execution/action-sequence-executor';
 import { executionStream, TheAgent } from '@theagent/core/dist/index';
 import { BrowserType } from '@theagent/core/dist/types';
+import { ExecutionPlanExporter } from '@theagent/core/dist/utils/execution-plan-exporter';
 import { v4 as uuidv4 } from 'uuid';
 import { ExecutionEvent } from '../types';
 import { configService } from './config.service';
@@ -10,15 +11,14 @@ import { configService } from './config.service';
  */
 export class AutomationService {
     private currentAutomation: TheAgent | null = null;
+    private lastTaskResult: any = null; // Store the last task result for export
     private isPaused: boolean = false;
     private pauseResolver: (() => void) | null = null;
     private static instance: AutomationService | null = null;
 
     constructor() {
-        // Store reference for global pause checking
         AutomationService.instance = this;
 
-        // Set up the pause checker for the core execution engine
         setPauseChecker(async () => {
             await this.waitForResume();
         });
@@ -37,27 +37,22 @@ export class AutomationService {
     async executeTask(taskDescription: string, engine: string = 'playwright', aiProvider?: string, options: Record<string, unknown> = {}): Promise<void> {
         const sessionId = uuidv4();
 
-        // Configure automation with the specified engine
         const automationConfig = {
             adapter: engine,
             browserType: BrowserType.CHROMIUM,
             viewport: { width: 1280, height: 720 },
-            ...options, // Apply options first so they can be overridden
-            ai: configService.getAIConfig(aiProvider) // Pass AI provider
+            ...options,
+            ai: configService.getAIConfig(aiProvider)
         };
 
-        // Create new automation instance with config
         const automation = new TheAgent(automationConfig);
         this.currentAutomation = automation;
 
         try {
-            // Initialize automation
             await automation.initialize();
 
-            // Start session
             executionStream.startSession(sessionId);
 
-            // Stream start event
             this.broadcastCustomEvent({
                 type: 'execution_start',
                 sessionId,
@@ -65,13 +60,12 @@ export class AutomationService {
                 task: taskDescription
             });
 
-            // Execute the actual automation using the smart executeTask method
             const result = await automation.executeTask(taskDescription);
 
-            // Stream execution complete
+            this.lastTaskResult = result;
+
             executionStream.notifyExecutionComplete();
 
-            // Broadcast custom completion event with result
             this.broadcastCustomEvent({
                 type: 'execution_complete',
                 timestamp: new Date().toISOString(),
@@ -80,7 +74,6 @@ export class AutomationService {
             });
 
         } catch (error) {
-            // Stream execution error
             this.broadcastCustomEvent({
                 type: 'execution_error',
                 timestamp: new Date().toISOString(),
@@ -89,7 +82,6 @@ export class AutomationService {
             });
             throw error;
         } finally {
-            // Clean up automation
             try {
                 await automation.close();
                 this.currentAutomation = null;
@@ -121,7 +113,6 @@ export class AutomationService {
             this.isPaused = true;
             console.log('⏸️ Automation execution paused for interactive mode');
 
-            // Broadcast pause event
             this.broadcastCustomEvent({
                 type: 'execution_paused',
                 timestamp: new Date().toISOString(),
@@ -138,13 +129,11 @@ export class AutomationService {
             this.isPaused = false;
             console.log('▶️ Automation execution resumed');
 
-            // Resolve the pause promise if waiting
             if (this.pauseResolver) {
                 this.pauseResolver();
                 this.pauseResolver = null;
             }
 
-            // Broadcast resume event
             this.broadcastCustomEvent({
                 type: 'execution_resumed',
                 timestamp: new Date().toISOString()
@@ -180,7 +169,7 @@ export class AutomationService {
         }
 
         try {
-            // Get the current page from the browser manager
+            // Getthe current page from the browser manager
             const browserManager = this.currentAutomation.getBrowserManager();
             const currentPage = await browserManager.getCurrentPage();
 
@@ -188,11 +177,10 @@ export class AutomationService {
                 return null;
             }
 
-            // Take screenshot with optimized options for performance
             const screenshotOptions = {
                 fullPage: options?.fullPage || false,
                 type: options?.format || 'jpeg',
-                quality: options?.quality || 70 // Lower quality for better performance
+                quality: options?.quality || 70
             };
 
             const screenshot = await currentPage.screenshot(screenshotOptions);
@@ -201,7 +189,8 @@ export class AutomationService {
             console.error('❌ Error taking screenshot:', error);
             return null;
         }
-    }    /**
+    }
+    /**
      * Start video recording for current automation session
      */
     async startVideoRecording(): Promise<void> {
@@ -217,7 +206,6 @@ export class AutomationService {
                 throw new Error('No active page found');
             }
 
-            // Check if page supports video recording
             if (typeof (currentPage as any).startVideoRecording === 'function') {
                 await (currentPage as any).startVideoRecording({
                     dir: './videos',
@@ -275,7 +263,6 @@ export class AutomationService {
                 return false;
             }
 
-            // Check if page supports video recording status check
             if (typeof (currentPage as any).isVideoRecording === 'function') {
                 return await (currentPage as any).isVideoRecording();
             }
@@ -288,10 +275,41 @@ export class AutomationService {
     }
 
     /**
+     * Get export data for the last executed task
+     */
+    getLastTaskExport(): string | null {
+        if (!this.lastTaskResult) {
+            return null;
+        }
+
+        try {
+            if (!this.lastTaskResult.instruction) {
+                throw new Error('Task result is missing the original instruction');
+            }
+
+            const exportData = ExecutionPlanExporter.exportFromTaskResult(
+                this.lastTaskResult,
+                this.lastTaskResult.instruction
+            );
+
+            return ExecutionPlanExporter.exportToJson(exportData, true);
+        } catch (error) {
+            console.error('Export error:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Check if export data is available
+     */
+    hasExportData(): boolean {
+        return this.lastTaskResult !== null;
+    }
+
+    /**
      * Broadcast custom events to all connected clients
      */
     private broadcastCustomEvent(event: ExecutionEvent): void {
-        // Use the execution stream's proper broadcasting mechanism
         const streamEvent = {
             type: event.type,
             sessionId: event.sessionId || 'default',
@@ -299,10 +317,8 @@ export class AutomationService {
             data: event
         };
 
-        // Use the internal broadcast method from execution stream
         (executionStream as any).broadcastEvent(streamEvent);
     }
 }
 
-// Singleton instance
 export const automationService = new AutomationService();
