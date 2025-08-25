@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { singleton } from '../../di';
 import { ActionStep, PageState } from '../planning/types/types';
 
 /**
@@ -63,6 +64,7 @@ z.object({
 /**
  * Manages the context and history of executed steps for better AI decision-making
  */
+@singleton()
 export class StepContextManager {
   private stepHistory: StepExecutionResult[] = [];
   private formElements: Map<string, FormElementContext> = new Map();
@@ -84,9 +86,6 @@ export class StepContextManager {
     }
   }
 
-  /**
-   * Get the current context for a step
-   */
   getCurrentContext(currentStepIndex: number, totalSteps: number): StepContext {
     return {
       previousSteps: [...this.stepHistory],
@@ -112,18 +111,14 @@ export class StepContextManager {
     return Array.from(this.formElements.values());
   }
 
-  /**
-   * Get successful selectors that have been used
-   */
+
   getSuccessfulSelectors(): string[] {
     return this.stepHistory
       .filter(step => step.success && step.selectorUsed)
       .map(step => step.selectorUsed!)
       .filter((selector, index, array) => array.indexOf(selector) === index);
   }
-  /**
-   * Clear the context (for new automation sessions)
-   */
+
   reset(): void {
     this.stepHistory = [];
     this.formElements.clear();

@@ -54,7 +54,7 @@ export class AutomationApiServer {
             const clientId = uuidv4();
             const sessionId = req.headers['x-session-id'] as string;
 
-            console.log(`📹 New video stream client connected: ${clientId}`);
+            console.log(`📹 New video stream client connected: ${clientId}, URL: ${req.url}, sessionId: ${sessionId}`);
 
             // Add client to video streaming service
             const videoService = videoStreamController.getVideoService();
@@ -63,6 +63,7 @@ export class AutomationApiServer {
             ws.on('message', async (message: any) => {
                 try {
                     const data = JSON.parse(message.toString());
+                    console.log(`📹 WebSocket message from ${clientId}:`, data.type, data);
                     await this.handleWebSocketMessage(clientId, data, videoService);
                 } catch (error) {
                     console.error('Error parsing WebSocket message:', error);
@@ -79,7 +80,7 @@ export class AutomationApiServer {
             });
 
             ws.on('error', (error: any) => {
-                console.error(`WebSocket error for client ${clientId}:`, error);
+                console.error(`📹 WebSocket error for client ${clientId}:`, error);
                 videoService.removeClient(clientId);
             });
         });

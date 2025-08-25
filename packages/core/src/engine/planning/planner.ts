@@ -14,6 +14,8 @@
  */
 
 import * as crypto from 'crypto';
+import { inject, injectable } from '../../di';
+import { DI_TOKENS } from '../../di/container';
 import { executionStream } from '../../events/execution-stream';
 import { PromptTemplate } from '../../utils/prompt-template';
 import { AIEngine } from '../ai-engine';
@@ -26,6 +28,7 @@ import { SubPlanService } from './services/sub-plan.service';
 import { GlobalPlanConfig, GlobalPlanInstruction } from './types/planning.types';
 import { ActionPlan, PageState, Plan, TaskContext } from './types/types';
 
+@injectable()
 export class Planner {
   private subPlanService: SubPlanService;
   private planAssemblyService: PlanAssemblyService;
@@ -35,7 +38,10 @@ export class Planner {
   private promptTemplate: PromptTemplate;
   private responseParser: ResponseParser;
 
-  constructor(aiEngine: AIEngine, stepContextManager?: StepContextManager) {
+  constructor(
+    @inject(DI_TOKENS.AI_ENGINE) aiEngine: AIEngine,
+    @inject(DI_TOKENS.STEP_CONTEXT_MANAGER) stepContextManager?: StepContextManager
+  ) {
     this.aiEngine = aiEngine;
     this.actionPlanner = new ActionPlanner(aiEngine);
     this.subPlanService = new SubPlanService(this.actionPlanner);

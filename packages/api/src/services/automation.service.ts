@@ -174,6 +174,7 @@ export class AutomationService {
      * Get current screenshot from active automation instance
      */
     async getCurrentScreenshot(options?: { quality?: number; format?: 'png' | 'jpeg'; fullPage?: boolean }): Promise<Buffer | null> {
+
         if (!this.currentAutomation) {
             return null;
         }
@@ -194,14 +195,13 @@ export class AutomationService {
                 quality: options?.quality || 70 // Lower quality for better performance
             };
 
-            return await currentPage.screenshot(screenshotOptions);
+            const screenshot = await currentPage.screenshot(screenshotOptions);
+            return screenshot;
         } catch (error) {
-            console.error('Error taking screenshot:', error);
+            console.error('❌ Error taking screenshot:', error);
             return null;
         }
-    }
-
-    /**
+    }    /**
      * Start video recording for current automation session
      */
     async startVideoRecording(): Promise<void> {
@@ -248,7 +248,6 @@ export class AutomationService {
                 return null;
             }
 
-            // Check if page supports video recording
             if (typeof (currentPage as any).stopVideoRecording === 'function') {
                 return await (currentPage as any).stopVideoRecording();
             } else {

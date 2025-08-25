@@ -67,12 +67,23 @@ export class ActionExecutor {
     }
 
     console.log(`🌐 Navigating to: ${url}`);
-    await page.navigate(url);
+
+    try {
+      await page.navigate(url);
+    } catch (navError) {
+      throw navError;
+    }
 
     console.log('⏳ Waiting for page to load...');
-    await page.waitForLoad();
+    try {
+      await page.waitForLoad();
+    } catch (loadError) {
+      console.error(`❌ Page load failed:`, loadError);
+      // Continue anyway - some pages might not trigger load events properly
+    }
 
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Give page more time to render
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     try {
       const currentPage = await this.captureState();

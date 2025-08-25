@@ -67,6 +67,8 @@
     "openai": "^4.62.1",
     "playwright": "^1.54.2",
     "puppeteer": "^24.16.0",
+    "reflect-metadata": "^0.2.2",
+    "tsyringe": "^4.10.0",
     "uuid": "^9.0.1"
   }
 }

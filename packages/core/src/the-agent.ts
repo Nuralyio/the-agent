@@ -2,8 +2,11 @@ import * as crypto from 'crypto';
 import { BrowserAdapterRegistry } from './adapters/adapter-registry';
 import type { BrowserAdapter, LaunchOptions } from './adapters/interfaces';
 import { BrowserType } from './adapters/interfaces';
+import { container, DI_TOKENS, diContainer } from './di/container';
 import { ActionEngine } from './engine/action-engine';
 import { AIEngine } from './engine/ai-engine';
+import { StepContextManager } from './engine/analysis/step-context';
+import { Planner } from './engine/planning/planner';
 import type { PageState, TaskContext } from './engine/planning/types/types';
 import { BrowserManagerImpl } from './managers/browser-manager';
 import type { BrowserConfig } from './types/browser.types';
@@ -27,7 +30,15 @@ export class TheAgent {
   private aiEngine?: AIEngine;
 
   constructor(config?: Partial<BrowserConfig & { ai?: AIConfig }>) {
-    this.browserManager = new BrowserManagerImpl();
+    // Register config in DI container if provided
+    if (config?.ai) {
+      diContainer.registerConfig(DI_TOKENS.AI_CONFIG, config.ai);
+    }
+
+    // Configure DI container with services
+    this.setupDependencyInjection();
+
+    this.browserManager = container.resolve(BrowserManagerImpl);
     this.registry = this.browserManager.getRegistry();
 
     this.config = {
@@ -42,6 +53,18 @@ export class TheAgent {
     if (config?.ai) {
       this.aiConfig = config.ai;
     }
+  }
+
+  /**
+   * Setup dependency injection container
+   */
+  private setupDependencyInjection(): void {
+    container.registerSingleton(DI_TOKENS.BROWSER_MANAGER, BrowserManagerImpl);
+    container.registerSingleton(DI_TOKENS.BROWSER_ADAPTER_REGISTRY, BrowserAdapterRegistry);
+    container.registerSingleton(DI_TOKENS.AI_ENGINE, AIEngine);
+    container.registerSingleton(DI_TOKENS.ACTION_ENGINE, ActionEngine);
+    container.registerSingleton(DI_TOKENS.PLANNER, Planner);
+    container.registerSingleton(DI_TOKENS.STEP_CONTEXT_MANAGER, StepContextManager);
   }
 
   async initialize(): Promise<void> {
@@ -67,10 +90,11 @@ export class TheAgent {
     await this.browserManager.launchBrowser(launchOptions);
     await this.browserManager.createPage();
     console.log('📄 Initial page created successfully');
+    container.registerInstance(DI_TOKENS.BROWSER_MANAGER, this.browserManager);
 
     if (this.aiConfig) {
       console.log('🤖 Initializing AI engine with config:', this.aiConfig);
-      this.aiEngine = new AIEngine();
+      this.aiEngine = container.resolve(AIEngine);
 
       const aiEngineConfig = {
         ...this.aiConfig,
@@ -79,7 +103,8 @@ export class TheAgent {
 
       const providerName = this.aiConfig.provider || 'ollama';
       this.aiEngine.addProvider(providerName, aiEngineConfig);
-      this.actionEngine = new ActionEngine(this.browserManager, this.aiEngine);
+      container.registerInstance(DI_TOKENS.AI_ENGINE, this.aiEngine);
+      this.actionEngine = container.resolve(ActionEngine);
       console.log('✅ ActionEngine initialized successfully');
     } else {
       console.log('⚠️  No AI configuration found, ActionEngine will not be available');

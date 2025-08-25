@@ -2,7 +2,6 @@
 
 [![CI Tests](https://github.com/Nuralyio/the-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/Nuralyio/the-agent/actions/workflows/ci.yml)
 [![Release](https://github.com/Nuralyio/the-agent/actions/workflows/release.yml/badge.svg)](https://github.com/Nuralyio/the-agent/actions/workflows/release.yml)
-
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-green)](https://nodejs.org/)

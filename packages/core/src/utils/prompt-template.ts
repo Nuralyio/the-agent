@@ -12,7 +12,7 @@ export class PromptTemplate {
   private readonly enableLogging: boolean;
 
   constructor(enableDebugLogging?: boolean) {
-    this.promptsDir = join(__dirname, 'prompts');
+    this.promptsDir = join(__dirname, '../prompts');
     this.debugLogsDir = join(__dirname, '..', '..', 'ai-debug-logs');
 
     this.enableLogging = enableDebugLogging ?? (

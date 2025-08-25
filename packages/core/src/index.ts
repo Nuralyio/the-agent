@@ -1,6 +1,8 @@
 // Main framework exports
 export { TheAgent } from './the-agent';
 
+export * from './di';
+
 // Adapter exports
 export { BrowserAdapterRegistry } from './adapters/adapter-registry';
 export { PlaywrightAdapter } from './adapters/playwright/adapter';

@@ -1,3 +1,5 @@
+import { inject, injectable } from '../di';
+import { DI_TOKENS } from '../di/container';
 import { executionStream } from '../events/execution-stream';
 import type { BrowserManager } from '../types/browser.types';
 import type { ActionEngine as IActionEngine, TaskResult } from '../types/task.types';
@@ -23,6 +25,7 @@ import type { ActionPlan, PageState, TaskContext } from './planning/types/types'
  * 3. Use Planner.planAndExecute() for planning and execution
  * 4. Return structured results with logging and streaming
  */
+@injectable()
 export class ActionEngine implements IActionEngine {
   private planner: Planner;
   private readonly stepContextManager: StepContextManager;
@@ -31,8 +34,12 @@ export class ActionEngine implements IActionEngine {
   private readonly stepRefinementManager: StepRefinementManager;
   private planExecutionManager: ActionSequenceExecutor;
 
-  constructor(browserManager: BrowserManager, aiEngine: AIEngine) {
-    this.stepContextManager = new StepContextManager();
+  constructor(
+    @inject(DI_TOKENS.BROWSER_MANAGER) browserManager: BrowserManager,
+    @inject(DI_TOKENS.AI_ENGINE) aiEngine: AIEngine,
+    @inject(DI_TOKENS.STEP_CONTEXT_MANAGER) stepContextManager?: StepContextManager
+  ) {
+    this.stepContextManager = stepContextManager || new StepContextManager();
     this.planner = new Planner(aiEngine, this.stepContextManager);
 
     this.actionExecutor = new ActionExecutor(browserManager);

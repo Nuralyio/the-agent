@@ -1,4 +1,5 @@
 import * as path from 'path';
+import { injectable } from '../di';
 import { OllamaProvider, OpenAIProvider } from '../providers';
 import { AILogConfig, AILoggingService } from '../utils/logging';
 import { PromptTemplate } from '../utils/prompt-template';
@@ -81,6 +82,7 @@ export interface AIProvider {
 /**
  * AI Engine that manages multiple providers and provides a unified interface
  */
+@injectable()
 export class AIEngine {
   private providers: Map<string, AIProvider> = new Map();
   private defaultProvider?: AIProvider;

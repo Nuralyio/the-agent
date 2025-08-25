@@ -7,11 +7,14 @@ import {
   PageInstance,
   ScreenshotOptions
 } from '../adapters/interfaces';
+import { inject, injectable } from '../di';
+import { DI_TOKENS } from '../di/container';
 import { BrowserManager } from '../types/browser.types';
 
 /**
  * Browser manager implementation with adapter abstraction
  */
+@injectable()
 export class BrowserManagerImpl implements BrowserManager {
   private currentAdapter: BrowserAdapter | null = null;
   private currentBrowser: BrowserInstance | null = null;
@@ -19,8 +22,10 @@ export class BrowserManagerImpl implements BrowserManager {
   private registry: BrowserAdapterRegistry;
   private defaultLaunchOptions?: LaunchOptions;
 
-  constructor() {
-    this.registry = new BrowserAdapterRegistry();
+  constructor(
+    @inject(DI_TOKENS.BROWSER_ADAPTER_REGISTRY) registry?: BrowserAdapterRegistry
+  ) {
+    this.registry = registry || new BrowserAdapterRegistry();
   }
 
   /**
