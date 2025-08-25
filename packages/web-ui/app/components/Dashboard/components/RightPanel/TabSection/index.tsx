@@ -18,6 +18,7 @@ interface TabSectionProps {
   currentPlan: ExecutionStep[];
   sessionId?: string;
   isLoading?: boolean;
+  currentTaskId?: string;
 }
 
 export const TabSection: React.FC<TabSectionProps> = ({
@@ -31,6 +32,7 @@ export const TabSection: React.FC<TabSectionProps> = ({
   currentPlan,
   sessionId,
   isLoading = false,
+  currentTaskId,
 }) => {
   return (
     <div style={styles.rightTabSection}>
@@ -56,7 +58,7 @@ export const TabSection: React.FC<TabSectionProps> = ({
 
         {activeTab === 'logs' && <LogsTab />}
 
-        {activeTab === 'export' && <ExportTab isTaskRunning={isLoading} />}
+        {activeTab === 'export' && <ExportTab isTaskRunning={isLoading} currentTaskId={currentTaskId} />}
       </div>
     </div>
   );

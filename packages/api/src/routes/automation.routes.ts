@@ -5,6 +5,8 @@ const router = Router();
 
 router.post('/execute', AutomationController.executeTask);
 
+router.get('/status', AutomationController.getExecutionStatus);
+
 router.get('/engines', AutomationController.getEngines);
 
 router.get('/screenshot', AutomationController.getScreenshot);

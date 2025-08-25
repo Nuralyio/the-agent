@@ -27,6 +27,26 @@ export const executeAutomationTask = async (request: ExecuteTaskRequest): Promis
   return await response.json();
 };
 
-export const connectToEventStream = (): EventSource => {
-  return new EventSource(`${AUTOMATION_SERVER_URL}/api/execution/stream`);
+export const connectToEventStream = (taskId?: string): EventSource => {
+  const url = taskId 
+    ? `${AUTOMATION_SERVER_URL}/api/execution/stream?taskId=${taskId}`
+    : `${AUTOMATION_SERVER_URL}/api/execution/stream`;
+  return new EventSource(url);
+};
+
+export interface ExecutionStatus {
+  isRunning: boolean;
+  isPaused: boolean;
+  hasTaskResult: boolean;
+}
+
+export interface ExecutionStatusResponse {
+  success: boolean;
+  data?: ExecutionStatus;
+  error?: string;
+}
+
+export const getExecutionStatus = async (): Promise<ExecutionStatusResponse> => {
+  const response = await fetch(`${AUTOMATION_SERVER_URL}/api/automation/status`);
+  return await response.json();
 };

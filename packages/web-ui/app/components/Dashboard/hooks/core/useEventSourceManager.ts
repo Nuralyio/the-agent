@@ -117,13 +117,15 @@ export const useEventSourceManager = (props: UseEventStreamProps) => {
    * Creates and configures a new EventSource connection
    */
   const createEventSource = useCallback((): EventSource => {
-    const eventSource = new EventSource(`${AUTOMATION_SERVER_URL}/api/execution/stream`);
+    const baseUrl = `${AUTOMATION_SERVER_URL}/api/execution/stream`;
+    const url = props.taskId ? `${baseUrl}?taskId=${props.taskId}` : baseUrl;
+    const eventSource = new EventSource(url);
 
     eventSource.onmessage = (event) => handleMessage(event, eventSource);
     eventSource.onerror = (error) => handleError(error, eventSource);
 
     return eventSource;
-  }, [handleMessage, handleError]);
+  }, [handleMessage, handleError, props.taskId]);
 
   return {
     createEventSource,

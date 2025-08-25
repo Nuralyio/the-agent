@@ -44,6 +44,7 @@ export interface ExecutionEvent {
     sessionId?: string;
     timestamp: string;
     task?: string;
+    taskId?: string;
     result?: unknown;
     error?: string;
     status?: string;

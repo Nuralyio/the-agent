@@ -30,6 +30,10 @@ export class EventHandlers {
   handleExecutionStart = (data: EventData): void => {
     if (!data.task) return;
 
+    if (data.taskId && this.props.setCurrentTaskId) {
+      this.props.setCurrentTaskId(data.taskId);
+    }
+
     const message = createExecutionStartMessage(data.task);
     this.props.setChatMessages(prev => [...prev, message]);
   };

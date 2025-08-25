@@ -16,6 +16,7 @@ interface RightPanelProps {
   selectedEngine: string;
   handleStepClick: (stepIndex: number, step: ExecutionStep) => void;
   sessionId?: string;
+  currentTaskId?: string;
 }
 
 export default function RightPanel({
@@ -31,6 +32,7 @@ export default function RightPanel({
   selectedEngine,
   handleStepClick,
   sessionId,
+  currentTaskId,
 }: RightPanelProps) {
   return (
     <div style={styles.rightPanel}>
@@ -53,6 +55,7 @@ export default function RightPanel({
         currentPlan={currentPlan}
         sessionId={sessionId}
         isLoading={isLoading}
+        currentTaskId={currentTaskId}
       />
     </div>
   );

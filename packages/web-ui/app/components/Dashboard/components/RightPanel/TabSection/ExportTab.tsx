@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { AUTOMATION_SERVER_URL } from '../../../utils/constants';
+import { getExecutionStatus, type ExecutionStatus } from '../../../utils/api';
 
 interface ExportTabProps {
+  // Keep the prop for backward compatibility but make it optional
   isTaskRunning?: boolean;
+  currentTaskId?: string;
 }
 
 interface ExportData {
@@ -22,7 +25,7 @@ interface ExportData {
   };
 }
 
-export const ExportTab: React.FC<ExportTabProps> = ({ isTaskRunning = false }) => {
+export const ExportTab: React.FC<ExportTabProps> = ({ isTaskRunning = false, currentTaskId }) => {
   const [exportData, setExportData] = useState<ExportData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +37,11 @@ export const ExportTab: React.FC<ExportTabProps> = ({ isTaskRunning = false }) =
     setError(null);
 
     try {
-      const response = await fetch(`${AUTOMATION_SERVER_URL}/api/automation/export`);
+      const url = currentTaskId && currentTaskId.trim() !== ''
+        ? `${AUTOMATION_SERVER_URL}/api/automation/export?taskId=${currentTaskId}`
+        : `${AUTOMATION_SERVER_URL}/api/automation/export`;
+      
+      const response = await fetch(url);
       const result = await response.json();
 
       if (result.success) {
@@ -50,12 +57,12 @@ export const ExportTab: React.FC<ExportTabProps> = ({ isTaskRunning = false }) =
     }
   };
 
-  // Auto-fetch on component mount, but only if no task is running
+  // Auto-fetch on component mount, but only if no task is running and we have a taskId or want to get the latest
   useEffect(() => {
     if (!isTaskRunning) {
       fetchExportData();
     }
-  }, [isTaskRunning]);
+  }, [isTaskRunning, currentTaskId]);
 
   const jsonString = exportData ? JSON.stringify(exportData, null, 2) : '';
 
@@ -120,6 +127,18 @@ export const ExportTab: React.FC<ExportTabProps> = ({ isTaskRunning = false }) =
         }}>
           <p style={{ fontSize: '16px', marginBottom: '8px' }}>🚀 Task is currently running...</p>
           <p style={{ fontSize: '14px' }}>Export will be available once the task completes</p>
+        </div>
+      ) : !currentTaskId && !exportData ? (
+        <div style={{
+          textAlign: 'center',
+          padding: '32px',
+          color: '#94a3b8',
+          backgroundColor: '#1e293b',
+          borderRadius: '8px',
+          border: '1px solid #334155'
+        }}>
+          <p style={{ fontSize: '16px', marginBottom: '8px' }}>📋 No task executed yet</p>
+          <p style={{ fontSize: '14px' }}>Run a task to generate an execution plan for export</p>
         </div>
       ) : loading ? (
         <div style={{

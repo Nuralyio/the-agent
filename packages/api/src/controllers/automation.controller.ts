@@ -23,20 +23,17 @@ export class AutomationController {
                 return;
             }
 
-            // Send initial response
+            // Execute automation and get the actual task ID
+            const taskId = await automationService.executeTask(taskDescription, engine, aiProvider, options);
+
+            // Send response with the real task ID
             const response: ApiResponse = {
                 success: true,
-                message: 'Execution started',
-                taskId: uuidv4(),
+                message: 'Execution completed',
+                taskId: taskId,
                 timestamp: new Date().toISOString()
             };
             res.json(response);
-
-            // Execute automation in background and stream events
-            automationService.executeTask(taskDescription, engine, aiProvider, options)
-                .catch(error => {
-                    console.error('Background automation execution error:', error);
-                });
 
         } catch (error) {
             console.error('Automation execution error:', error);
@@ -87,20 +84,28 @@ export class AutomationController {
     }
 
     /**
-     * Export the last execution plan as JSON
+     * Export execution plan as JSON
      */
     static async exportLastExecution(req: Request, res: Response): Promise<void> {
         try {
-            if (!automationService.hasExportData()) {
+            const taskId = req.query.taskId as string | undefined;
+
+            if (!automationService.hasExportData(taskId)) {
+                const message = taskId 
+                    ? `No execution data available for task ${taskId}.`
+                    : 'No execution data available for export. Execute a task first.';
+                    
                 const response: ApiResponse = {
                     success: false,
-                    error: 'No execution data available for export. Execute a task first.'
+                    error: message
                 };
                 res.status(404).json(response);
                 return;
             }
 
-            const exportJson = automationService.getLastTaskExport();
+            const exportJson = taskId 
+                ? automationService.getTaskExport(taskId)
+                : automationService.getLastTaskExport();
             
             if (!exportJson) {
                 const response: ApiResponse = {
@@ -121,6 +126,29 @@ export class AutomationController {
 
         } catch (error) {
             console.error('Export error:', error);
+            const response: ApiResponse = {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            };
+            res.status(500).json(response);
+        }
+    }
+
+    /**
+     * Get current execution status
+     */
+    static async getExecutionStatus(req: Request, res: Response): Promise<void> {
+        try {
+            const status = automationService.getExecutionStatus();
+            
+            const response: ApiResponse<any> = {
+                success: true,
+                data: status
+            };
+            res.json(response);
+
+        } catch (error) {
+            console.error('Status error:', error);
             const response: ApiResponse = {
                 success: false,
                 error: error instanceof Error ? error.message : 'Unknown error'
