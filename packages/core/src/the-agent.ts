@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import * as crypto from 'crypto';
 import { BrowserAdapterRegistry } from './adapters/adapter-registry';
 import type { BrowserAdapter, LaunchOptions } from './adapters/interfaces';
