@@ -4,6 +4,7 @@ import { executionStream } from '../events/execution-stream';
 import type { BrowserManager } from '../types/browser.types';
 import type { ActionEngine as IActionEngine, TaskResult } from '../types/task.types';
 import { ExecutionLogger } from '../utils/execution-logger';
+import { ExecutionPlanExporter, type ExportOptions } from '../utils/execution-plan-exporter';
 import { AIEngine } from './ai-engine';
 import { StepContextManager } from './analysis/step-context';
 import { ActionExecutor } from './execution/action-executor';
@@ -91,6 +92,7 @@ export class ActionEngine implements IActionEngine {
         error: error instanceof Error ? error.message : 'Unknown error',
         screenshots: [],
         duration: Date.now() - startTime,
+        instruction: objective
       };
     }
   }
@@ -116,8 +118,8 @@ export class ActionEngine implements IActionEngine {
         objective: objective,
         constraints: [],
         variables: {},
-        history: this.stepContextManager.getRecentSteps().map(result => result.step), // Extract ActionSteps from execution results
-        executionContextSummary: this.stepContextManager.exportContextSummary(), // Include pre-computed execution context
+        history: this.stepContextManager.getRecentSteps().map(result => result.step),
+        executionContextSummary: this.stepContextManager.exportContextSummary(),
         currentState: pageState || {
           url: '',
           title: '',
@@ -145,11 +147,14 @@ export class ActionEngine implements IActionEngine {
 
       return {
         success: result.success,
-        steps: result.results?.flatMap((r: any) => r.steps || []) || [],
+        steps: result.results?.flatMap((r: any) =>
+          r.steps?.map((stepExecution: any) => stepExecution.step || stepExecution) || []
+        ) || [],
         extractedData: null,
         screenshots: result.results?.flatMap((r: any) => r.screenshots || []) || [],
         duration: Date.now() - Date.now(),
         plan: result.plan,
+        instruction: objective
       };
     } catch (error) {
       console.error('❌ Planner execution failed:', error);
@@ -253,6 +258,7 @@ export class ActionEngine implements IActionEngine {
         error: error instanceof Error ? error.message : 'Unknown error',
         screenshots: [],
         duration: Date.now() - startTime,
+        instruction: objective
       };
     }
   }
@@ -278,7 +284,7 @@ export class ActionEngine implements IActionEngine {
         objective: objective,
         constraints: [],
         variables: {},
-        history: this.stepContextManager.getRecentSteps().map(result => result.step), // Extract ActionSteps from execution results
+        history: this.stepContextManager.getRecentSteps().map(result => result.step),
         executionContextSummary: this.stepContextManager.exportContextSummary(), // Pass extracted data
         currentState: pageState || {
           url: '',
@@ -307,11 +313,14 @@ export class ActionEngine implements IActionEngine {
 
       return {
         success: result.success,
-        steps: result.results?.flatMap((r: any) => r.steps || []) || [],
+        steps: result.results?.flatMap((r: any) =>
+          r.steps?.map((stepExecution: any) => stepExecution.step || stepExecution) || []
+        ) || [],
         extractedData: null,
         screenshots: result.results?.flatMap((r: any) => r.screenshots || []) || [],
         duration: Date.now() - Date.now(),
         plan: result.plan,
+        instruction: objective
       };
     } catch (error) {
       console.error('❌ Planner execution with refinement failed:', error);
@@ -324,5 +333,23 @@ export class ActionEngine implements IActionEngine {
    */
   async captureState(): Promise<PageState> {
     return this.actionExecutor.captureState();
+  }
+
+  /**
+   * Export execution plan from task result
+   */
+  exportExecutionPlan(taskResult: TaskResult, options: ExportOptions = {}) {
+    if (!taskResult.instruction) {
+      throw new Error('Task result must include the original instruction for export');
+    }
+    return ExecutionPlanExporter.exportFromTaskResult(taskResult, taskResult.instruction, options);
+  }
+
+  /**
+   * Export execution plan to JSON only (for WebUI and CLI)
+   */
+  exportExecutionPlanToJson(taskResult: TaskResult, options: ExportOptions = {}): string {
+    const exportData = this.exportExecutionPlan(taskResult, options);
+    return ExecutionPlanExporter.exportToJson(exportData, options.prettify !== false);
   }
 }

@@ -52,6 +52,7 @@ export default function RightPanel({
         selectedEngine={selectedEngine}
         currentPlan={currentPlan}
         sessionId={sessionId}
+        isLoading={isLoading}
       />
     </div>
   );

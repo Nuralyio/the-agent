@@ -1,5 +1,5 @@
-import 'reflect-metadata';
 import * as crypto from 'crypto';
+import 'reflect-metadata';
 import { BrowserAdapterRegistry } from './adapters/adapter-registry';
 import type { BrowserAdapter, LaunchOptions } from './adapters/interfaces';
 import { BrowserType } from './adapters/interfaces';
@@ -13,6 +13,7 @@ import { BrowserManagerImpl } from './managers/browser-manager';
 import type { BrowserConfig } from './types/browser.types';
 import type { AIConfig, ExecutionOptions } from './types/config.types';
 import type { TaskResult } from './types/task.types';
+import { ExecutionPlanExporter, type ExecutionPlanExport, type ExportOptions } from './utils/execution-plan-exporter';
 
 /**
  * TheAgent - AI-Powered Browser Automation Framework
@@ -31,12 +32,10 @@ export class TheAgent {
   private aiEngine?: AIEngine;
 
   constructor(config?: Partial<BrowserConfig & { ai?: AIConfig }>) {
-    // Register config in DI container if provided
     if (config?.ai) {
       diContainer.registerConfig(DI_TOKENS.AI_CONFIG, config.ai);
     }
 
-    // Configure DI container with services
     this.setupDependencyInjection();
 
     this.browserManager = container.resolve(BrowserManagerImpl);
@@ -305,5 +304,45 @@ export class TheAgent {
       viewport: { width: 1280, height: 720 },
       elements: []
     };
+  }
+
+  /**
+   * Export execution plan from task result
+   */
+  exportExecutionPlan(
+    taskResult: TaskResult,
+    originalInstruction: string,
+    options: ExportOptions = {}
+  ): ExecutionPlanExport {
+    return ExecutionPlanExporter.exportFromTaskResult(taskResult, originalInstruction, options);
+  }
+
+  /**
+   * Export execution plan to JSON
+   */
+  exportExecutionPlanToJson(
+    taskResult: TaskResult,
+    originalInstruction: string,
+    options: ExportOptions = {}
+  ): string {
+    const exportData = this.exportExecutionPlan(taskResult, originalInstruction, options);
+    return ExecutionPlanExporter.exportToJson(exportData, options.prettify !== false);
+  }
+
+  /**
+   * Save execution plan export to file
+   */
+  async saveExecutionPlanExport(
+    taskResult: TaskResult,
+    originalInstruction: string,
+    options: ExportOptions = {}
+  ): Promise<string> {
+    const exportData = this.exportExecutionPlan(taskResult, originalInstruction, options);
+    const filePath = options.filePath || ExecutionPlanExporter.generateFilename(exportData);
+
+    await ExecutionPlanExporter.saveToFile(exportData, filePath, options.prettify !== false);
+    console.log(`📄 Execution plan exported to: ${filePath}`);
+
+    return filePath;
   }
 }

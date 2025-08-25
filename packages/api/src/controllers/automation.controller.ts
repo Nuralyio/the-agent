@@ -85,4 +85,47 @@ export class AutomationController {
             });
         }
     }
+
+    /**
+     * Export the last execution plan as JSON
+     */
+    static async exportLastExecution(req: Request, res: Response): Promise<void> {
+        try {
+            if (!automationService.hasExportData()) {
+                const response: ApiResponse = {
+                    success: false,
+                    error: 'No execution data available for export. Execute a task first.'
+                };
+                res.status(404).json(response);
+                return;
+            }
+
+            const exportJson = automationService.getLastTaskExport();
+            
+            if (!exportJson) {
+                const response: ApiResponse = {
+                    success: false,
+                    error: 'Failed to generate export data'
+                };
+                res.status(500).json(response);
+                return;
+            }
+
+            // Parse and return as JSON object
+            const exportData = JSON.parse(exportJson);
+            const response: ApiResponse<any> = {
+                success: true,
+                data: exportData
+            };
+            res.json(response);
+
+        } catch (error) {
+            console.error('Export error:', error);
+            const response: ApiResponse = {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            };
+            res.status(500).json(response);
+        }
+    }
 }
