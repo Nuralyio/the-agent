@@ -14,6 +14,7 @@ export const CurrentActionDisplay: React.FC<CurrentActionDisplayProps> = ({ subP
   const styles = {
     container: {
       marginTop: '12px',
+      marginBottom: '16px',
       padding: '8px 12px',
       backgroundColor: '#1e3a8a',
       borderRadius: '6px',
