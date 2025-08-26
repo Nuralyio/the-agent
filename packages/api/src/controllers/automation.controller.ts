@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { v4 as uuidv4 } from 'uuid';
 import { automationService } from '../services/automation.service';
 import { ApiResponse, AutomationExecuteRequest } from '../types';
 
@@ -23,10 +22,8 @@ export class AutomationController {
                 return;
             }
 
-            // Execute automation and get the actual task ID
             const taskId = await automationService.executeTask(taskDescription, engine, aiProvider, options);
 
-            // Send response with the real task ID
             const response: ApiResponse = {
                 success: true,
                 message: 'Execution completed',
@@ -91,10 +88,10 @@ export class AutomationController {
             const taskId = req.query.taskId as string | undefined;
 
             if (!automationService.hasExportData(taskId)) {
-                const message = taskId 
+                const message = taskId
                     ? `No execution data available for task ${taskId}.`
                     : 'No execution data available for export. Execute a task first.';
-                    
+
                 const response: ApiResponse = {
                     success: false,
                     error: message
@@ -103,10 +100,10 @@ export class AutomationController {
                 return;
             }
 
-            const exportJson = taskId 
+            const exportJson = taskId
                 ? automationService.getTaskExport(taskId)
                 : automationService.getLastTaskExport();
-            
+
             if (!exportJson) {
                 const response: ApiResponse = {
                     success: false,
@@ -116,7 +113,6 @@ export class AutomationController {
                 return;
             }
 
-            // Parse and return as JSON object
             const exportData = JSON.parse(exportJson);
             const response: ApiResponse<any> = {
                 success: true,
@@ -140,7 +136,7 @@ export class AutomationController {
     static async getExecutionStatus(req: Request, res: Response): Promise<void> {
         try {
             const status = automationService.getExecutionStatus();
-            
+
             const response: ApiResponse<any> = {
                 success: true,
                 data: status

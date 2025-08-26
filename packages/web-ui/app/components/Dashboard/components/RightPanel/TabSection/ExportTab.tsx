@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AUTOMATION_SERVER_URL } from '../../../utils/constants';
-import { getExecutionStatus, type ExecutionStatus } from '../../../utils/api';
 
 interface ExportTabProps {
   // Keep the prop for backward compatibility but make it optional
@@ -31,16 +30,16 @@ export const ExportTab: React.FC<ExportTabProps> = ({ isTaskRunning = false, cur
   const [error, setError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
 
-  // Fetch export data from the API
   const fetchExportData = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const url = currentTaskId && currentTaskId.trim() !== ''
-        ? `${AUTOMATION_SERVER_URL}/api/automation/export?taskId=${currentTaskId}`
-        : `${AUTOMATION_SERVER_URL}/api/automation/export`;
-      
+      const url =
+        currentTaskId && currentTaskId.trim() !== ''
+          ? `${AUTOMATION_SERVER_URL}/api/automation/export?taskId=${currentTaskId}`
+          : `${AUTOMATION_SERVER_URL}/api/automation/export`;
+
       const response = await fetch(url);
       const result = await response.json();
 
@@ -57,7 +56,6 @@ export const ExportTab: React.FC<ExportTabProps> = ({ isTaskRunning = false, cur
     }
   };
 
-  // Auto-fetch on component mount, but only if no task is running and we have a taskId or want to get the latest
   useEffect(() => {
     if (!isTaskRunning) {
       fetchExportData();
@@ -85,7 +83,6 @@ export const ExportTab: React.FC<ExportTabProps> = ({ isTaskRunning = false, cur
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
 
-    // Generate filename based on task and timestamp
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('.')[0];
     const taskSlug = (exportData?.globalObjective || 'task')
       .toLowerCase()
@@ -117,49 +114,57 @@ export const ExportTab: React.FC<ExportTabProps> = ({ isTaskRunning = false, cur
       </div>
 
       {isTaskRunning ? (
-        <div style={{
-          textAlign: 'center',
-          padding: '32px',
-          color: '#f59e0b',
-          backgroundColor: '#1e293b',
-          borderRadius: '8px',
-          border: '1px solid #334155'
-        }}>
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '32px',
+            color: '#f59e0b',
+            backgroundColor: '#1e293b',
+            borderRadius: '8px',
+            border: '1px solid #334155',
+          }}
+        >
           <p style={{ fontSize: '16px', marginBottom: '8px' }}>🚀 Task is currently running...</p>
           <p style={{ fontSize: '14px' }}>Export will be available once the task completes</p>
         </div>
       ) : !currentTaskId && !exportData ? (
-        <div style={{
-          textAlign: 'center',
-          padding: '32px',
-          color: '#94a3b8',
-          backgroundColor: '#1e293b',
-          borderRadius: '8px',
-          border: '1px solid #334155'
-        }}>
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '32px',
+            color: '#94a3b8',
+            backgroundColor: '#1e293b',
+            borderRadius: '8px',
+            border: '1px solid #334155',
+          }}
+        >
           <p style={{ fontSize: '16px', marginBottom: '8px' }}>📋 No task executed yet</p>
           <p style={{ fontSize: '14px' }}>Run a task to generate an execution plan for export</p>
         </div>
       ) : loading ? (
-        <div style={{
-          textAlign: 'center',
-          padding: '32px',
-          color: '#94a3b8',
-          backgroundColor: '#1e293b',
-          borderRadius: '8px',
-          border: '1px solid #334155'
-        }}>
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '32px',
+            color: '#94a3b8',
+            backgroundColor: '#1e293b',
+            borderRadius: '8px',
+            border: '1px solid #334155',
+          }}
+        >
           <p style={{ fontSize: '16px', marginBottom: '8px' }}>Loading export data...</p>
         </div>
       ) : error ? (
-        <div style={{
-          textAlign: 'center',
-          padding: '32px',
-          color: '#ef4444',
-          backgroundColor: '#1e293b',
-          borderRadius: '8px',
-          border: '1px solid #334155'
-        }}>
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '32px',
+            color: '#ef4444',
+            backgroundColor: '#1e293b',
+            borderRadius: '8px',
+            border: '1px solid #334155',
+          }}
+        >
           <p style={{ fontSize: '16px', marginBottom: '8px' }}>Error: {error}</p>
           <button
             onClick={handleRefresh}
@@ -179,14 +184,16 @@ export const ExportTab: React.FC<ExportTabProps> = ({ isTaskRunning = false, cur
           </button>
         </div>
       ) : !exportData ? (
-        <div style={{
-          textAlign: 'center',
-          padding: '32px',
-          color: '#94a3b8',
-          backgroundColor: '#1e293b',
-          borderRadius: '8px',
-          border: '1px solid #334155'
-        }}>
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '32px',
+            color: '#94a3b8',
+            backgroundColor: '#1e293b',
+            borderRadius: '8px',
+            border: '1px solid #334155',
+          }}
+        >
           <p style={{ fontSize: '16px', marginBottom: '8px' }}>No execution data available</p>
           <p style={{ fontSize: '14px' }}>Run a task to generate exportable execution plan</p>
           <button
@@ -208,22 +215,21 @@ export const ExportTab: React.FC<ExportTabProps> = ({ isTaskRunning = false, cur
         </div>
       ) : (
         <>
-          {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
             <button
               onClick={handleCopyToClipboard}
               disabled={isTaskRunning || !exportData}
               style={{
                 padding: '8px 16px',
-                backgroundColor: copySuccess ? '#059669' : (isTaskRunning || !exportData ? '#4b5563' : '#3b82f6'),
+                backgroundColor: copySuccess ? '#059669' : isTaskRunning || !exportData ? '#4b5563' : '#3b82f6',
                 color: 'white',
                 border: 'none',
                 borderRadius: '6px',
-                cursor: (isTaskRunning || !exportData) ? 'not-allowed' : 'pointer',
+                cursor: isTaskRunning || !exportData ? 'not-allowed' : 'pointer',
                 fontSize: '14px',
                 fontWeight: '500',
                 transition: 'background-color 0.2s',
-                opacity: (isTaskRunning || !exportData) ? 0.6 : 1,
+                opacity: isTaskRunning || !exportData ? 0.6 : 1,
               }}
             >
               {copySuccess ? '✓ Copied!' : '📋 Copy to Clipboard'}
@@ -234,15 +240,15 @@ export const ExportTab: React.FC<ExportTabProps> = ({ isTaskRunning = false, cur
               disabled={isTaskRunning || !exportData}
               style={{
                 padding: '8px 16px',
-                backgroundColor: (isTaskRunning || !exportData) ? '#4b5563' : '#10b981',
+                backgroundColor: isTaskRunning || !exportData ? '#4b5563' : '#10b981',
                 color: 'white',
                 border: 'none',
                 borderRadius: '6px',
-                cursor: (isTaskRunning || !exportData) ? 'not-allowed' : 'pointer',
+                cursor: isTaskRunning || !exportData ? 'not-allowed' : 'pointer',
                 fontSize: '14px',
                 fontWeight: '500',
                 transition: 'background-color 0.2s',
-                opacity: (isTaskRunning || !exportData) ? 0.6 : 1,
+                opacity: isTaskRunning || !exportData ? 0.6 : 1,
               }}
             >
               💾 Download JSON
@@ -268,14 +274,15 @@ export const ExportTab: React.FC<ExportTabProps> = ({ isTaskRunning = false, cur
             </button>
           </div>
 
-          {/* Export Summary */}
-          <div style={{
-            padding: '12px',
-            backgroundColor: '#1e293b',
-            borderRadius: '6px',
-            border: '1px solid #334155',
-            marginBottom: '16px',
-          }}>
+          <div
+            style={{
+              padding: '12px',
+              backgroundColor: '#1e293b',
+              borderRadius: '6px',
+              border: '1px solid #334155',
+              marginBottom: '16px',
+            }}
+          >
             <div style={{ fontSize: '14px', color: '#e2e8f0' }}>
               <div style={{ marginBottom: '4px' }}>
                 <strong>Instruction:</strong> {exportData?.globalObjective || 'N/A'}
@@ -285,10 +292,12 @@ export const ExportTab: React.FC<ExportTabProps> = ({ isTaskRunning = false, cur
               </div>
               <div style={{ marginBottom: '4px' }}>
                 <strong>Status:</strong>
-                <span style={{
-                  color: exportData?.success ? '#10b981' : '#ef4444',
-                  marginLeft: '8px'
-                }}>
+                <span
+                  style={{
+                    color: exportData?.success ? '#10b981' : '#ef4444',
+                    marginLeft: '8px',
+                  }}
+                >
                   {exportData?.success ? '✓ Success' : '✗ Failed'}
                 </span>
               </div>
@@ -298,28 +307,29 @@ export const ExportTab: React.FC<ExportTabProps> = ({ isTaskRunning = false, cur
             </div>
           </div>
 
-          {/* JSON Preview */}
           <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '8px', color: '#ffffff' }}>
-              JSON Preview
-            </h3>
-            <div style={{
-              flex: 1,
-              overflow: 'auto',
-              backgroundColor: '#0f172a',
-              border: '1px solid #334155',
-              borderRadius: '6px',
-              padding: '12px',
-            }}>
-              <pre style={{
-                margin: 0,
-                fontSize: '12px',
-                lineHeight: '1.4',
-                color: '#e2e8f0',
-                fontFamily: 'Monaco, Consolas, "Courier New", monospace',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-              }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '8px', color: '#ffffff' }}>JSON Preview</h3>
+            <div
+              style={{
+                flex: 1,
+                overflow: 'auto',
+                backgroundColor: '#0f172a',
+                border: '1px solid #334155',
+                borderRadius: '6px',
+                padding: '12px',
+              }}
+            >
+              <pre
+                style={{
+                  margin: 0,
+                  fontSize: '12px',
+                  lineHeight: '1.4',
+                  color: '#e2e8f0',
+                  fontFamily: 'Monaco, Consolas, "Courier New", monospace',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                }}
+              >
                 {jsonString}
               </pre>
             </div>

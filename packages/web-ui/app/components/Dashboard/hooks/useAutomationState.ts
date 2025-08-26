@@ -113,7 +113,6 @@ export const useAutomationState = ({
       });
 
       if (result.success) {
-        // Store the task ID
         setCurrentTaskId(result.taskId || null);
 
         const systemResponse: ChatMessage = {
