@@ -1,5 +1,7 @@
 import {
-  Image20Regular, Video20Regular
+  Document20Regular,
+  Image20Regular,
+  Video20Regular
 } from '@fluentui/react-icons';
 
 export const DEFAULT_ENGINE = 'playwright';
@@ -11,7 +13,7 @@ export const DEFAULT_USER_AGENT = 'default';
 export const DEFAULT_TABS = [
   { id: 'preview', label: 'Preview Screenshot', icon: Image20Regular },
   { id: 'video', label: 'Live Video Stream', icon: Video20Regular },
-  // { id: 'logs', label: 'Logs', icon: Document20Regular },
+  { id: 'export', label: 'Export Plan', icon: Document20Regular },
 ];
 
 export const INITIAL_CHAT_MESSAGES = [

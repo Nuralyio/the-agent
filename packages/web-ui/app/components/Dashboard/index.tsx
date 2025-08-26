@@ -44,6 +44,8 @@ export const Dashboard: React.FC = () => {
     setIsLoading,
     headlessMode,
     setHeadlessMode,
+    currentTaskId,
+    setCurrentTaskId,
     handleRunTask,
     handleStepClick,
     getDisplayScreenshot,
@@ -63,6 +65,8 @@ export const Dashboard: React.FC = () => {
     setChatMessages,
     updateLastStepMessage,
     setIsLoading,
+    setCurrentTaskId,
+    taskId: currentTaskId,
   });
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -105,6 +109,7 @@ export const Dashboard: React.FC = () => {
         selectedEngine={selectedEngine}
         handleStepClick={handleStepClick}
         sessionId={sessionId}
+        currentTaskId={currentTaskId || undefined}
       />
     </div>
   );

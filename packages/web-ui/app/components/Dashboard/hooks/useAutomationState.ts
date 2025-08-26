@@ -28,6 +28,7 @@ export const useAutomationState = ({
   const [selectedStepIndex, setSelectedStepIndex] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [headlessMode, setHeadlessMode] = useState(true); // Default to headless mode
+  const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     const latestPlanMessage = [...chatMessages]
@@ -100,7 +101,7 @@ export const useAutomationState = ({
     };
 
     addMessage(userMessage);
-
+    setTaskDescription('');
     try {
       const result = await executeAutomationTask({
         taskDescription,
@@ -112,6 +113,8 @@ export const useAutomationState = ({
       });
 
       if (result.success) {
+        setCurrentTaskId(result.taskId || null);
+
         const systemResponse: ChatMessage = {
           id: Date.now() + 1,
           type: 'system',
@@ -139,8 +142,6 @@ export const useAutomationState = ({
       addMessage(errorMessage);
       setIsLoading(false);
     }
-
-    setTaskDescription('');
   };
 
   return {
@@ -170,6 +171,8 @@ export const useAutomationState = ({
     setIsLoading,
     headlessMode,
     setHeadlessMode,
+    currentTaskId,
+    setCurrentTaskId,
     handleRunTask,
     handleStepClick,
     getDisplayScreenshot,

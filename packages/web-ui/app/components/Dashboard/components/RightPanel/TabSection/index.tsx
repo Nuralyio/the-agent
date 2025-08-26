@@ -2,6 +2,7 @@ import React from 'react';
 import { styles } from '../../../Dashboard.styles';
 import type { ExecutionStep, TabItem } from '../../../Dashboard.types';
 import { TabNavigation } from '../../shared/TabNavigation';
+import { ExportTab } from './ExportTab';
 import { LiveVideoStream } from './LiveVideoStream';
 import { LogsTab } from './LogsTab';
 import { PreviewTab } from './PreviewTab';
@@ -16,6 +17,8 @@ interface TabSectionProps {
   selectedEngine: string;
   currentPlan: ExecutionStep[];
   sessionId?: string;
+  isLoading?: boolean;
+  currentTaskId?: string;
 }
 
 export const TabSection: React.FC<TabSectionProps> = ({
@@ -28,13 +31,12 @@ export const TabSection: React.FC<TabSectionProps> = ({
   selectedEngine,
   currentPlan,
   sessionId,
+  isLoading = false,
+  currentTaskId,
 }) => {
   return (
     <div style={styles.rightTabSection}>
-      {/* Tab Navigation */}
       <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} variant='right' />
-
-      {/* Tab Content */}
       <div style={styles.rightTabContent}>
         {activeTab === 'preview' && (
           <PreviewTab
@@ -55,6 +57,8 @@ export const TabSection: React.FC<TabSectionProps> = ({
         )}
 
         {activeTab === 'logs' && <LogsTab />}
+
+        {activeTab === 'export' && <ExportTab isTaskRunning={isLoading} currentTaskId={currentTaskId} />}
       </div>
     </div>
   );

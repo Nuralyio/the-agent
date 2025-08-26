@@ -1,6 +1,6 @@
 import React from 'react';
-import type { TabItem } from '../../Dashboard.types';
 import { styles } from '../../Dashboard.styles';
+import type { TabItem } from '../../Dashboard.types';
 
 interface TabNavigationProps {
   tabs: TabItem[];
@@ -9,12 +9,9 @@ interface TabNavigationProps {
   variant?: 'left' | 'right';
 }
 
-export const TabNavigation: React.FC<TabNavigationProps> = ({ 
-  tabs, 
-  activeTab, 
-  onTabChange, 
-  variant = 'left' 
-}) => {
+export const TabNavigation: React.FC<TabNavigationProps> = ({ tabs, activeTab, onTabChange, variant = 'left' }) => {
+  const [hoveredTab, setHoveredTab] = React.useState<string | null>(null);
+
   if (variant === 'right') {
     return (
       <div style={styles.rightTabContainer}>
@@ -25,8 +22,11 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
                 style={{
                   ...styles.rightTab,
                   ...(activeTab === tab.id ? styles.rightTabActive : {}),
+                  ...(hoveredTab === tab.id && activeTab !== tab.id ? styles.rightTabHover : {}),
                 }}
                 onClick={() => onTabChange(tab.id)}
+                onMouseEnter={() => setHoveredTab(tab.id)}
+                onMouseLeave={() => setHoveredTab(null)}
               >
                 {tab.icon && React.createElement(tab.icon, { style: { marginRight: '6px', fontSize: '16px' } })}
                 {tab.label}
@@ -46,10 +46,13 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
           style={{
             ...styles.tabButton,
             ...(activeTab === tab.id ? styles.tabButtonActive : {}),
+            ...(hoveredTab === tab.id && activeTab !== tab.id ? styles.tabButtonHover : {}),
           }}
           onClick={() => onTabChange(tab.id)}
+          onMouseEnter={() => setHoveredTab(tab.id)}
+          onMouseLeave={() => setHoveredTab(null)}
         >
-          {tab.icon && <tab.icon style={{ marginRight: '6px', fontSize: '16px' }} />}
+          {tab.icon && <tab.icon style={{ fontSize: '16px' }} />}
           {tab.label}
         </button>
       ))}

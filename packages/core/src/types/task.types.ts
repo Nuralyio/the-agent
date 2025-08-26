@@ -13,6 +13,8 @@ export type TaskResult = {
   steps: ActionStep[];
   extractedData?: any;
   plan?: any; // Allow plan data to be included
+  instruction?: string; // Store the original instruction
+  executionPlanExport?: any; // Store export data for immediate access
 };
 
 export interface ActionEngine {

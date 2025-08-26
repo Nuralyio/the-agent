@@ -7,6 +7,8 @@ export interface UseEventStreamProps {
   setChatMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   updateLastStepMessage: (status: string) => void;
   setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>;
+  setCurrentTaskId?: React.Dispatch<React.SetStateAction<string | null>>;
+  taskId?: string | null;
 }
 
 export interface EventData {
@@ -25,6 +27,7 @@ export interface EventData {
   globalObjective?: string;
   executionPlan?: any;
   planningStrategy?: string;
+  taskId?: string;
 }
 
 export interface EventSourceHookReturn {

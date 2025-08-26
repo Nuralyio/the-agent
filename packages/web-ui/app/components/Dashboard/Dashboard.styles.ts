@@ -50,7 +50,7 @@ export const styles = {
   },
   tabButton: {
     flex: 1,
-    padding: '8px 16px',
+    padding: '12px 16px',
     backgroundColor: 'transparent',
     border: 'none',
     color: '#9ca3af',
@@ -60,10 +60,19 @@ export const styles = {
     borderRadius: '6px',
     transition: 'all 0.15s ease',
     margin: '0 2px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+    minHeight: '44px',
   },
   tabButtonActive: {
     backgroundColor: '#374151',
     color: '#ffffff',
+  },
+  tabButtonHover: {
+    backgroundColor: '#2a2a2a',
+    color: '#e5e7eb',
   },
   chatContainer: {
     flex: 1,
@@ -387,10 +396,15 @@ export const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: '6px',
   },
   rightTabActive: {
     color: '#007ACC',
     borderBottomColor: '#007ACC',
+  },
+  rightTabHover: {
+    color: '#ffffff',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
   rightTabContent: {
     flex: 1,

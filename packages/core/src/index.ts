@@ -14,10 +14,15 @@ export { AIEngine } from './engine/ai-engine';
 export { setPauseChecker } from './engine/execution/action-sequence-executor';
 export { Planner } from './engine/planning/planner';
 
-// Streaming exports
 export { ExecutionStream, executionStream } from './events/execution-stream';
 
-// Type exports
+export { ExecutionPlanExporter } from './utils/execution-plan-exporter';
+export type {
+  ActionStepExport, ExecutionPlanExport, ExecutionSummary,
+  ExportMetadata,
+  ExportOptions, SubPlanExport
+} from './utils/execution-plan-exporter';
+
 export * from './adapters/interfaces';
 export * from './engine/planning/types/types';
 export * from './types/browser.types';

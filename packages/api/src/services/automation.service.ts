@@ -1,6 +1,7 @@
 import { setPauseChecker } from '@theagent/core/dist/engine/execution/action-sequence-executor';
 import { executionStream, TheAgent } from '@theagent/core/dist/index';
 import { BrowserType } from '@theagent/core/dist/types';
+import { ExecutionPlanExporter } from '@theagent/core/dist/utils/execution-plan-exporter';
 import { v4 as uuidv4 } from 'uuid';
 import { ExecutionEvent } from '../types';
 import { configService } from './config.service';
@@ -9,16 +10,15 @@ import { configService } from './config.service';
  * Service for handling browser automation tasks
  */
 export class AutomationService {
-    private currentAutomation: TheAgent | null = null;
+    private runningTasks: Map<string, TheAgent> = new Map(); // Track multiple running tasks by ID
+    private taskResults: Map<string, any> = new Map(); // Store task results by ID
     private isPaused: boolean = false;
     private pauseResolver: (() => void) | null = null;
     private static instance: AutomationService | null = null;
 
     constructor() {
-        // Store reference for global pause checking
         AutomationService.instance = this;
 
-        // Set up the pause checker for the core execution engine
         setPauseChecker(async () => {
             await this.waitForResume();
         });
@@ -34,65 +34,63 @@ export class AutomationService {
     /**
      * Execute automation task and stream events
      */
-    async executeTask(taskDescription: string, engine: string = 'playwright', aiProvider?: string, options: Record<string, unknown> = {}): Promise<void> {
+    async executeTask(taskDescription: string, engine: string = 'playwright', aiProvider?: string, options: Record<string, unknown> = {}): Promise<string> {
+        const taskId = uuidv4();
         const sessionId = uuidv4();
 
-        // Configure automation with the specified engine
         const automationConfig = {
             adapter: engine,
             browserType: BrowserType.CHROMIUM,
             viewport: { width: 1280, height: 720 },
-            ...options, // Apply options first so they can be overridden
-            ai: configService.getAIConfig(aiProvider) // Pass AI provider
+            ...options,
+            ai: configService.getAIConfig(aiProvider)
         };
 
-        // Create new automation instance with config
         const automation = new TheAgent(automationConfig);
-        this.currentAutomation = automation;
+        this.runningTasks.set(taskId, automation);
 
         try {
-            // Initialize automation
             await automation.initialize();
 
-            // Start session
             executionStream.startSession(sessionId);
 
-            // Stream start event
             this.broadcastCustomEvent({
                 type: 'execution_start',
                 sessionId,
                 timestamp: new Date().toISOString(),
-                task: taskDescription
+                task: taskDescription,
+                taskId: taskId
             });
 
-            // Execute the actual automation using the smart executeTask method
             const result = await automation.executeTask(taskDescription);
 
-            // Stream execution complete
+            this.taskResults.set(taskId, result);
+
             executionStream.notifyExecutionComplete();
 
-            // Broadcast custom completion event with result
             this.broadcastCustomEvent({
                 type: 'execution_complete',
                 timestamp: new Date().toISOString(),
                 result: result,
-                status: 'success'
+                status: 'success',
+                taskId: taskId
             });
 
+            return taskId;
+
         } catch (error) {
-            // Stream execution error
             this.broadcastCustomEvent({
                 type: 'execution_error',
                 timestamp: new Date().toISOString(),
                 error: error instanceof Error ? error.message : 'Unknown error',
-                status: 'error'
+                status: 'error',
+                taskId: taskId
             });
             throw error;
         } finally {
-            // Clean up automation
             try {
                 await automation.close();
-                this.currentAutomation = null;
+                this.runningTasks.delete(taskId);
             } catch (cleanupError) {
                 console.error('Cleanup error:', cleanupError);
             }
@@ -108,9 +106,18 @@ export class AutomationService {
 
     /**
      * Get current automation instance (for video streaming service)
+     * Returns the first running task if multiple tasks are running
      */
     getCurrentAutomation(): TheAgent | null {
-        return this.currentAutomation;
+        const runningTasks = Array.from(this.runningTasks.values());
+        return runningTasks.length > 0 ? runningTasks[0] : null;
+    }
+
+    /**
+     * Get automation instance by task ID
+     */
+    getAutomationByTaskId(taskId: string): TheAgent | null {
+        return this.runningTasks.get(taskId) || null;
     }
 
     /**
@@ -121,7 +128,6 @@ export class AutomationService {
             this.isPaused = true;
             console.log('⏸️ Automation execution paused for interactive mode');
 
-            // Broadcast pause event
             this.broadcastCustomEvent({
                 type: 'execution_paused',
                 timestamp: new Date().toISOString(),
@@ -138,13 +144,11 @@ export class AutomationService {
             this.isPaused = false;
             console.log('▶️ Automation execution resumed');
 
-            // Resolve the pause promise if waiting
             if (this.pauseResolver) {
                 this.pauseResolver();
                 this.pauseResolver = null;
             }
 
-            // Broadcast resume event
             this.broadcastCustomEvent({
                 type: 'execution_resumed',
                 timestamp: new Date().toISOString()
@@ -157,6 +161,34 @@ export class AutomationService {
      */
     isPausedExecution(): boolean {
         return this.isPaused;
+    }
+
+    /**
+     * Check if any task is currently running
+     */
+    isTaskRunning(): boolean {
+        return this.runningTasks.size > 0;
+    }
+
+    /**
+     * Check if a specific task is running
+     */
+    isTaskRunningById(taskId: string): boolean {
+        return this.runningTasks.has(taskId);
+    }
+
+    /**
+     * Get current execution status
+     */
+    getExecutionStatus(): { isRunning: boolean; isPaused: boolean; hasTaskResult: boolean; runningTaskCount: number; taskIds: string[] } {
+        const taskIds = Array.from(this.runningTasks.keys());
+        return {
+            isRunning: this.isTaskRunning(),
+            isPaused: this.isPausedExecution(),
+            hasTaskResult: this.taskResults.size > 0,
+            runningTaskCount: this.runningTasks.size,
+            taskIds
+        };
     }
 
     /**
@@ -173,26 +205,26 @@ export class AutomationService {
     /**
      * Get current screenshot from active automation instance
      */
-    async getCurrentScreenshot(options?: { quality?: number; format?: 'png' | 'jpeg'; fullPage?: boolean }): Promise<Buffer | null> {
+    async getCurrentScreenshot(options?: { quality?: number; format?: 'png' | 'jpeg'; fullPage?: boolean; taskId?: string }): Promise<Buffer | null> {
+        const automation = options?.taskId ? this.getAutomationByTaskId(options.taskId) : this.getCurrentAutomation();
 
-        if (!this.currentAutomation) {
+        if (!automation) {
             return null;
         }
 
         try {
-            // Get the current page from the browser manager
-            const browserManager = this.currentAutomation.getBrowserManager();
+            // Getthe current page from the browser manager
+            const browserManager = automation.getBrowserManager();
             const currentPage = await browserManager.getCurrentPage();
 
             if (!currentPage) {
                 return null;
             }
 
-            // Take screenshot with optimized options for performance
             const screenshotOptions = {
                 fullPage: options?.fullPage || false,
                 type: options?.format || 'jpeg',
-                quality: options?.quality || 70 // Lower quality for better performance
+                quality: options?.quality || 70
             };
 
             const screenshot = await currentPage.screenshot(screenshotOptions);
@@ -201,23 +233,25 @@ export class AutomationService {
             console.error('❌ Error taking screenshot:', error);
             return null;
         }
-    }    /**
+    }
+    /**
      * Start video recording for current automation session
      */
-    async startVideoRecording(): Promise<void> {
-        if (!this.currentAutomation) {
+    async startVideoRecording(taskId?: string): Promise<void> {
+        const automation = taskId ? this.getAutomationByTaskId(taskId) : this.getCurrentAutomation();
+
+        if (!automation) {
             throw new Error('No active automation session');
         }
 
         try {
-            const browserManager = this.currentAutomation.getBrowserManager();
+            const browserManager = automation.getBrowserManager();
             const currentPage = await browserManager.getCurrentPage();
 
             if (!currentPage) {
                 throw new Error('No active page found');
             }
 
-            // Check if page supports video recording
             if (typeof (currentPage as any).startVideoRecording === 'function') {
                 await (currentPage as any).startVideoRecording({
                     dir: './videos',
@@ -235,13 +269,15 @@ export class AutomationService {
     /**
      * Stop video recording and return video path
      */
-    async stopVideoRecording(): Promise<string | null> {
-        if (!this.currentAutomation) {
+    async stopVideoRecording(taskId?: string): Promise<string | null> {
+        const automation = taskId ? this.getAutomationByTaskId(taskId) : this.getCurrentAutomation();
+
+        if (!automation) {
             return null;
         }
 
         try {
-            const browserManager = this.currentAutomation.getBrowserManager();
+            const browserManager = automation.getBrowserManager();
             const currentPage = await browserManager.getCurrentPage();
 
             if (!currentPage) {
@@ -262,20 +298,21 @@ export class AutomationService {
     /**
      * Check if video recording is active
      */
-    async isVideoRecording(): Promise<boolean> {
-        if (!this.currentAutomation) {
+    async isVideoRecording(taskId?: string): Promise<boolean> {
+        const automation = taskId ? this.getAutomationByTaskId(taskId) : this.getCurrentAutomation();
+
+        if (!automation) {
             return false;
         }
 
         try {
-            const browserManager = this.currentAutomation.getBrowserManager();
+            const browserManager = automation.getBrowserManager();
             const currentPage = await browserManager.getCurrentPage();
 
             if (!currentPage) {
                 return false;
             }
 
-            // Check if page supports video recording status check
             if (typeof (currentPage as any).isVideoRecording === 'function') {
                 return await (currentPage as any).isVideoRecording();
             }
@@ -288,10 +325,60 @@ export class AutomationService {
     }
 
     /**
+     * Get export data for a specific task
+     */
+    getTaskExport(taskId: string): string | null {
+        const taskResult = this.taskResults.get(taskId);
+        
+        if (!taskResult) {
+            return null;
+        }
+
+        try {
+            if (!taskResult.instruction) {
+                throw new Error('Task result is missing the original instruction');
+            }
+
+            const exportData = ExecutionPlanExporter.exportFromTaskResult(
+                taskResult,
+                taskResult.instruction
+            );
+
+            return ExecutionPlanExporter.exportToJson(exportData, true);
+        } catch (error) {
+            console.error('Export error:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Get export data for the most recent completed task
+     */
+    getLastTaskExport(): string | null {
+        const taskIds = Array.from(this.taskResults.keys());
+        if (taskIds.length === 0) {
+            return null;
+        }
+        
+        // Get the most recent task result
+        const lastTaskId = taskIds[taskIds.length - 1];
+        return this.getTaskExport(lastTaskId);
+    }
+
+    /**
+     * Check if export data is available for a specific task
+     */
+    hasExportData(taskId?: string): boolean {
+        if (taskId) {
+            return this.taskResults.has(taskId);
+        }
+        return this.taskResults.size > 0;
+    }
+
+    /**
      * Broadcast custom events to all connected clients
      */
     private broadcastCustomEvent(event: ExecutionEvent): void {
-        // Use the execution stream's proper broadcasting mechanism
         const streamEvent = {
             type: event.type,
             sessionId: event.sessionId || 'default',
@@ -299,10 +386,8 @@ export class AutomationService {
             data: event
         };
 
-        // Use the internal broadcast method from execution stream
         (executionStream as any).broadcastEvent(streamEvent);
     }
 }
 
-// Singleton instance
 export const automationService = new AutomationService();
