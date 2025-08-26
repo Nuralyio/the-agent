@@ -101,7 +101,7 @@ export const useAutomationState = ({
     };
 
     addMessage(userMessage);
-
+    setTaskDescription('');
     try {
       const result = await executeAutomationTask({
         taskDescription,
@@ -115,7 +115,7 @@ export const useAutomationState = ({
       if (result.success) {
         // Store the task ID
         setCurrentTaskId(result.taskId || null);
-        
+
         const systemResponse: ChatMessage = {
           id: Date.now() + 1,
           type: 'system',
@@ -143,8 +143,6 @@ export const useAutomationState = ({
       addMessage(errorMessage);
       setIsLoading(false);
     }
-
-    setTaskDescription('');
   };
 
   return {
