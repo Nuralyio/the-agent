@@ -1,3 +1,4 @@
+import { Video24Regular } from '@fluentui/react-icons';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AUTOMATION_SERVER_URL } from '../../../utils/constants';
 
@@ -500,7 +501,7 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({ isVisible, ses
 
           {/* Message */}
           <div
-            role="button"
+            role='button'
             tabIndex={0}
             onClick={() => {
               // Toggle interactive mode when message is clicked
@@ -513,7 +514,7 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({ isVisible, ses
                 hoverMessageTimeoutRef.current = null;
               }
             }}
-            onKeyDown={(e) => {
+            onKeyDown={e => {
               // Handle Enter and Space key presses for accessibility
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
@@ -673,7 +674,9 @@ export const LiveVideoStream: React.FC<LiveVideoStreamProps> = ({ isVisible, ses
             fontSize: '14px',
           }}
         >
-          <div style={{ fontSize: '24px', marginBottom: '8px' }}>�</div>
+          <div style={{ fontSize: '24px', marginBottom: '8px', color: '#6b7280' }}>
+            <Video24Regular />
+          </div>
           <div>
             {connectionStatus === 'connecting' && 'Connecting to video stream...'}
             {connectionStatus === 'connected' && !isStreaming && 'Ready to stream'}

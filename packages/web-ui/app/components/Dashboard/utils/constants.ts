@@ -1,6 +1,7 @@
 import {
   Document20Regular,
-  Image20Regular, Video20Regular
+  Image20Regular,
+  Video20Regular
 } from '@fluentui/react-icons';
 
 export const DEFAULT_ENGINE = 'playwright';
