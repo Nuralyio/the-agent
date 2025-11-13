@@ -1,4 +1,4 @@
-import { StructuredOutputParser } from 'langchain/output_parsers';
+import { StructuredOutputParser } from '@langchain/core/output_parsers';
 import { z } from 'zod';
 import { AIProvider, AIResponse } from '../../../engine/ai-engine';
 
