@@ -13,7 +13,7 @@ interface UsageMetadata {
  * Interface for LangChain response
  */
 export interface LangChainResponse {
-  content: string | unknown;
+  content: string | unknown[];
   usage_metadata?: UsageMetadata;
 }
 

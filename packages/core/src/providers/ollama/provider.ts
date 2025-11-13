@@ -1,5 +1,5 @@
 import { ChatOllama } from '@langchain/ollama';
-import { HumanMessage, SystemMessage, AIMessage as LangChainAIMessage } from '@langchain/core/messages';
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { AIConfig, AIMessage, AIProvider, AIResponse, VisionCapabilities } from '../../engine/ai-engine';
 import { BrowserActionSchema } from '../shared/schemas/browser-action.schema';
 import { StructuredOutputUtil, createStructuredOutputUtil } from '../shared/utils/structured-output.util';
