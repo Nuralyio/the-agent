@@ -43,7 +43,7 @@ export class OllamaProvider implements AIProvider {
   }
 
   async generateText(prompt: string, systemPrompt?: string): Promise<AIResponse> {
-    const messages = [];
+    const messages: (SystemMessage | HumanMessage)[] = [];
     
     if (systemPrompt) {
       messages.push(new SystemMessage(systemPrompt));
@@ -69,7 +69,7 @@ export class OllamaProvider implements AIProvider {
       throw new Error(`Model ${this.config.model} does not support vision capabilities`);
     }
 
-    const messages = [];
+    const messages: (SystemMessage | HumanMessage)[] = [];
 
     if (systemPrompt) {
       messages.push(new SystemMessage(systemPrompt));
@@ -125,7 +125,7 @@ export class OllamaProvider implements AIProvider {
   async generateStructuredJSON(prompt: string, systemPrompt?: string): Promise<AIResponse> {
     try {
       return await this.structuredOutputUtil.generateStructuredJSON(this, prompt, systemPrompt);
-    } catch (error) {
+    } catch {
       // Fallback to enhanced text generation
       return this.generateTextWithJsonFallback(prompt, systemPrompt);
     }
@@ -136,22 +136,17 @@ export class OllamaProvider implements AIProvider {
       // Try to invoke the model with a simple message
       await this.model.invoke([new HumanMessage('test')]);
       return true;
-    } catch (error) {
-      console.error('Ollama health check failed:', error);
+    } catch (err) {
+      console.error('Ollama health check failed:', err);
       return false;
     }
   }
 
   async getAvailableModels(): Promise<string[]> {
-    try {
-      // The ChatOllama doesn't have a direct method to get models
-      // We need to use the Ollama API client for this
-      // For now, return common models
-      return ['llama2', 'llama3', 'llama3.1', 'mistral', 'codellama'];
-    } catch (error) {
-      console.error('Failed to fetch Ollama models:', error);
-      return [];
-    }
+    // The ChatOllama doesn't have a direct method to get models
+    // We need to use the Ollama API client for this
+    // For now, return common models
+    return ['llama2', 'llama3', 'llama3.1', 'mistral', 'codellama'];
   }
 
   /**

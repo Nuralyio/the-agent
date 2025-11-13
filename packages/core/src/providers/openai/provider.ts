@@ -51,7 +51,7 @@ export class OpenAIProvider implements AIProvider {
   }
 
   async generateText(prompt: string, systemPrompt?: string): Promise<AIResponse> {
-    const messages = [];
+    const messages: (SystemMessage | HumanMessage)[] = [];
 
     if (systemPrompt) {
       messages.push(new SystemMessage(systemPrompt));
@@ -73,7 +73,7 @@ export class OpenAIProvider implements AIProvider {
   }
 
   async generateStructuredJSON(prompt: string, systemPrompt?: string): Promise<AIResponse> {
-    const messages = [];
+    const messages: (SystemMessage | HumanMessage)[] = [];
 
     if (systemPrompt) {
       messages.push(new SystemMessage(systemPrompt));
@@ -112,7 +112,7 @@ export class OpenAIProvider implements AIProvider {
       }
     }
 
-    const messages = [];
+    const messages: (SystemMessage | HumanMessage)[] = [];
 
     if (systemPrompt) {
       messages.push(new SystemMessage(systemPrompt));
@@ -173,20 +173,15 @@ export class OpenAIProvider implements AIProvider {
     try {
       await this.model.invoke([new HumanMessage('test')]);
       return true;
-    } catch (error) {
-      console.error('OpenAI health check failed:', error);
+    } catch (err) {
+      console.error('OpenAI health check failed:', err);
       return false;
     }
   }
 
   async getAvailableModels(): Promise<string[]> {
-    try {
-      // ChatOpenAI doesn't provide a direct method to list models
-      // Return common GPT models as fallback
-      return ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'];
-    } catch (error) {
-      console.error('Failed to fetch OpenAI models:', error);
-      return ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo'];
-    }
+    // ChatOpenAI doesn't provide a direct method to list models
+    // Return common GPT models as fallback
+    return ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'];
   }
 }

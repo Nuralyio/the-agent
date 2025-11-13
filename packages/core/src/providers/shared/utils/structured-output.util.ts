@@ -41,11 +41,11 @@ export class StructuredOutputUtil {
       try {
         const parsedOutput = await this.parser.parse(response.content);
         return this.createSuccessResponse(parsedOutput);
-      } catch (parseError) {
+      } catch {
         // If parsing fails, try with fallback enhanced prompting
         return this.generateWithFallback(provider, prompt, systemPrompt);
       }
-    } catch (error) {
+    } catch {
       // If generation fails, try with fallback enhanced prompting
       return this.generateWithFallback(provider, prompt, systemPrompt);
     }
