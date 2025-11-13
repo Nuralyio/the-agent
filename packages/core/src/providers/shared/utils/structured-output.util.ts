@@ -114,12 +114,3 @@ export class StructuredOutputUtil {
 export function createStructuredOutputUtil<T>(schema: z.ZodType<T>): StructuredOutputUtil {
   return new StructuredOutputUtil(schema);
 }
-
-/**
- * Helper function to create a browser action structured output utility
- */
-export function createBrowserActionStructuredUtil(): StructuredOutputUtil {
-  // Import the schema here to avoid circular dependencies
-  const { BrowserActionSchema } = require('../schemas/browser-action.schema');
-  return new StructuredOutputUtil(BrowserActionSchema);
-}

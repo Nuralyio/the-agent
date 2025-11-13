@@ -160,20 +160,13 @@ export class Planner {
     plan: Plan,
     executePlanFunction: (actionPlan: ActionPlan) => Promise<any>
   ): Promise<any> {
-    console.log('⚡ ENTERING Planner.executePlan method - THIS SHOULD APPEAR IN LOGS!!!');
     console.log('🚀 Planner: Executing plan');
-    console.log('🔍 DEBUG: Planner.executePlan called with plan:', {
-      id: plan.id,
-      subPlansCount: plan.subPlans.length
-    });
 
     try {
-      console.log('🔍 DEBUG: About to call executePlan');
       const result = await this.executeExecutionPlan(plan, executePlanFunction);
-      console.log('🔍 DEBUG: executePlan completed successfully');
       return result;
     } catch (error) {
-      console.error('🔍 DEBUG: Error in executePlan:', error);
+      console.error('Error in executePlan:', error);
       throw error;
     }
   }

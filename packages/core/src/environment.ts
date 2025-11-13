@@ -148,22 +148,4 @@ export function validateDefaultProvider(envConfig: EnvironmentConfig): string {
   return availableProviders[0] || 'ollama';
 }
 
-export function logConfigurationStatus(envConfig: EnvironmentConfig): void {
-  const availableProviders = getAvailableProviders(envConfig);
-  const defaultProvider = validateDefaultProvider(envConfig);
-
-  console.log('🔧 Configuration Status:');
-  console.log(`   Default Provider: ${defaultProvider}`);
-  console.log(`   Available Providers: ${availableProviders.join(', ')}`);
-  console.log(`   Browser: ${envConfig.browser.type} (${envConfig.browser.adapter})`);
-  console.log(`   Headless: ${envConfig.browser.headless}`);
-  console.log(`   Debug: ${envConfig.debug.enabled}`);
-
-  if (envConfig.debug.enabled) {
-    console.log('🐛 Debug mode enabled');
-    console.log(`   Log Level: ${envConfig.debug.logLevel}`);
-    console.log(`   Screenshot on Error: ${envConfig.debug.screenshotOnError}`);
-  }
-}
-
 export const envConfig = loadEnvironmentConfig();
