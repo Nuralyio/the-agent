@@ -3,6 +3,8 @@ import { HumanMessage, SystemMessage, AIMessage as LangChainAIMessage } from '@l
 import { AIConfig, AIMessage, AIProvider, AIResponse, VisionCapabilities } from '../../engine/ai-engine';
 import { BrowserActionSchema } from '../shared/schemas/browser-action.schema';
 import { StructuredOutputUtil, createStructuredOutputUtil } from '../shared/utils/structured-output.util';
+import { buildMessages, convertToLangChainMessages } from '../shared/utils/message-utils';
+import { formatAIResponse } from '../shared/utils/response-utils';
 import { OllamaModelUtils } from './utils';
 
 /**
@@ -43,25 +45,9 @@ export class OllamaProvider implements AIProvider {
   }
 
   async generateText(prompt: string, systemPrompt?: string): Promise<AIResponse> {
-    const messages: (SystemMessage | HumanMessage)[] = [];
-    
-    if (systemPrompt) {
-      messages.push(new SystemMessage(systemPrompt));
-    }
-    
-    messages.push(new HumanMessage(prompt));
-
+    const messages = buildMessages(prompt, systemPrompt);
     const response = await this.model.invoke(messages);
-
-    return {
-      content: response.content as string,
-      finishReason: 'stop',
-      usage: response.usage_metadata ? {
-        promptTokens: response.usage_metadata.input_tokens || 0,
-        completionTokens: response.usage_metadata.output_tokens || 0,
-        totalTokens: response.usage_metadata.total_tokens || 0
-      } : undefined
-    };
+    return formatAIResponse(response);
   }
 
   async generateWithVision(prompt: string, images: Buffer[], systemPrompt?: string): Promise<AIResponse> {
@@ -86,40 +72,13 @@ export class OllamaProvider implements AIProvider {
     }));
 
     const response = await this.model.invoke(messages);
-
-    return {
-      content: response.content as string,
-      finishReason: 'stop',
-      usage: response.usage_metadata ? {
-        promptTokens: response.usage_metadata.input_tokens || 0,
-        completionTokens: response.usage_metadata.output_tokens || 0,
-        totalTokens: response.usage_metadata.total_tokens || 0
-      } : undefined
-    };
+    return formatAIResponse(response);
   }
 
   async generateFromMessages(messages: AIMessage[]): Promise<AIResponse> {
-    const langchainMessages = messages.map(msg => {
-      if (msg.role === 'system') {
-        return new SystemMessage(msg.content);
-      } else if (msg.role === 'user') {
-        return new HumanMessage(msg.content);
-      } else {
-        return new LangChainAIMessage(msg.content);
-      }
-    });
-
+    const langchainMessages = convertToLangChainMessages(messages);
     const response = await this.model.invoke(langchainMessages);
-
-    return {
-      content: response.content as string,
-      finishReason: 'stop',
-      usage: response.usage_metadata ? {
-        promptTokens: response.usage_metadata.input_tokens || 0,
-        completionTokens: response.usage_metadata.output_tokens || 0,
-        totalTokens: response.usage_metadata.total_tokens || 0
-      } : undefined
-    };
+    return formatAIResponse(response);
   }
 
   async generateStructuredJSON(prompt: string, systemPrompt?: string): Promise<AIResponse> {
