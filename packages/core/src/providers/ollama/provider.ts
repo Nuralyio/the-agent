@@ -1,24 +1,23 @@
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
+import { ChatOllama } from '@langchain/ollama';
 import { AIConfig, AIMessage, AIProvider, AIResponse, VisionCapabilities } from '../../engine/ai-engine';
 import { BrowserActionSchema } from '../shared/schemas/browser-action.schema';
+import { buildMessages, convertToLangChainMessages } from '../shared/utils/message-utils';
+import { formatAIResponse } from '../shared/utils/response-utils';
 import { StructuredOutputUtil, createStructuredOutputUtil } from '../shared/utils/structured-output.util';
-import { OllamaApiClient } from './api-client';
-import {
-  OllamaChatMessage,
-  OllamaChatRequest,
-  OllamaGenerateRequest
-} from './types';
+import { OllamaModelsResponse } from './types';
 import { OllamaModelUtils } from './utils';
 
 /**
- * Ollama AI Provider - Local AI models
- * Refactored to focus only on provider functionality
+ * Ollama AI Provider - Local AI models using @langchain/ollama
+ * Refactored to use the official LangChain Ollama integration
  */
 export class OllamaProvider implements AIProvider {
   readonly name = 'ollama';
   readonly config: AIConfig;
   readonly visionCapabilities: VisionCapabilities;
 
-  private apiClient: OllamaApiClient;
+  model: ChatOllama;
   private structuredOutputUtil: StructuredOutputUtil;
 
   constructor(config: AIConfig) {
@@ -31,37 +30,25 @@ export class OllamaProvider implements AIProvider {
       model: config.model || 'llama2'
     };
 
-    // Initialize API client
-    this.apiClient = new OllamaApiClient(
-      this.config.baseUrl!,
-      this.config.timeout
-    );
+    // Initialize ChatOllama model
+    this.model = new ChatOllama({
+      model: this.config.model,
+      baseUrl: this.config.baseUrl,
+      temperature: this.config.temperature,
+      numPredict: this.config.maxTokens
+    });
 
     // Initialize structured output utility with browser action schema
-    this.structuredOutputUtil = createStructuredOutputUtil(BrowserActionSchema);    // Set vision capabilities based on model
+    this.structuredOutputUtil = createStructuredOutputUtil(BrowserActionSchema);
+
+    // Set vision capabilities based on model
     this.visionCapabilities = OllamaModelUtils.getVisionCapabilities(this.config.model);
   }
 
   async generateText(prompt: string, systemPrompt?: string): Promise<AIResponse> {
-    const request: OllamaGenerateRequest = {
-      model: this.config.model,
-      prompt,
-      stream: false,
-      ...(systemPrompt && { system: systemPrompt }),
-      ...(this.hasRequestOptions() && { options: this.buildRequestOptions() })
-    };
-
-    const response = await this.apiClient.generate(request);
-
-    return {
-      content: response.response,
-      finishReason: response.done ? 'stop' : 'length',
-      usage: {
-        promptTokens: response.prompt_eval_count || 0,
-        completionTokens: response.eval_count || 0,
-        totalTokens: (response.prompt_eval_count || 0) + (response.eval_count || 0)
-      }
-    };
+    const messages = buildMessages(prompt, systemPrompt);
+    const response = await this.model.invoke(messages);
+    return formatAIResponse(response);
   }
 
   async generateWithVision(prompt: string, images: Buffer[], systemPrompt?: string): Promise<AIResponse> {
@@ -69,74 +56,70 @@ export class OllamaProvider implements AIProvider {
       throw new Error(`Model ${this.config.model} does not support vision capabilities`);
     }
 
-    const messages: OllamaChatMessage[] = [];
+    const messages: (SystemMessage | HumanMessage)[] = [];
 
     if (systemPrompt) {
-      messages.push({ role: 'system', content: systemPrompt });
+      messages.push(new SystemMessage(systemPrompt));
     }
 
-    messages.push({
-      role: 'user',
-      content: prompt,
-      images: OllamaModelUtils.convertImagesToBase64(images)
-    });
+    // Convert images to base64 for Ollama
+    const base64Images = OllamaModelUtils.convertImagesToBase64(images);
 
-    const request: OllamaChatRequest = {
-      model: this.config.model,
-      messages,
-      stream: false,
-      ...(this.hasRequestOptions() && { options: this.buildRequestOptions() })
-    };
+    messages.push(new HumanMessage({
+      content: [
+        { type: 'text', text: prompt },
+        ...base64Images.map(img => ({ type: 'image_url' as const, image_url: img }))
+      ]
+    }));
 
-    const response = await this.apiClient.chat(request);
-
-    return {
-      content: response.message.content,
-      finishReason: response.done ? 'stop' : 'length'
-    };
+    const response = await this.model.invoke(messages);
+    return formatAIResponse(response);
   }
 
   async generateFromMessages(messages: AIMessage[]): Promise<AIResponse> {
-    const ollamaMessages: OllamaChatMessage[] = messages.map(msg => ({
-      role: msg.role,
-      content: msg.content
-    }));
-
-    const request: OllamaChatRequest = {
-      model: this.config.model,
-      messages: ollamaMessages,
-      stream: false,
-      ...(this.hasRequestOptions() && { options: this.buildRequestOptions() })
-    };
-
-    const response = await this.apiClient.chat(request);
-
-    return {
-      content: response.message.content,
-      finishReason: response.done ? 'stop' : 'length'
-    };
+    const langchainMessages = convertToLangChainMessages(messages);
+    const response = await this.model.invoke(langchainMessages);
+    return formatAIResponse(response);
   }
 
   async generateStructuredJSON(prompt: string, systemPrompt?: string): Promise<AIResponse> {
     try {
       return await this.structuredOutputUtil.generateStructuredJSON(this, prompt, systemPrompt);
-    } catch (error) {
+    } catch {
       // Fallback to enhanced text generation
       return this.generateTextWithJsonFallback(prompt, systemPrompt);
     }
   }
 
   async healthCheck(): Promise<boolean> {
-    return this.apiClient.healthCheck();
+    try {
+      // Try to invoke the model with a simple message
+      await this.model.invoke([new HumanMessage('test')]);
+      return true;
+    } catch (err) {
+      console.error('Ollama health check failed:', err);
+      return false;
+    }
   }
 
   async getAvailableModels(): Promise<string[]> {
     try {
-      const response = await this.apiClient.getModels();
-      return response.models?.map(model => model.name) || [];
+      const response = await fetch(`${this.config.baseUrl}/api/tags`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        signal: AbortSignal.timeout(this.config.timeout || 30000)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: OllamaModelsResponse = await response.json();
+      return data.models.map(model => model.name);
     } catch (error) {
-      console.error('Failed to fetch Ollama models:', error);
-      return [];
+      console.warn('Failed to fetch models from Ollama API:', error);
     }
   }
 
@@ -148,7 +131,25 @@ export class OllamaProvider implements AIProvider {
       throw new Error(`Invalid model name: ${modelName}`);
     }
 
-    await this.apiClient.pullModel(modelName);
+    try {
+      const response = await fetch(`${this.config.baseUrl}/api/pull`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: modelName }),
+        signal: AbortSignal.timeout(300000) // 5 minutes for model pulling
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // The pull endpoint returns streaming responses, but for simplicity we just wait for completion
+      // In a production environment, you might want to handle the streaming response for progress updates
+    } catch (error) {
+      throw new Error(`Failed to pull model ${modelName}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
@@ -157,25 +158,6 @@ export class OllamaProvider implements AIProvider {
   async isModelAvailable(modelName: string): Promise<boolean> {
     const models = await this.getAvailableModels();
     return OllamaModelUtils.isModelAvailable(modelName, models);
-  }
-
-  /**
-   * Private helper methods
-   */
-
-  private hasRequestOptions(): boolean {
-    return this.config.temperature !== undefined || this.config.maxTokens !== undefined;
-  }
-
-  private buildRequestOptions() {
-    const options: any = {};
-    if (this.config.temperature !== undefined) {
-      options.temperature = this.config.temperature;
-    }
-    if (this.config.maxTokens !== undefined) {
-      options.num_predict = this.config.maxTokens;
-    }
-    return options;
   }
 
   private async generateTextWithJsonFallback(prompt: string, systemPrompt?: string): Promise<AIResponse> {

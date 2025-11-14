@@ -59,6 +59,7 @@
   },
   "dependencies": {
     "@langchain/ollama": "^0.2.3",
+    "@langchain/openai": "^1.1.0",
     "axios": "^1.11.0",
     "dotenv": "^16.4.5",
     "emmet": "^2.4.11",
