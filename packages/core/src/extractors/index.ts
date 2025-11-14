@@ -7,6 +7,7 @@
 
 export * from './types';
 export * from './extractor.interface';
+export * from './base-extractor';
 export * from './playwright-extractor';
 export * from './puppeteer-extractor';
 export { extractPageContent, extractVisibleText } from './extraction-script';
