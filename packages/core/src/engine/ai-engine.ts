@@ -186,20 +186,8 @@ export class AIEngine {
     // Get observability callbacks for LangChain
     const callbacks = this.observabilityService.getCallbacks();
 
-    // Prepare input for tracing
-    const input = {
-      prompt,
-      systemPrompt,
-    };
-
-    // Wrap with tracing and pass input
-    const response = await this.observabilityService.traceLLMCall(
-      provider.name,
-      provider.config.model,
-      'generateText',
-      () => provider.generateText(prompt, systemPrompt, callbacks),
-      input // Pass input for tracing
-    );
+    // Execute with callbacks - tracing handled by LangChain CallbackHandler
+    const response = await provider.generateText(prompt, systemPrompt, callbacks);
 
     // Log the response
     this.aiLogger.logResponse('generateText', response, provider.name, prompt);
@@ -219,33 +207,19 @@ export class AIEngine {
     // Get observability callbacks for LangChain
     const callbacks = this.observabilityService.getCallbacks();
 
-    // Prepare input for tracing
-    const input = {
-      prompt,
-      systemPrompt,
-      operation: 'generateStructuredJSON',
-    };
+    // Execute with callbacks - tracing handled by LangChain CallbackHandler
+    let response: AIResponse;
+    if (provider.generateStructuredJSON) {
+      response = await provider.generateStructuredJSON(prompt, systemPrompt, callbacks);
+    } else {
+      // Fallback to regular text generation with enhanced prompting
+      const structuredJsonPrompt = this.promptTemplate.render('structured-json', {});
+      const enhancedSystemPrompt = systemPrompt
+        ? `${systemPrompt}\n\n${structuredJsonPrompt}`
+        : structuredJsonPrompt;
 
-    // Wrap with tracing and pass input
-    const response = await this.observabilityService.traceLLMCall(
-      provider.name,
-      provider.config.model,
-      'generateStructuredJSON',
-      async () => {
-        // Use provider's structured JSON method if available
-        if (provider.generateStructuredJSON) {
-          return await provider.generateStructuredJSON(prompt, systemPrompt, callbacks);
-        } else {
-          // Fallback to regular text generation with enhanced prompting
-          const structuredJsonPrompt = this.promptTemplate.render('structured-json', {});
-          const enhancedSystemPrompt = systemPrompt
-            ? `${systemPrompt}\n\n${structuredJsonPrompt}`
-            : structuredJsonPrompt;
-
-          return await provider.generateText(prompt, enhancedSystemPrompt, callbacks);
-        }
-      }
-    );
+      response = await provider.generateText(prompt, enhancedSystemPrompt, callbacks);
+    }
 
     // Log the response
     this.aiLogger.logResponse('generateStructuredJSON', response, provider.name, prompt);
@@ -268,22 +242,8 @@ export class AIEngine {
     // Get observability callbacks for LangChain
     const callbacks = this.observabilityService.getCallbacks();
 
-    // Prepare input for tracing (without actual image data to avoid large traces)
-    const input = {
-      prompt,
-      systemPrompt,
-      imageCount: images.length,
-      imageSizes: images.map(img => img.length),
-    };
-
-    // Wrap with tracing and pass input
-    const response = await this.observabilityService.traceLLMCall(
-      provider.name,
-      provider.config.model,
-      'generateWithVision',
-      () => provider.generateWithVision!(prompt, images, systemPrompt, callbacks),
-      input
-    );
+    // Execute with callbacks - tracing handled by LangChain CallbackHandler
+    const response = await provider.generateWithVision(prompt, images, systemPrompt, callbacks);
 
     // Log the response
     this.aiLogger.logResponse('generateWithVision', response, provider.name, prompt);
