@@ -129,34 +129,34 @@ module.exports = {
     type: 'chrome',
     headless: false,
     timeout: 30000,
-    retries: 3
+    retries: 3,
   },
   llm: {
     // Active profile selection
     active: 'local',
-    
+
     // Multiple LLM profiles
     profiles: {
       local: {
         provider: 'ollama',
         model: 'llama3:8b',
         baseUrl: 'http://localhost:11434',
-        description: 'Local Ollama setup'
+        description: 'Local Ollama setup',
       },
       openai: {
         provider: 'openai',
         model: 'gpt-4o',
         baseUrl: 'https://api.openai.com/v1',
         // apiKey: process.env.OPENAI_API_KEY
-        description: 'OpenAI GPT-4o'
+        description: 'OpenAI GPT-4o',
       },
       claude: {
         provider: 'anthropic',
         model: 'claude-3-sonnet',
         // apiKey: process.env.ANTHROPIC_API_KEY
-        description: 'Anthropic Claude'
-      }
-    }
+        description: 'Anthropic Claude',
+      },
+    },
   },
   execution: {
     logsDir: './execution-logs',
@@ -207,15 +207,18 @@ ANTHROPIC_API_KEY=your-anthropic-key
 
 #### Multiple LLM Profiles
 
-The new configuration system supports multiple LLM profiles, allowing you to easily switch between different providers and models:
+The new configuration system supports multiple LLM profiles, allowing you to
+easily switch between different providers and models:
 
 **Benefits:**
+
 - 🔄 **Easy Switching**: Switch between local and cloud models instantly
-- 🏷️ **Named Profiles**: Descriptive names for different use cases  
+- 🏷️ **Named Profiles**: Descriptive names for different use cases
 - ⚙️ **Per-Profile Settings**: Different temperature/token settings per profile
 - 🔐 **Secure API Keys**: Keep sensitive keys in environment variables
 
 **Profile Management:**
+
 ```javascript
 // In your application code
 const configManager = ConfigManager.getInstance();
@@ -232,10 +235,12 @@ const activeProfile = configManager.getActiveLLMProfile();
 ```
 
 **Use Cases:**
+
 - **Development**: Use fast local models for development
-- **Production**: Switch to high-quality cloud models for production  
+- **Production**: Switch to high-quality cloud models for production
 - **Testing**: Use specific models for different test scenarios
-- **Cost Optimization**: Use cheaper models for simple tasks, premium for complex ones
+- **Cost Optimization**: Use cheaper models for simple tasks, premium for
+  complex ones
 
 ### Development
 

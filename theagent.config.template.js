@@ -21,7 +21,7 @@ module.exports = {
   llm: {
     // Active LLM profile name
     active: 'local',
-    
+
     // Available LLM profiles
     profiles: {
       // Local Ollama profile
@@ -31,7 +31,7 @@ module.exports = {
         baseUrl: 'http://localhost:11434',
         description: 'Local Ollama LLaMA model'
       },
-      
+
       // OpenAI GPT-4 profile
       openai: {
         provider: 'openai',
@@ -40,7 +40,7 @@ module.exports = {
         // apiKey: process.env.OPENAI_API_KEY, // Set via environment
         description: 'OpenAI GPT-4o model'
       },
-      
+
       // Anthropic Claude profile
       claude: {
         provider: 'anthropic',
@@ -48,7 +48,7 @@ module.exports = {
         // apiKey: process.env.ANTHROPIC_API_KEY, // Set via environment
         description: 'Anthropic Claude 3 Sonnet'
       },
-      
+
       // Development/testing profile
       dev: {
         provider: 'ollama',
@@ -59,7 +59,7 @@ module.exports = {
         description: 'Development model with low temperature'
       }
     }
-  },  execution: {
+  }, execution: {
     // Directory for execution logs
     logsDir: './execution-logs',
 

@@ -18,7 +18,7 @@ export interface TheAgentConfig {
   llm: {
     // Active LLM profile name
     active: string;
-    
+
     // Available LLM profiles
     profiles: {
       [profileName: string]: {

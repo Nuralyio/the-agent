@@ -165,12 +165,12 @@ export class ConfigManager {
 
     // LLM configuration with profiles
     const llmConfig: any = {};
-    
+
     // Handle active profile selection
     if (process.env.THEAGENT_LLM_ACTIVE) {
       llmConfig.active = process.env.THEAGENT_LLM_ACTIVE;
     }
-    
+
     // Handle single profile from environment (backward compatibility)
     const hasLegacyConfig = process.env.THEAGENT_LLM_PROVIDER || process.env.THEAGENT_AI_PROVIDER;
     if (hasLegacyConfig) {
@@ -178,7 +178,7 @@ export class ConfigManager {
       llmConfig.profiles = {
         [profileName]: {}
       };
-      
+
       if (process.env.THEAGENT_LLM_PROVIDER || process.env.THEAGENT_AI_PROVIDER) {
         llmConfig.profiles[profileName].provider = process.env.THEAGENT_LLM_PROVIDER || process.env.THEAGENT_AI_PROVIDER;
       }
@@ -198,13 +198,13 @@ export class ConfigManager {
       if (process.env.THEAGENT_LLM_MAX_TOKENS || process.env.THEAGENT_AI_MAX_TOKENS) {
         llmConfig.profiles[profileName].maxTokens = parseInt(process.env.THEAGENT_LLM_MAX_TOKENS || process.env.THEAGENT_AI_MAX_TOKENS!);
       }
-      
+
       // Set as active if not specified
       if (!llmConfig.active) {
         llmConfig.active = profileName;
       }
     }
-    
+
     if (Object.keys(llmConfig).length > 0) {
       config.llm = llmConfig;
     }
@@ -242,9 +242,9 @@ export class ConfigManager {
           result.llm = { ...result.llm, active: config.llm.active };
         }
         if (config.llm.profiles) {
-          result.llm = { 
-            ...result.llm, 
-            profiles: { ...result.llm?.profiles, ...config.llm.profiles } 
+          result.llm = {
+            ...result.llm,
+            profiles: { ...result.llm?.profiles, ...config.llm.profiles }
           };
         }
       }
@@ -277,7 +277,7 @@ export class ConfigManager {
    */
   getActiveLLMProfile(): TheAgentConfig['llm']['profiles'][string] | null {
     if (!this.config?.llm) return null;
-    
+
     const activeProfileName = this.config.llm.active;
     if (!activeProfileName || !this.config.llm.profiles[activeProfileName]) {
       console.warn(`Active LLM profile '${activeProfileName}' not found. Available profiles:`, Object.keys(this.config.llm.profiles));
@@ -285,7 +285,7 @@ export class ConfigManager {
       const firstProfile = Object.keys(this.config.llm.profiles)[0];
       return firstProfile ? this.config.llm.profiles[firstProfile] : null;
     }
-    
+
     return this.config.llm.profiles[activeProfileName];
   }
 
@@ -297,7 +297,7 @@ export class ConfigManager {
       console.error(`LLM profile '${profileName}' not found. Available profiles:`, Object.keys(this.config?.llm?.profiles || {}));
       return false;
     }
-    
+
     this.config.llm.active = profileName;
     console.log(`Switched to LLM profile: ${profileName}`);
     return true;
@@ -308,7 +308,7 @@ export class ConfigManager {
    */
   listLLMProfiles(): { name: string; profile: TheAgentConfig['llm']['profiles'][string]; isActive: boolean }[] {
     if (!this.config?.llm?.profiles) return [];
-    
+
     return Object.entries(this.config.llm.profiles).map(([name, profile]) => ({
       name,
       profile,

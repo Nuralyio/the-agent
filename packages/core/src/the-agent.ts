@@ -94,10 +94,10 @@ export class TheAgent {
 
     // Load unified configuration
     const fullConfig = await this.configManager.loadConfig();
-    
+
     // Get active LLM profile
     const activeLLMProfile = this.configManager.getActiveLLMProfile();
-    
+
     if (activeLLMProfile) {
       console.log('🤖 Initializing AI engine with active LLM profile:', {
         active: fullConfig.llm?.active,
