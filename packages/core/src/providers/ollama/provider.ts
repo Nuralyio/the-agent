@@ -1,10 +1,11 @@
-import { ChatOllama } from '@langchain/ollama';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
+import { ChatOllama } from '@langchain/ollama';
 import { AIConfig, AIMessage, AIProvider, AIResponse, VisionCapabilities } from '../../engine/ai-engine';
 import { BrowserActionSchema } from '../shared/schemas/browser-action.schema';
-import { StructuredOutputUtil, createStructuredOutputUtil } from '../shared/utils/structured-output.util';
 import { buildMessages, convertToLangChainMessages } from '../shared/utils/message-utils';
 import { formatAIResponse } from '../shared/utils/response-utils';
+import { StructuredOutputUtil, createStructuredOutputUtil } from '../shared/utils/structured-output.util';
+import { OllamaModelsResponse } from './types';
 import { OllamaModelUtils } from './utils';
 
 /**
@@ -39,7 +40,7 @@ export class OllamaProvider implements AIProvider {
 
     // Initialize structured output utility with browser action schema
     this.structuredOutputUtil = createStructuredOutputUtil(BrowserActionSchema);
-    
+
     // Set vision capabilities based on model
     this.visionCapabilities = OllamaModelUtils.getVisionCapabilities(this.config.model);
   }
@@ -63,7 +64,7 @@ export class OllamaProvider implements AIProvider {
 
     // Convert images to base64 for Ollama
     const base64Images = OllamaModelUtils.convertImagesToBase64(images);
-    
+
     messages.push(new HumanMessage({
       content: [
         { type: 'text', text: prompt },
@@ -102,10 +103,24 @@ export class OllamaProvider implements AIProvider {
   }
 
   async getAvailableModels(): Promise<string[]> {
-    // The ChatOllama doesn't have a direct method to get models
-    // We need to use the Ollama API client for this
-    // For now, return common models
-    return ['llama2', 'llama3', 'llama3.1', 'mistral', 'codellama'];
+    try {
+      const response = await fetch(`${this.config.baseUrl}/api/tags`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        signal: AbortSignal.timeout(this.config.timeout || 30000)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: OllamaModelsResponse = await response.json();
+      return data.models.map(model => model.name);
+    } catch (error) {
+      console.warn('Failed to fetch models from Ollama API:', error);
+    }
   }
 
   /**
@@ -116,8 +131,25 @@ export class OllamaProvider implements AIProvider {
       throw new Error(`Invalid model name: ${modelName}`);
     }
 
-    // ChatOllama doesn't have a pull method, we would need to use the API directly
-    throw new Error('Pull model not implemented with @langchain/ollama. Use Ollama CLI instead.');
+    try {
+      const response = await fetch(`${this.config.baseUrl}/api/pull`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: modelName }),
+        signal: AbortSignal.timeout(300000) // 5 minutes for model pulling
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // The pull endpoint returns streaming responses, but for simplicity we just wait for completion
+      // In a production environment, you might want to handle the streaming response for progress updates
+    } catch (error) {
+      throw new Error(`Failed to pull model ${modelName}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
