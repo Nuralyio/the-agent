@@ -175,42 +175,37 @@ export class AIEngine {
   }
 
   /**
-   * Generate text using the default provider
+   * Helper method to execute LLM operations with observability tracing
    */
-  async generateText(prompt: string, systemPrompt?: string, parentTrace?: any): Promise<AIResponse> {
-    const provider = this.getDefaultProvider();
-
-    // Log the request
-    this.aiLogger.logRequest('generateText', prompt, systemPrompt, provider.name);
-
+  private async executeWithTracing<T extends AIResponse>(
+    operationName: string,
+    provider: AIProvider,
+    operation: () => Promise<T>,
+    input: { prompt: string; systemPrompt?: string; imageCount?: number },
+    parentTrace?: any
+  ): Promise<T> {
     // Use parent trace if provided, otherwise create a new one
-    // If parentTrace is provided, use it directly (don't create a new trace)
-    const trace = parentTrace || this.observabilityService.startTrace('generateText', {
+    const trace = parentTrace || this.observabilityService.startTrace(operationName, {
       provider: provider.name,
       model: provider.config.model,
+      ...(input.imageCount !== undefined && { imageCount: input.imageCount }),
     });
 
-    // Create generation within the trace (not a new trace)
+    // Create generation within the trace
     const generation = trace ? this.observabilityService.createGeneration(trace, {
-      name: 'generateText',
+      name: operationName,
       model: `${provider.name}:${provider.config.model}`,
       modelParameters: {
         temperature: provider.config.temperature,
         maxTokens: provider.config.maxTokens,
       },
-      input: {
-        prompt,
-        systemPrompt,
-      },
+      input,
     }) : null;
 
     const startTime = Date.now();
-    let response: AIResponse;
-    let error: Error | null = null;
 
     try {
-      // Execute without callbacks (using manual tracing instead)
-      response = await provider.generateText(prompt, systemPrompt, []);
+      const response = await operation();
 
       // Update generation with output
       if (generation) {
@@ -238,7 +233,6 @@ export class AIEngine {
               model: provider.config.model,
             },
           });
-          // Tool call will be executed separately, so we just mark it as requested
           if (toolCallSpan) {
             toolCallSpan.end({
               output: { status: 'tool_calls_requested' },
@@ -247,8 +241,10 @@ export class AIEngine {
           }
         }
       }
+
+      return response;
     } catch (err) {
-      error = err instanceof Error ? err : new Error(String(err));
+      const error = err instanceof Error ? err : new Error(String(err));
       if (generation) {
         generation.end({
           level: 'ERROR',
@@ -260,6 +256,25 @@ export class AIEngine {
       // Flush traces
       await this.observabilityService.flush();
     }
+  }
+
+  /**
+   * Generate text using the default provider
+   */
+  async generateText(prompt: string, systemPrompt?: string, parentTrace?: any): Promise<AIResponse> {
+    const provider = this.getDefaultProvider();
+
+    // Log the request
+    this.aiLogger.logRequest('generateText', prompt, systemPrompt, provider.name);
+
+    // Execute with observability tracing
+    const response = await this.executeWithTracing(
+      'generateText',
+      provider,
+      () => provider.generateText(prompt, systemPrompt, []),
+      { prompt, systemPrompt },
+      parentTrace
+    );
 
     // Log the response
     this.aiLogger.logResponse('generateText', response, provider.name, prompt);
@@ -276,68 +291,25 @@ export class AIEngine {
     // Log the request
     this.aiLogger.logRequest('generateStructuredJSON', prompt, systemPrompt, provider.name);
 
-    // Use parent trace if provided, otherwise create a new one
-    const trace = parentTrace || this.observabilityService.startTrace('generateStructuredJSON', {
-      provider: provider.name,
-      model: provider.config.model,
-    });
-
-    const generation = trace ? this.observabilityService.createGeneration(trace, {
-      name: 'generateStructuredJSON',
-      model: `${provider.name}:${provider.config.model}`,
-      modelParameters: {
-        temperature: provider.config.temperature,
-        maxTokens: provider.config.maxTokens,
+    // Execute with observability tracing
+    const response = await this.executeWithTracing(
+      'generateStructuredJSON',
+      provider,
+      async () => {
+        if (provider.generateStructuredJSON) {
+          return await provider.generateStructuredJSON(prompt, systemPrompt, []);
+        } else {
+          // Fallback to regular text generation with enhanced prompting
+          const structuredJsonPrompt = this.promptTemplate.render('structured-json', {});
+          const enhancedSystemPrompt = systemPrompt
+            ? `${systemPrompt}\n\n${structuredJsonPrompt}`
+            : structuredJsonPrompt;
+          return await provider.generateText(prompt, enhancedSystemPrompt, []);
+        }
       },
-      input: {
-        prompt,
-        systemPrompt,
-      },
-    }) : null;
-
-    const startTime = Date.now();
-    let response: AIResponse;
-    let error: Error | null = null;
-
-    try {
-      // Execute without callbacks (using manual tracing instead)
-      if (provider.generateStructuredJSON) {
-        response = await provider.generateStructuredJSON(prompt, systemPrompt, []);
-      } else {
-        // Fallback to regular text generation with enhanced prompting
-        const structuredJsonPrompt = this.promptTemplate.render('structured-json', {});
-        const enhancedSystemPrompt = systemPrompt
-          ? `${systemPrompt}\n\n${structuredJsonPrompt}`
-          : structuredJsonPrompt;
-
-        response = await provider.generateText(prompt, enhancedSystemPrompt, []);
-      }
-
-      // Update generation with output
-      if (generation) {
-        const duration = Date.now() - startTime;
-        generation.end({
-          output: response.content,
-          usage: response.usage,
-          metadata: {
-            finishReason: response.finishReason,
-            duration,
-          },
-        });
-      }
-    } catch (err) {
-      error = err instanceof Error ? err : new Error(String(err));
-      if (generation) {
-        generation.end({
-          level: 'ERROR',
-          statusMessage: error.message,
-        });
-      }
-      throw err;
-    } finally {
-      // Flush traces
-      await this.observabilityService.flush();
-    }
+      { prompt, systemPrompt },
+      parentTrace
+    );
 
     // Log the response
     this.aiLogger.logResponse('generateStructuredJSON', response, provider.name, prompt);
@@ -357,60 +329,14 @@ export class AIEngine {
     // Log the request (with image info but not the actual image data)
     this.aiLogger.logVisionRequest('generateWithVision', prompt, systemPrompt, provider.name, images);
 
-    // Use parent trace if provided, otherwise create a new one
-    const trace = parentTrace || this.observabilityService.startTrace('generateWithVision', {
-      provider: provider.name,
-      model: provider.config.model,
-      imageCount: images.length,
-    });
-
-    const generation = trace ? this.observabilityService.createGeneration(trace, {
-      name: 'generateWithVision',
-      model: `${provider.name}:${provider.config.model}`,
-      modelParameters: {
-        temperature: provider.config.temperature,
-        maxTokens: provider.config.maxTokens,
-      },
-      input: {
-        prompt,
-        systemPrompt,
-        imageCount: images.length,
-      },
-    }) : null;
-
-    const startTime = Date.now();
-    let response: AIResponse;
-    let error: Error | null = null;
-
-    try {
-      // Execute without callbacks (using manual tracing instead)
-      response = await provider.generateWithVision(prompt, images, systemPrompt, []);
-
-      // Update generation with output
-      if (generation) {
-        const duration = Date.now() - startTime;
-        generation.end({
-          output: response.content,
-          usage: response.usage,
-          metadata: {
-            finishReason: response.finishReason,
-            duration,
-          },
-        });
-      }
-    } catch (err) {
-      error = err instanceof Error ? err : new Error(String(err));
-      if (generation) {
-        generation.end({
-          level: 'ERROR',
-          statusMessage: error.message,
-        });
-      }
-      throw err;
-    } finally {
-      // Flush traces
-      await this.observabilityService.flush();
-    }
+    // Execute with observability tracing
+    const response = await this.executeWithTracing(
+      'generateWithVision',
+      provider,
+      () => provider.generateWithVision!(prompt, images, systemPrompt, []),
+      { prompt, systemPrompt, imageCount: images.length },
+      parentTrace
+    );
 
     // Log the response
     this.aiLogger.logResponse('generateWithVision', response, provider.name, prompt);
