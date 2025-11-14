@@ -95,7 +95,7 @@ export class AIEngine {
   private aiLogger: AILoggingService;
   private observabilityService: ObservabilityService;
 
-  constructor(observabilityConfig?: ObservabilityConfig) {
+  constructor() {
     // Initialize with available providers
     this.promptTemplate = new PromptTemplate();
 
@@ -107,8 +107,8 @@ export class AIEngine {
     this.aiLogger = new AILoggingService(aiLogConfig);
 
     // Initialize observability service
-    // Load from environment if not provided
-    const config = observabilityConfig || loadObservabilityConfig();
+    // Load observability config from unified configuration or environment
+    const config = loadObservabilityConfig();
     this.observabilityService = new ObservabilityService(config);
   }
 
@@ -186,12 +186,19 @@ export class AIEngine {
     // Get observability callbacks for LangChain
     const callbacks = this.observabilityService.getCallbacks();
 
-    // Wrap with OpenTelemetry tracing (Langfuse is handled via callbacks)
+    // Prepare input for tracing
+    const input = {
+      prompt,
+      systemPrompt,
+    };
+
+    // Wrap with tracing and pass input
     const response = await this.observabilityService.traceLLMCall(
       provider.name,
       provider.config.model,
       'generateText',
-      () => provider.generateText(prompt, systemPrompt, callbacks)
+      () => provider.generateText(prompt, systemPrompt, callbacks),
+      input // Pass input for tracing
     );
 
     // Log the response
@@ -212,7 +219,14 @@ export class AIEngine {
     // Get observability callbacks for LangChain
     const callbacks = this.observabilityService.getCallbacks();
 
-    // Wrap with OpenTelemetry tracing (Langfuse is handled via callbacks)
+    // Prepare input for tracing
+    const input = {
+      prompt,
+      systemPrompt,
+      operation: 'generateStructuredJSON',
+    };
+
+    // Wrap with tracing and pass input
     const response = await this.observabilityService.traceLLMCall(
       provider.name,
       provider.config.model,
@@ -254,12 +268,21 @@ export class AIEngine {
     // Get observability callbacks for LangChain
     const callbacks = this.observabilityService.getCallbacks();
 
-    // Wrap with OpenTelemetry tracing (Langfuse is handled via callbacks)
+    // Prepare input for tracing (without actual image data to avoid large traces)
+    const input = {
+      prompt,
+      systemPrompt,
+      imageCount: images.length,
+      imageSizes: images.map(img => img.length),
+    };
+
+    // Wrap with tracing and pass input
     const response = await this.observabilityService.traceLLMCall(
       provider.name,
       provider.config.model,
       'generateWithVision',
-      () => provider.generateWithVision!(prompt, images, systemPrompt, callbacks)
+      () => provider.generateWithVision!(prompt, images, systemPrompt, callbacks),
+      input
     );
 
     // Log the response

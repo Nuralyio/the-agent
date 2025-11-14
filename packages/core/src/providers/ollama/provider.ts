@@ -1,5 +1,6 @@
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { ChatOllama } from '@langchain/ollama';
+import { createAgent } from 'langchain';
 import { AIConfig, AIMessage, AIProvider, AIResponse, VisionCapabilities } from '../../engine/ai-engine';
 import { BrowserActionSchema } from '../shared/schemas/browser-action.schema';
 import { buildMessages, convertToLangChainMessages } from '../shared/utils/message-utils';
@@ -47,8 +48,21 @@ export class OllamaProvider implements AIProvider {
 
   async generateText(prompt: string, systemPrompt?: string, callbacks?: any[]): Promise<AIResponse> {
     const messages = buildMessages(prompt, systemPrompt);
+    
+    // Build config object following Langfuse example pattern
     const config = callbacks && callbacks.length > 0 ? { callbacks } : undefined;
+    
+    if (config?.callbacks) {
+      console.log(`🔍 Ollama provider invoking with ${config.callbacks.length} callback(s)`);
+      console.log(`📊 Callback type: ${config.callbacks[0].constructor.name}`);
+    }
+    
+    console.log(`🚀 Invoking model: ${this.config.model} at ${this.config.baseUrl}`);
+    const startTime = Date.now();
     const response = await this.model.invoke(messages, config);
+    const duration = Date.now() - startTime;
+    console.log(`✅ Model response in ${duration}ms, length: ${response.content.toString().length}`);
+    
     return formatAIResponse(response);
   }
 

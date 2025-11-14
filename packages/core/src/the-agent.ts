@@ -299,6 +299,16 @@ export class TheAgent {
     if (this.browserManager.isReady()) {
       await this.browserManager.closeBrowser();
     }
+    // Shutdown observability services to flush traces
+    await this.aiEngine?.shutdown();
+  }
+
+  /**
+   * Shutdown TheAgent and flush all observability traces
+   * Call this before your application exits to ensure traces are sent to Langfuse
+   */
+  async shutdown(): Promise<void> {
+    await this.close();
   }
 
   getBrowserManager(): BrowserManagerImpl {

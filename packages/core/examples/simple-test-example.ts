@@ -89,16 +89,21 @@ async function run() {
     console.log('🔄 Cleaning up...');
     await agent.close();
     console.log('✅ Browser closed');
+    
+    // IMPORTANT: Flush observability traces before exit
+    console.log('📡 Flushing observability traces...');
+    await agent.shutdown();
+    console.log('✅ Observability traces flushed');
   }
 }
 
 // Handle exit gracefully
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('\n🛑 Received SIGINT. Exiting gracefully...');
   process.exit(0);
 });
 
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   console.log('\n🛑 Received SIGTERM. Exiting gracefully...');
   process.exit(0);
 });

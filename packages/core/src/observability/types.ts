@@ -25,6 +25,10 @@ export interface ObservabilityConfig {
     publicKey?: string;
     secretKey?: string;
     baseUrl?: string;
+    projectId?: string;
+    sessionName?: string;
+    userId?: string;
+    tags?: string[];
   };
 }
 
