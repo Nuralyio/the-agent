@@ -33,7 +33,7 @@ export function loadObservabilityConfig(): ObservabilityConfig | undefined {
         enabled: true,
         publicKey,
         secretKey,
-        baseUrl: process.env.LANGFUSE_BASE_URL,
+        baseUrl: process.env.LANGFUSE_BASEURL,
       };
     } else {
       console.warn('⚠️  Langfuse is enabled but credentials are missing');
