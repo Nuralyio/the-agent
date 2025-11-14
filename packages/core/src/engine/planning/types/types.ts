@@ -92,6 +92,7 @@ export interface PageState {
   screenshot?: Buffer;
   content?: string;
   viewport?: { width: number; height: number };
+  extractedContent?: any; // ExtractedContent from the new extractor
 }
 
 export interface ElementInfo {

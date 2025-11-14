@@ -1,6 +1,7 @@
 import type { BrowserContext, Page } from 'playwright';
 import { ElementHandle, PageInstance, ScreenshotOptions, VideoRecordingOptions, WaitOptions } from '../interfaces';
 import { PlaywrightElementHandle } from './element';
+import { ContentExtractor, PlaywrightContentExtractor } from '../../extractors';
 
 /**
  * Playwright implementation of PageInstance
@@ -8,6 +9,7 @@ import { PlaywrightElementHandle } from './element';
 export class PlaywrightPageInstance implements PageInstance {
   private isRecording = false;
   private videoPath: string | null = null;
+  private contentExtractor: ContentExtractor | null = null;
 
   constructor(
     private page: Page,
@@ -240,5 +242,15 @@ export class PlaywrightPageInstance implements PageInstance {
    */
   isVideoRecording(): boolean {
     return this.isRecording;
+  }
+
+  /**
+   * Get the content extractor for this page
+   */
+  getContentExtractor(): ContentExtractor {
+    if (!this.contentExtractor) {
+      this.contentExtractor = new PlaywrightContentExtractor(this.page);
+    }
+    return this.contentExtractor;
   }
 }

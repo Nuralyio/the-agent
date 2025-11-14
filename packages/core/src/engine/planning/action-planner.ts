@@ -43,6 +43,7 @@ export class ActionPlanner {
     forms: string;
     interactions: string;
   } {
+    // Legacy method - returns simplified structure
     const structure = this.contentExtractor.extractStructuredContent(pageContent);
     return {
       structure,
@@ -85,12 +86,14 @@ export class ActionPlanner {
 
 
   private async parseInstructionWithAI(instruction: string, pageState: PageState, context: TaskContext): Promise<ParsedInstruction> {
-    const structure = this.contentExtractor.extractStructuredContent(pageState.content || '');
-    const allContent = {
-      structure,
-      forms: '',
-      interactions: '',
-    };
+    // Use new extracted content if available, otherwise fall back to HTML parsing
+    let pageContent: string;
+    if (pageState.extractedContent) {
+      pageContent = this.contentExtractor.formatExtractedContent(pageState.extractedContent);
+    } else {
+      // Fallback to legacy HTML parsing
+      pageContent = this.contentExtractor.extractStructuredContent(pageState.content || '');
+    }
 
     const executionContext = context.executionContextSummary || this.prepareExecutionContext(context);
 
@@ -98,9 +101,9 @@ export class ActionPlanner {
       instruction: instruction,
       pageUrl: pageState.url,
       pageTitle: pageState.title,
-      pageContent: allContent.structure,
-      formElements: allContent.forms,
-      interactiveElements: allContent.interactions,
+      pageContent: pageContent,
+      formElements: '', // Now included in pageContent
+      interactiveElements: '', // Now included in pageContent
       executionContext: executionContext
     });
 

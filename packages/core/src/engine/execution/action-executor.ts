@@ -288,6 +288,22 @@ export class ActionExecutor {
       console.warn('⚠️ Page load state check failed, proceeding with current state:', error);
     }
 
+    // Extract visible and accessible content using the new extractor
+    let extractedContent;
+    try {
+      const extractor = page.getContentExtractor();
+      extractedContent = await extractor.extractContent({
+        includeHidden: false,
+        maxDepth: 8,
+        includeShadowDOM: true,
+        includeFrames: false, // Skip frames for performance
+      });
+      console.log(`✅ Extracted ${extractedContent.metadata.visibleElements} visible elements, ${extractedContent.metadata.interactiveElements} interactive`);
+    } catch (error) {
+      console.warn('⚠️ Failed to extract content with new extractor, will fall back to HTML:', error);
+      extractedContent = undefined;
+    }
+
     const [screenshot, content, url] = await Promise.all([
       page.screenshot(),
       page.content(),
@@ -301,7 +317,8 @@ export class ActionExecutor {
       screenshot,
       timestamp: Date.now(),
       viewport: { width: 1280, height: 720 },
-      elements: []
+      elements: [],
+      extractedContent
     };
   }
 }

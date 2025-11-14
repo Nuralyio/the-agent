@@ -1,11 +1,14 @@
 import type { Page, ScreenshotOptions as PuppeteerScreenshotOptions } from 'puppeteer';
 import { ElementHandle, PageInstance, ScreenshotOptions, VideoRecordingOptions, WaitOptions } from '../interfaces';
 import { PuppeteerElementHandle } from './element';
+import { ContentExtractor, PuppeteerContentExtractor } from '../../extractors';
 
 /**
  * Puppeteer page instance implementation
  */
 export class PuppeteerPageInstance implements PageInstance {
+  private contentExtractor: ContentExtractor | null = null;
+
   constructor(private page: Page) { }
 
   /**
@@ -185,5 +188,15 @@ export class PuppeteerPageInstance implements PageInstance {
    */
   isVideoRecording(): boolean {
     return false;
+  }
+
+  /**
+   * Get the content extractor for this page
+   */
+  getContentExtractor(): ContentExtractor {
+    if (!this.contentExtractor) {
+      this.contentExtractor = new PuppeteerContentExtractor(this.page);
+    }
+    return this.contentExtractor;
   }
 }
