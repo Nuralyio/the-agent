@@ -1,10 +1,8 @@
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { ChatOpenAI } from '@langchain/openai';
 import { AIConfig, AIMessage, AIProvider, AIResponse, VisionCapabilities } from '../../engine/ai-engine';
-import { BrowserActionSchema } from '../shared/schemas/browser-action.schema';
 import { buildMessages, convertToLangChainMessages } from '../shared/utils/message-utils';
 import { formatAIResponse } from '../shared/utils/response-utils';
-import { StructuredOutputUtil, createStructuredOutputUtil } from '../shared/utils/structured-output.util';
 import { OpenAIModelUtils } from './utils';
 
 /**
@@ -17,7 +15,6 @@ export class OpenAIProvider implements AIProvider {
   readonly visionCapabilities: VisionCapabilities;
 
   model: ChatOpenAI;
-  private structuredOutputUtil: StructuredOutputUtil;
 
   constructor(config: AIConfig) {
     if (!config.apiKey) {
@@ -44,9 +41,6 @@ export class OpenAIProvider implements AIProvider {
         baseURL: this.config.baseUrl
       }
     });
-
-    // Initialize structured output utility with browser action schema
-    this.structuredOutputUtil = createStructuredOutputUtil(BrowserActionSchema);
 
     // Set vision capabilities based on model
     this.visionCapabilities = OpenAIModelUtils.getVisionCapabilities(this.config.model);

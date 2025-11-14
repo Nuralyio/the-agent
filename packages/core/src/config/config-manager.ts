@@ -110,7 +110,12 @@ export class ConfigManager {
       const packageJsonPath = path.join(dir, 'package.json');
       const packageJson = require(packageJsonPath);
       return !!packageJson.workspaces;
-    } catch {
+    } catch (error: any) {
+      // Return false for missing files (ENOENT) or module not found errors
+      // Log parsing errors for debugging purposes
+      if (error.code !== 'ENOENT' && error.code !== 'MODULE_NOT_FOUND') {
+        console.warn(`Warning: Failed to parse package.json at ${dir}:`, error.message);
+      }
       return false;
     }
   }
@@ -125,8 +130,21 @@ export class ConfigManager {
       const configPath = path.join(searchPath, configFileName);
       try {
         await fs.access(configPath);
-        delete require.cache[path.resolve(configPath)];
-        const config = require(path.resolve(configPath));
+        const resolvedPath = path.resolve(configPath);
+        
+        // Validate that the resolved path is within expected directories
+        // to prevent potential code injection attacks
+        const isValidPath = searchPaths.some(searchPath => 
+          resolvedPath.startsWith(path.resolve(searchPath))
+        );
+        
+        if (!isValidPath) {
+          console.warn(`Security warning: Config file path ${resolvedPath} is outside expected directories`);
+          continue;
+        }
+        
+        delete require.cache[resolvedPath];
+        const config = require(resolvedPath);
         return config.default || config;
       } catch {
         // File doesn't exist, continue searching
@@ -238,14 +256,15 @@ export class ConfigManager {
         result.browser = { ...result.browser, ...config.browser };
       }
       if (config.llm) {
+        // Initialize result.llm if it doesn't exist
+        if (!result.llm) {
+          result.llm = {} as any;
+        }
         if (config.llm.active) {
-          result.llm = { ...result.llm, active: config.llm.active };
+          result.llm.active = config.llm.active;
         }
         if (config.llm.profiles) {
-          result.llm = {
-            ...result.llm,
-            profiles: { ...result.llm?.profiles, ...config.llm.profiles }
-          };
+          result.llm.profiles = { ...result.llm.profiles, ...config.llm.profiles };
         }
       }
       if (config.execution) {
@@ -267,9 +286,10 @@ export class ConfigManager {
    * Update configuration
    */
   updateConfig(updates: Partial<TheAgentConfig>): void {
-    if (this.config) {
-      this.config = this.mergeConfigs([this.config, updates]);
+    if (!this.config) {
+      throw new Error("ConfigManager: Cannot update config before it has been loaded. Please call loadConfig() first.");
     }
+    this.config = this.mergeConfigs([this.config, updates]);
   }
 
   /**

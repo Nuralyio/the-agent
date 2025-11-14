@@ -46,7 +46,8 @@ export class TheAgent {
       browserType: BrowserType.CHROMIUM,
       headless: true,
       viewport: { width: 1280, height: 720 },
-      fallbackAdapters: ['playwright', 'puppeteer']
+      fallbackAdapters: ['playwright', 'puppeteer'],
+      ...(config && config.browser ? config.browser : {})
     };
 
     // Update config manager if partial config provided
