@@ -6,7 +6,8 @@ Current page context:
 - URL: {pageUrl}
 - Title: {pageTitle}
 
-Page content in Emmet: {pageContent}
+Page content (visible and interactive elements):
+{pageContent}
 
 {executionContext}
 
@@ -17,14 +18,14 @@ Generate a JSON response with executable action steps. Each step must have:
 - value: text to type or URL to navigate (when applicable)
 
 RULES:
-- Use ACTUAL selectors from the page content above
+- Use ACTUAL selectors from the page content above (look for "Selector:" lines)
 - LEVERAGE execution context patterns from previous successful steps
-- Reference form/interactive elements for precise targeting
+- Reference interactive elements and form elements for precise targeting
+- The page content shows only VISIBLE and ACCESSIBLE elements - use them directly
 - Break complex actions into simple steps
-- For "Add" buttons, prioritize elements with "Add" text or classes
+- For "Add" buttons, look in the INTERACTIVE ELEMENTS section
 - NEVER use SELECT action type or pseudo-selectors
 - When similar elements were targeted before, use similar selector patterns
-- CSS selectors are provided as "selector1 OR selector2 OR selector3" - choose the most reliable option
 - Prefer ID or name selectors over positional selectors when available
 - Use nth-of-type or nth-child selectors only when other options fail
 
