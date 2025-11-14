@@ -1,14 +1,17 @@
 import { CallbackHandler } from '@langfuse/langchain';
+import { Langfuse } from 'langfuse';
 import { ObservabilityConfig } from './types';
 
 /**
  * Main observability service using Langfuse CallbackHandler
  *
- * Uses only @langfuse/langchain CallbackHandler for automatic tracing
- * of all LangChain model invocations.
+ * Uses @langfuse/langchain CallbackHandler for automatic tracing
+ * of all LangChain model invocations. The Langfuse client is needed
+ * for proper initialization and flushing of traces.
  */
 export class ObservabilityService {
   private callbackHandler: CallbackHandler | null = null;
+  private langfuse: Langfuse | null = null;
   private enabled: boolean = false;
 
   constructor(config?: ObservabilityConfig) {
@@ -19,6 +22,15 @@ export class ObservabilityService {
     this.enabled = true;
 
     try {
+      // Initialize Langfuse client (required for CallbackHandler to work properly)
+      this.langfuse = new Langfuse({
+        publicKey: config.langfuse.publicKey!,
+        secretKey: config.langfuse.secretKey!,
+        baseUrl: config.langfuse.baseUrl ?? 'https://cloud.langfuse.com',
+        flushAt: 1, // Flush after every event
+        flushInterval: 1000, // Flush every second
+      });
+
       // Set environment variables for CallbackHandler
       if (config.langfuse.publicKey) {
         process.env.LANGFUSE_PUBLIC_KEY = config.langfuse.publicKey;
@@ -90,11 +102,19 @@ export class ObservabilityService {
   /**
    * Shutdown observability services
    * 
-   * Note: The CallbackHandler automatically flushes traces asynchronously.
-   * No explicit shutdown is needed.
+   * Flushes and shuts down the Langfuse client to ensure all traces are sent.
    */
   async shutdown(): Promise<void> {
-    // CallbackHandler handles flushing automatically
-    console.log('✅ Observability services shut down (CallbackHandler flushes automatically)');
+    if (this.langfuse) {
+      try {
+        // Flush pending traces
+        await this.langfuse.flushAsync();
+        // Shutdown the client
+        await this.langfuse.shutdownAsync();
+        console.log('✅ Langfuse client flushed and shut down');
+      } catch (error) {
+        console.error('❌ Error during Langfuse shutdown:', error);
+      }
+    }
   }
 }
