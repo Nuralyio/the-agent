@@ -1,6 +1,53 @@
 import { Langfuse } from 'langfuse';
 import { ObservabilityConfig } from './types';
 
+// Constants for configuration
+const DEFAULT_LANGFUSE_BASE_URL = 'https://cloud.langfuse.com';
+const DEFAULT_FLUSH_AT = 1;
+const DEFAULT_FLUSH_INTERVAL_MS = 1000;
+
+// Type definitions for trace objects
+interface TraceObject {
+  generation: (options: GenerationOptions) => GenerationObject | null;
+  span: (options: SpanOptions) => SpanObject | null;
+}
+
+interface GenerationOptions {
+  name?: string;
+  model: string;
+  modelParameters?: Record<string, unknown>;
+  input?: unknown;
+  metadata?: Record<string, unknown>;
+}
+
+interface GenerationObject {
+  end: (result: EndResult) => void;
+}
+
+interface SpanOptions {
+  name: string;
+  input?: unknown;
+  metadata?: Record<string, unknown>;
+  startTime?: Date;
+}
+
+interface SpanObject {
+  end: (result: EndResult) => void;
+}
+
+interface EndResult {
+  output?: unknown;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+  level?: string;
+  statusMessage?: string;
+  metadata?: Record<string, unknown>;
+  endTime?: Date;
+}
+
 /**
  * Observability service for LLM tracing using Langfuse
  *
@@ -9,10 +56,10 @@ import { ObservabilityConfig } from './types';
  */
 export class ObservabilityService {
   private langfuse: Langfuse | null = null;
-  private enabled: boolean = false;
-  private sessionId: string | undefined;
-  private userId: string | undefined;
-  private tags: string[] | undefined;
+  private enabled = false;
+  private readonly sessionId: string | undefined;
+  private readonly userId: string | undefined;
+  private readonly tags: string[] | undefined;
 
   constructor(config?: ObservabilityConfig) {
     if (!config?.enabled || !config?.langfuse?.enabled) {
@@ -20,36 +67,47 @@ export class ObservabilityService {
     }
 
     if (!config.langfuse.publicKey || !config.langfuse.secretKey) {
-      console.error('❌ Langfuse credentials missing');
+      this.logError('Langfuse credentials missing');
       return;
     }
 
     this.enabled = true;
+    this.sessionId = config.langfuse.sessionName;
+    this.userId = config.langfuse.userId;
+    this.tags = config.langfuse.tags;
 
     try {
       this.langfuse = new Langfuse({
         publicKey: config.langfuse.publicKey,
         secretKey: config.langfuse.secretKey,
-        baseUrl: config.langfuse.baseUrl ?? 'https://cloud.langfuse.com',
-        flushAt: 1,
-        flushInterval: 1000,
+        baseUrl: config.langfuse.baseUrl ?? DEFAULT_LANGFUSE_BASE_URL,
+        flushAt: DEFAULT_FLUSH_AT,
+        flushInterval: DEFAULT_FLUSH_INTERVAL_MS,
       });
 
-      this.sessionId = config.langfuse.sessionName;
-      this.userId = config.langfuse.userId;
-      this.tags = config.langfuse.tags;
-
-      console.log('✅ Langfuse observability initialized');
+      this.logInfo('Langfuse observability initialized');
     } catch (error) {
-      console.error('❌ Failed to initialize Langfuse:', error);
+      this.logError('Failed to initialize Langfuse', error);
       this.enabled = false;
     }
+  }
+
+  private logInfo(message: string): void {
+    // Using console for now, can be replaced with proper logger if available
+    // eslint-disable-next-line no-console
+    console.log(`✅ ${message}`);
+  }
+
+  private logError(message: string, error?: unknown): void {
+    // Using console for now, can be replaced with proper logger if available
+    // eslint-disable-next-line no-console
+    console.error(`❌ ${message}`, error || '');
   }
 
   /**
    * Start a new trace for tracking operations
    */
-  startTrace(name: string, metadata?: Record<string, any>): any {
+  startTrace(name: string, metadata?: Record<string, unknown>): TraceObject | null {
     if (!this.langfuse || !this.enabled) {
       return null;
     }
@@ -63,7 +121,7 @@ export class ObservabilityService {
         metadata,
       });
     } catch (error) {
-      console.error('❌ Failed to create trace:', error);
+      this.logError('Failed to create trace', error);
       return null;
     }
   }
@@ -71,13 +129,13 @@ export class ObservabilityService {
   /**
    * Create a generation span for an LLM call
    */
-  createGeneration(trace: any, options: {
+  createGeneration(trace: TraceObject | null, options: {
     name?: string;
     model: string;
-    modelParameters?: Record<string, any>;
-    input?: any;
-    metadata?: Record<string, any>;
-  }): any {
+    modelParameters?: Record<string, unknown>;
+    input?: unknown;
+    metadata?: Record<string, unknown>;
+  }): GenerationObject | null {
     if (!trace) {
       return null;
     }
@@ -91,7 +149,7 @@ export class ObservabilityService {
         metadata: options.metadata,
       });
     } catch (error) {
-      console.error('❌ Failed to create generation:', error);
+      this.logError('Failed to create generation', error);
       return null;
     }
   }
@@ -99,12 +157,12 @@ export class ObservabilityService {
   /**
    * Create a span for a tool/function call
    */
-  createSpan(trace: any, options: {
+  createSpan(trace: TraceObject | null, options: {
     name: string;
-    input?: any;
-    metadata?: Record<string, any>;
+    input?: unknown;
+    metadata?: Record<string, unknown>;
     startTime?: Date;
-  }): any {
+  }): SpanObject | null {
     if (!trace) {
       return null;
     }
@@ -117,7 +175,7 @@ export class ObservabilityService {
         startTime: options.startTime,
       });
     } catch (error) {
-      console.error('❌ Failed to create span:', error);
+      this.logError('Failed to create span', error);
       return null;
     }
   }
@@ -125,11 +183,11 @@ export class ObservabilityService {
   /**
    * Track a tool/function call within a trace
    */
-  trackToolCall(trace: any, options: {
+  trackToolCall(trace: TraceObject | null, options: {
     name: string;
-    input?: any;
-    metadata?: Record<string, any>;
-  }): any {
+    input?: unknown;
+    metadata?: Record<string, unknown>;
+  }): { end: (result?: Partial<EndResult>) => void; span: SpanObject | null } {
     if (!trace) {
       return { end: () => {}, span: null };
     }
@@ -146,7 +204,7 @@ export class ObservabilityService {
     });
 
     return {
-      end: (result?: { output?: any; level?: string; statusMessage?: string; metadata?: Record<string, any> }) => {
+      end: (result?: Partial<EndResult>) => {
         if (span) {
           const endTime = new Date();
           const duration = endTime.getTime() - startTime.getTime();
@@ -170,7 +228,7 @@ export class ObservabilityService {
   /**
    * Get LangChain callbacks (returns empty array - not used)
    */
-  getCallbacks(): any[] {
+  getCallbacks(): unknown[] {
     return [];
   }
 
@@ -196,7 +254,7 @@ export class ObservabilityService {
       try {
         await this.langfuse.flushAsync();
       } catch (error) {
-        console.error('❌ Error flushing traces:', error);
+        this.logError('Error flushing traces', error);
       }
     }
   }
@@ -209,9 +267,9 @@ export class ObservabilityService {
       try {
         await this.langfuse.flushAsync();
         await this.langfuse.shutdownAsync();
-        console.log('✅ Langfuse shut down');
+        this.logInfo('Langfuse shut down');
       } catch (error) {
-        console.error('❌ Error during shutdown:', error);
+        this.logError('Error during shutdown', error);
       }
     }
   }
