@@ -133,7 +133,8 @@ export abstract class BaseContentExtractor implements ContentExtractor {
           }
         } catch (error) {
           // Skip frames that can't be accessed (CORS, etc.)
-          console.warn(`Failed to extract content from frame: ${error}`);
+          // Silently ignore frame extraction errors as they're expected for cross-origin frames
+          // Error details are not logged to avoid potential information disclosure
         }
       }
     }
@@ -206,7 +207,8 @@ export abstract class BaseContentExtractor implements ContentExtractor {
         content,
       };
     } catch (error) {
-      console.warn(`Failed to extract frame content: ${error}`);
+      // Silently ignore frame extraction errors (e.g., CORS restrictions)
+      // Error details are not logged to prevent potential information disclosure
       return null;
     }
   }
