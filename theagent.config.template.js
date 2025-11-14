@@ -58,8 +58,8 @@ module.exports = {
         maxTokens: 1024,
         description: 'Development model with low temperature'
       }
-    }
-  }, execution: {
+    },
+  execution: {
     // Directory for execution logs
     logsDir: './execution-logs',
 
