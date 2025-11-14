@@ -267,9 +267,10 @@ export class ConfigManager {
    * Update configuration
    */
   updateConfig(updates: Partial<TheAgentConfig>): void {
-    if (this.config) {
-      this.config = this.mergeConfigs([this.config, updates]);
+    if (!this.config) {
+      throw new Error("ConfigManager: Cannot update config before it has been loaded. Please call loadConfig() first.");
     }
+    this.config = this.mergeConfigs([this.config, updates]);
   }
 
   /**
