@@ -1,4 +1,4 @@
-/**
+/*
  * Unified configuration type definitions for TheAgent
  */
 
