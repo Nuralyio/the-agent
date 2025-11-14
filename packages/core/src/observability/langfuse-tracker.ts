@@ -1,131 +1,82 @@
-import { Langfuse } from 'langfuse';
-import { ObservabilityConfig, LLMCallMetadata } from './types';
+import { CallbackHandler } from '@langfuse/langchain';
+import { ObservabilityConfig } from './types';
 
 /**
- * Langfuse tracker for LLM operations
+ * Langfuse tracker for LLM operations using official LangChain integration
+ * 
+ * Uses the official @langfuse/langchain CallbackHandler which automatically
+ * tracks all LangChain operations including LLM calls, chains, and agents.
+ * 
+ * The CallbackHandler reads credentials from environment variables:
+ * - LANGFUSE_PUBLIC_KEY
+ * - LANGFUSE_SECRET_KEY
+ * - LANGFUSE_BASEURL (optional)
  */
 export class LangfuseTracker {
-  private langfuse: Langfuse | null = null;
+  private callbackHandler: CallbackHandler | null = null;
   private config: ObservabilityConfig['langfuse'];
 
   constructor(config?: ObservabilityConfig['langfuse']) {
     this.config = config;
-    if (config?.enabled && config.publicKey && config.secretKey) {
+    if (config?.enabled) {
       this.initialize();
     }
   }
 
   /**
-   * Initialize Langfuse
+   * Initialize Langfuse CallbackHandler
+   * 
+   * The CallbackHandler automatically reads credentials from environment variables.
+   * We set them before initialization if provided in config.
    */
   private initialize(): void {
     try {
-      this.langfuse = new Langfuse({
-        publicKey: this.config!.publicKey!,
-        secretKey: this.config!.secretKey!,
-        baseUrl: this.config?.baseUrl,
-      });
+      // Set environment variables if provided in config
+      if (this.config?.publicKey) {
+        process.env.LANGFUSE_PUBLIC_KEY = this.config.publicKey;
+      }
+      if (this.config?.secretKey) {
+        process.env.LANGFUSE_SECRET_KEY = this.config.secretKey;
+      }
+      if (this.config?.baseUrl) {
+        process.env.LANGFUSE_BASEURL = this.config.baseUrl;
+      }
 
-      console.log('✅ Langfuse tracker initialized');
+      // Create the callback handler
+      this.callbackHandler = new CallbackHandler();
+
+      console.log('✅ Langfuse tracker initialized with official LangChain integration');
     } catch (error) {
       console.error('❌ Failed to initialize Langfuse tracker:', error);
     }
   }
 
   /**
-   * Track an LLM generation
+   * Get the LangChain callback handler for use in LLM calls
+   * 
+   * This handler should be passed to LangChain model.invoke() calls:
+   * ```typescript
+   * await model.invoke(messages, { callbacks: [langfuseTracker.getCallbackHandler()] });
+   * ```
    */
-  async trackGeneration(
-    metadata: LLMCallMetadata,
-    input: string,
-    output: string,
-    systemPrompt?: string
-  ): Promise<void> {
-    if (!this.langfuse) {
-      return;
-    }
-
-    try {
-      const trace = this.langfuse.trace({
-        name: `${metadata.provider}.${metadata.operation}`,
-        metadata: {
-          provider: metadata.provider,
-          model: metadata.model,
-          operation: metadata.operation,
-        },
-      });
-
-      trace.generation({
-        name: metadata.operation,
-        model: metadata.model,
-        modelParameters: {
-          temperature: 0.7, // This could be made configurable
-        },
-        input: systemPrompt ? [{ role: 'system', content: systemPrompt }, { role: 'user', content: input }] : input,
-        output: output,
-        usage: {
-          promptTokens: metadata.promptTokens,
-          completionTokens: metadata.completionTokens,
-          totalTokens: metadata.totalTokens,
-        },
-        metadata: {
-          latency: metadata.latency,
-          timestamp: metadata.timestamp.toISOString(),
-        },
-      });
-
-      // Flush to ensure data is sent
-      await this.langfuse.flushAsync();
-    } catch (error) {
-      console.error('❌ Failed to track LLM generation in Langfuse:', error);
-    }
+  getCallbackHandler(): CallbackHandler | null {
+    return this.callbackHandler;
   }
 
   /**
-   * Track an error
+   * Check if tracker is enabled
    */
-  async trackError(
-    metadata: LLMCallMetadata,
-    input: string,
-    error: Error
-  ): Promise<void> {
-    if (!this.langfuse) {
-      return;
-    }
-
-    try {
-      const trace = this.langfuse.trace({
-        name: `${metadata.provider}.${metadata.operation}.error`,
-        metadata: {
-          provider: metadata.provider,
-          model: metadata.model,
-          operation: metadata.operation,
-          error: error.message,
-        },
-      });
-
-      trace.event({
-        name: 'error',
-        input: input,
-        metadata: {
-          error: error.message,
-          stack: error.stack,
-          timestamp: metadata.timestamp.toISOString(),
-        },
-      });
-
-      await this.langfuse.flushAsync();
-    } catch (err) {
-      console.error('❌ Failed to track error in Langfuse:', err);
-    }
+  isEnabled(): boolean {
+    return this.callbackHandler !== null;
   }
 
   /**
-   * Shutdown Langfuse
+   * Shutdown Langfuse (no-op for this handler)
+   * 
+   * The CallbackHandler automatically flushes data asynchronously.
    */
   async shutdown(): Promise<void> {
-    if (this.langfuse) {
-      await this.langfuse.shutdownAsync();
+    if (this.callbackHandler) {
       console.log('✅ Langfuse tracker shut down');
     }
   }

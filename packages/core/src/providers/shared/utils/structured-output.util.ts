@@ -20,7 +20,8 @@ export class StructuredOutputUtil {
   async generateStructuredJSON(
     provider: AIProvider,
     prompt: string,
-    systemPrompt?: string
+    systemPrompt?: string,
+    callbacks?: any[]
   ): Promise<AIResponse> {
     // Get format instructions from the schema
     const formatInstructions = this.parser.getFormatInstructions();
@@ -34,8 +35,8 @@ export class StructuredOutputUtil {
     const enhancedPrompt = `${prompt}\n\n${formatInstructions}`;
 
     try {
-      // Use the provider's generateText method
-      const response = await provider.generateText(enhancedPrompt, enhancedSystemPrompt);
+      // Use the provider's generateText method with callbacks
+      const response = await provider.generateText(enhancedPrompt, enhancedSystemPrompt, callbacks);
 
       // Try to parse the structured output
       try {
@@ -43,11 +44,11 @@ export class StructuredOutputUtil {
         return this.createSuccessResponse(parsedOutput);
       } catch {
         // If parsing fails, try with fallback enhanced prompting
-        return this.generateWithFallback(provider, prompt, systemPrompt);
+        return this.generateWithFallback(provider, prompt, systemPrompt, callbacks);
       }
     } catch {
       // If generation fails, try with fallback enhanced prompting
-      return this.generateWithFallback(provider, prompt, systemPrompt);
+      return this.generateWithFallback(provider, prompt, systemPrompt, callbacks);
     }
   }
 
@@ -84,7 +85,8 @@ export class StructuredOutputUtil {
   private async generateWithFallback(
     provider: AIProvider,
     prompt: string,
-    systemPrompt?: string
+    systemPrompt?: string,
+    callbacks?: any[]
   ): Promise<AIResponse> {
     const enhancedSystemPrompt = systemPrompt
       ? `${systemPrompt}\n\nCRITICAL: You MUST respond with ONLY valid JSON. No markdown formatting, no code blocks, no comments, no explanations. Only raw JSON that can be parsed directly.`
@@ -92,7 +94,7 @@ export class StructuredOutputUtil {
 
     const enhancedPrompt = `${prompt}\n\nRemember: Respond with ONLY valid JSON that matches the required schema.`;
 
-    return provider.generateText(enhancedPrompt, enhancedSystemPrompt);
+    return provider.generateText(enhancedPrompt, enhancedSystemPrompt, callbacks);
   }
 
   private createSuccessResponse(parsedOutput: any): AIResponse {

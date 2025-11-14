@@ -45,13 +45,14 @@ export class OllamaProvider implements AIProvider {
     this.visionCapabilities = OllamaModelUtils.getVisionCapabilities(this.config.model);
   }
 
-  async generateText(prompt: string, systemPrompt?: string): Promise<AIResponse> {
+  async generateText(prompt: string, systemPrompt?: string, callbacks?: any[]): Promise<AIResponse> {
     const messages = buildMessages(prompt, systemPrompt);
-    const response = await this.model.invoke(messages);
+    const config = callbacks && callbacks.length > 0 ? { callbacks } : undefined;
+    const response = await this.model.invoke(messages, config);
     return formatAIResponse(response);
   }
 
-  async generateWithVision(prompt: string, images: Buffer[], systemPrompt?: string): Promise<AIResponse> {
+  async generateWithVision(prompt: string, images: Buffer[], systemPrompt?: string, callbacks?: any[]): Promise<AIResponse> {
     if (!this.visionCapabilities.supportsImages) {
       throw new Error(`Model ${this.config.model} does not support vision capabilities`);
     }
@@ -72,22 +73,24 @@ export class OllamaProvider implements AIProvider {
       ]
     }));
 
-    const response = await this.model.invoke(messages);
+    const config = callbacks && callbacks.length > 0 ? { callbacks } : undefined;
+    const response = await this.model.invoke(messages, config);
     return formatAIResponse(response);
   }
 
-  async generateFromMessages(messages: AIMessage[]): Promise<AIResponse> {
+  async generateFromMessages(messages: AIMessage[], callbacks?: any[]): Promise<AIResponse> {
     const langchainMessages = convertToLangChainMessages(messages);
-    const response = await this.model.invoke(langchainMessages);
+    const config = callbacks && callbacks.length > 0 ? { callbacks } : undefined;
+    const response = await this.model.invoke(langchainMessages, config);
     return formatAIResponse(response);
   }
 
-  async generateStructuredJSON(prompt: string, systemPrompt?: string): Promise<AIResponse> {
+  async generateStructuredJSON(prompt: string, systemPrompt?: string, callbacks?: any[]): Promise<AIResponse> {
     try {
-      return await this.structuredOutputUtil.generateStructuredJSON(this, prompt, systemPrompt);
+      return await this.structuredOutputUtil.generateStructuredJSON(this, prompt, systemPrompt, callbacks);
     } catch {
       // Fallback to enhanced text generation
-      return this.generateTextWithJsonFallback(prompt, systemPrompt);
+      return this.generateTextWithJsonFallback(prompt, systemPrompt, callbacks);
     }
   }
 
@@ -161,13 +164,13 @@ export class OllamaProvider implements AIProvider {
     return OllamaModelUtils.isModelAvailable(modelName, models);
   }
 
-  private async generateTextWithJsonFallback(prompt: string, systemPrompt?: string): Promise<AIResponse> {
+  private async generateTextWithJsonFallback(prompt: string, systemPrompt?: string, callbacks?: any[]): Promise<AIResponse> {
     const enhancedSystemPrompt = systemPrompt
       ? `${systemPrompt}\n\nCRITICAL: You MUST respond with ONLY valid JSON. No markdown formatting, no code blocks, no comments, no explanations. Only raw JSON that can be parsed directly.`
       : 'CRITICAL: You MUST respond with ONLY valid JSON. No markdown formatting, no code blocks, no comments, no explanations. Only raw JSON that can be parsed directly.';
 
     const enhancedPrompt = `${prompt}\n\nRemember: Respond with ONLY valid JSON. Example format: {"action": "click", "selector": "#button", "reasoning": "Need to click the submit button"}`;
 
-    return this.generateText(enhancedPrompt, enhancedSystemPrompt);
+    return this.generateText(enhancedPrompt, enhancedSystemPrompt, callbacks);
   }
 }

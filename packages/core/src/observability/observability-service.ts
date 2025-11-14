@@ -1,10 +1,15 @@
+import { CallbackHandler } from '@langfuse/langchain';
 import { AIResponse } from '../engine/ai-engine';
 import { LangfuseTracker } from './langfuse-tracker';
 import { OpenTelemetryTracer } from './opentelemetry-tracer';
-import { LLMCallMetadata, ObservabilityConfig } from './types';
+import { ObservabilityConfig } from './types';
 
 /**
  * Main observability service that coordinates OpenTelemetry and Langfuse
+ * 
+ * Uses official LangChain integrations:
+ * - @langfuse/langchain for automatic LLM call tracking
+ * - OpenTelemetry for distributed tracing
  */
 export class ObservabilityService {
   private openTelemetryTracer: OpenTelemetryTracer | null = null;
@@ -30,78 +35,51 @@ export class ObservabilityService {
   }
 
   /**
-   * Wrap an LLM call with observability
+   * Get LangChain callbacks for observability
+   * 
+   * Returns an array of callbacks to pass to LangChain model.invoke():
+   * ```typescript
+   * await model.invoke(messages, { callbacks: observability.getCallbacks() });
+   * ```
+   */
+  getCallbacks(): CallbackHandler[] {
+    const callbacks: CallbackHandler[] = [];
+
+    if (this.langfuseTracker?.isEnabled()) {
+      const handler = this.langfuseTracker.getCallbackHandler();
+      if (handler) {
+        callbacks.push(handler);
+      }
+    }
+
+    return callbacks;
+  }
+
+  /**
+   * Wrap an LLM call with OpenTelemetry tracing
+   * 
+   * Note: Langfuse tracking is handled via LangChain callbacks,
+   * this method only adds OpenTelemetry tracing.
    */
   async traceLLMCall<T extends AIResponse>(
     provider: string,
     model: string,
     operation: string,
-    input: string,
-    systemPrompt: string | undefined,
     llmCall: () => Promise<T>
   ): Promise<T> {
-    if (!this.enabled) {
+    if (!this.enabled || !this.openTelemetryTracer) {
       return llmCall();
     }
 
-    const startTime = Date.now();
-    const metadata: LLMCallMetadata = {
-      provider,
-      model,
-      operation,
-      timestamp: new Date(),
-    };
-
-    try {
-      // Wrap with OpenTelemetry if available
-      const executeCall = async () => {
-        return await llmCall();
-      };
-
-      const result = this.openTelemetryTracer
-        ? await this.openTelemetryTracer.traceOperation(
-            `llm.${provider}.${operation}`,
-            {
-              'llm.provider': provider,
-              'llm.model': model,
-              'llm.operation': operation,
-            },
-            executeCall
-          )
-        : await executeCall();
-
-      // Calculate metrics
-      const endTime = Date.now();
-      metadata.latency = endTime - startTime;
-      metadata.promptTokens = result.usage?.promptTokens;
-      metadata.completionTokens = result.usage?.completionTokens;
-      metadata.totalTokens = result.usage?.totalTokens;
-
-      // Track with Langfuse
-      if (this.langfuseTracker) {
-        await this.langfuseTracker.trackGeneration(
-          metadata,
-          input,
-          result.content,
-          systemPrompt
-        );
-      }
-
-      return result;
-    } catch (error) {
-      // Track error
-      metadata.error = error instanceof Error ? error.message : String(error);
-
-      if (this.langfuseTracker) {
-        await this.langfuseTracker.trackError(
-          metadata,
-          input,
-          error instanceof Error ? error : new Error(String(error))
-        );
-      }
-
-      throw error;
-    }
+    return this.openTelemetryTracer.traceOperation(
+      `llm.${provider}.${operation}`,
+      {
+        'llm.provider': provider,
+        'llm.model': model,
+        'llm.operation': operation,
+      },
+      llmCall
+    );
   }
 
   /**
@@ -109,6 +87,13 @@ export class ObservabilityService {
    */
   isEnabled(): boolean {
     return this.enabled;
+  }
+
+  /**
+   * Check if Langfuse is enabled
+   */
+  isLangfuseEnabled(): boolean {
+    return this.langfuseTracker?.isEnabled() ?? false;
   }
 
   /**

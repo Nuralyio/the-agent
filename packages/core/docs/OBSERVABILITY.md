@@ -5,10 +5,11 @@ The Agent supports comprehensive LLM observability through OpenTelemetry and Lan
 ## Features
 
 - **OpenTelemetry Tracing**: Distributed tracing for LLM operations
-- **Langfuse Tracking**: Detailed LLM generation tracking and analytics
-- **Token Usage Monitoring**: Track prompt and completion tokens
+- **Langfuse Tracking**: Official [@langfuse/langchain](https://www.npmjs.com/package/@langfuse/langchain) integration for automatic LLM call tracking
+- **Token Usage Monitoring**: Track prompt and completion tokens automatically
 - **Latency Metrics**: Monitor LLM call performance
 - **Error Tracking**: Capture and analyze LLM failures
+- **LangChain Native**: Uses LangChain's callback system for seamless integration
 
 ## Configuration
 
@@ -138,7 +139,7 @@ LANGFUSE_SECRET_KEY=sk-lf-...
 
 ## Tracked Metrics
 
-### Traces
+### OpenTelemetry Traces
 
 Each LLM operation creates a span with the following attributes:
 
@@ -146,16 +147,17 @@ Each LLM operation creates a span with the following attributes:
 - `llm.model`: Model name (e.g., "gpt-4", "llama3.2")
 - `llm.operation`: Operation type (e.g., "generateText", "generateStructuredJSON")
 
-### Metrics in Langfuse
+### Langfuse Metrics (via @langfuse/langchain)
 
-- **Token Usage**:
-  - Prompt tokens
-  - Completion tokens
-  - Total tokens
-- **Latency**: End-to-end LLM call duration
-- **Cost**: Automatically calculated based on model pricing
-- **Input/Output**: Full prompt and completion content
-- **Model Parameters**: Temperature, max tokens, etc.
+The official @langfuse/langchain CallbackHandler automatically tracks:
+
+- **Token Usage**: Prompt tokens, completion tokens, and total tokens
+- **Latency**: Start-to-finish LLM call duration
+- **Cost**: Automatically calculated based on model and usage
+- **Prompts & Completions**: Full message content and responses
+- **Model Metadata**: Model name, temperature, max tokens, and other parameters
+- **Chains & Agents**: Complete execution traces for LangChain workflows
+- **Errors**: Automatic error capture with stack traces
 
 ## Usage Example
 
@@ -217,6 +219,20 @@ OTEL_SERVICE_NAME=the-agent-dev
 OTEL_SERVICE_NAME=the-agent-prod
 ```
 
+## Implementation Details
+
+### LangChain Integration
+
+This implementation uses the **official [@langfuse/langchain](https://www.npmjs.com/package/@langfuse/langchain) package** which provides:
+
+- Automatic tracking of all LangChain operations
+- Native LangChain callback system integration
+- Zero-code instrumentation for LLM calls
+- Support for chains, agents, and tools
+- Automatic token counting and cost calculation
+
+The Langfuse CallbackHandler is automatically added to all LangChain model invocations when enabled.
+
 ## Troubleshooting
 
 ### OpenTelemetry Not Working
@@ -235,7 +251,7 @@ OTEL_SERVICE_NAME=the-agent-prod
 
 ### Langfuse Not Working
 
-1. Verify credentials are correct
+1. Verify credentials are correct (check environment variables or config)
 2. Check network connectivity to Langfuse
 3. Look for error messages in console:
    ```

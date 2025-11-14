@@ -51,23 +51,27 @@ export interface AIProvider {
 
   /**
    * Send a text-only prompt to the AI
+   * @param callbacks - Optional LangChain callbacks for observability
    */
-  generateText(prompt: string, systemPrompt?: string): Promise<AIResponse>;
+  generateText(prompt: string, systemPrompt?: string, callbacks?: any[]): Promise<AIResponse>;
 
   /**
    * Generate structured JSON response (optional - for providers that support it)
+   * @param callbacks - Optional LangChain callbacks for observability
    */
-  generateStructuredJSON?(prompt: string, systemPrompt?: string): Promise<AIResponse>;
+  generateStructuredJSON?(prompt: string, systemPrompt?: string, callbacks?: any[]): Promise<AIResponse>;
 
   /**
    * Send a multi-modal prompt (text + images) to the AI
+   * @param callbacks - Optional LangChain callbacks for observability
    */
-  generateWithVision?(prompt: string, images: Buffer[], systemPrompt?: string): Promise<AIResponse>;
+  generateWithVision?(prompt: string, images: Buffer[], systemPrompt?: string, callbacks?: any[]): Promise<AIResponse>;
 
   /**
    * Send a conversation with multiple messages
+   * @param callbacks - Optional LangChain callbacks for observability
    */
-  generateFromMessages(messages: AIMessage[]): Promise<AIResponse>;
+  generateFromMessages(messages: AIMessage[], callbacks?: any[]): Promise<AIResponse>;
 
   /**
    * Test if the provider is available/healthy
@@ -179,14 +183,15 @@ export class AIEngine {
     // Log the request
     this.aiLogger.logRequest('generateText', prompt, systemPrompt, provider.name);
 
-    // Wrap with observability
+    // Get observability callbacks for LangChain
+    const callbacks = this.observabilityService.getCallbacks();
+
+    // Wrap with OpenTelemetry tracing (Langfuse is handled via callbacks)
     const response = await this.observabilityService.traceLLMCall(
       provider.name,
       provider.config.model,
       'generateText',
-      prompt,
-      systemPrompt,
-      () => provider.generateText(prompt, systemPrompt)
+      () => provider.generateText(prompt, systemPrompt, callbacks)
     );
 
     // Log the response
@@ -204,17 +209,18 @@ export class AIEngine {
     // Log the request
     this.aiLogger.logRequest('generateStructuredJSON', prompt, systemPrompt, provider.name);
 
-    // Wrap with observability
+    // Get observability callbacks for LangChain
+    const callbacks = this.observabilityService.getCallbacks();
+
+    // Wrap with OpenTelemetry tracing (Langfuse is handled via callbacks)
     const response = await this.observabilityService.traceLLMCall(
       provider.name,
       provider.config.model,
       'generateStructuredJSON',
-      prompt,
-      systemPrompt,
       async () => {
         // Use provider's structured JSON method if available
         if (provider.generateStructuredJSON) {
-          return await provider.generateStructuredJSON(prompt, systemPrompt);
+          return await provider.generateStructuredJSON(prompt, systemPrompt, callbacks);
         } else {
           // Fallback to regular text generation with enhanced prompting
           const structuredJsonPrompt = this.promptTemplate.render('structured-json', {});
@@ -222,7 +228,7 @@ export class AIEngine {
             ? `${systemPrompt}\n\n${structuredJsonPrompt}`
             : structuredJsonPrompt;
 
-          return await provider.generateText(prompt, enhancedSystemPrompt);
+          return await provider.generateText(prompt, enhancedSystemPrompt, callbacks);
         }
       }
     );
@@ -245,14 +251,15 @@ export class AIEngine {
     // Log the request (with image info but not the actual image data)
     this.aiLogger.logVisionRequest('generateWithVision', prompt, systemPrompt, provider.name, images);
 
-    // Wrap with observability
+    // Get observability callbacks for LangChain
+    const callbacks = this.observabilityService.getCallbacks();
+
+    // Wrap with OpenTelemetry tracing (Langfuse is handled via callbacks)
     const response = await this.observabilityService.traceLLMCall(
       provider.name,
       provider.config.model,
       'generateWithVision',
-      prompt,
-      systemPrompt,
-      () => provider.generateWithVision!(prompt, images, systemPrompt)
+      () => provider.generateWithVision!(prompt, images, systemPrompt, callbacks)
     );
 
     // Log the response

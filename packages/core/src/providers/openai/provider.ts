@@ -52,13 +52,14 @@ export class OpenAIProvider implements AIProvider {
     this.visionCapabilities = OpenAIModelUtils.getVisionCapabilities(this.config.model);
   }
 
-  async generateText(prompt: string, systemPrompt?: string): Promise<AIResponse> {
+  async generateText(prompt: string, systemPrompt?: string, callbacks?: any[]): Promise<AIResponse> {
     const messages = buildMessages(prompt, systemPrompt);
-    const response = await this.model.invoke(messages);
+    const config = callbacks && callbacks.length > 0 ? { callbacks } : undefined;
+    const response = await this.model.invoke(messages, config);
     return formatAIResponse(response);
   }
 
-  async generateStructuredJSON(prompt: string, systemPrompt?: string): Promise<AIResponse> {
+  async generateStructuredJSON(prompt: string, systemPrompt?: string, callbacks?: any[]): Promise<AIResponse> {
     const messages = buildMessages(prompt, systemPrompt);
 
     // Use structured output with JSON mode
@@ -66,11 +67,12 @@ export class OpenAIProvider implements AIProvider {
       response_format: { type: 'json_object' }
     });
 
-    const response = await modelWithJsonMode.invoke(messages);
+    const config = callbacks && callbacks.length > 0 ? { callbacks } : undefined;
+    const response = await modelWithJsonMode.invoke(messages, config);
     return formatAIResponse(response);
   }
 
-  async generateWithVision(prompt: string, images: Buffer[], systemPrompt?: string): Promise<AIResponse> {
+  async generateWithVision(prompt: string, images: Buffer[], systemPrompt?: string, callbacks?: any[]): Promise<AIResponse> {
     if (!this.visionCapabilities.supportsImages) {
       throw new Error(`Model ${this.config.model} does not support vision capabilities`);
     }
@@ -103,13 +105,15 @@ export class OpenAIProvider implements AIProvider {
       content: contentParts
     }));
 
-    const response = await this.model.invoke(messages);
+    const config = callbacks && callbacks.length > 0 ? { callbacks } : undefined;
+    const response = await this.model.invoke(messages, config);
     return formatAIResponse(response);
   }
 
-  async generateFromMessages(messages: AIMessage[]): Promise<AIResponse> {
+  async generateFromMessages(messages: AIMessage[], callbacks?: any[]): Promise<AIResponse> {
     const langchainMessages = convertToLangChainMessages(messages);
-    const response = await this.model.invoke(langchainMessages);
+    const config = callbacks && callbacks.length > 0 ? { callbacks } : undefined;
+    const response = await this.model.invoke(langchainMessages, config);
     return formatAIResponse(response);
   }
 
