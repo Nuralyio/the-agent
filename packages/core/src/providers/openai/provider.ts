@@ -17,7 +17,7 @@ export class OpenAIProvider implements AIProvider {
   readonly visionCapabilities: VisionCapabilities;
 
   model: ChatOpenAI;
-  private structuredOutputUtil: StructuredOutputUtil;
+  structuredOutputUtil: StructuredOutputUtil;
 
   constructor(config: AIConfig) {
     if (!config.apiKey) {
