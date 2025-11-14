@@ -104,24 +104,138 @@ npm run install:browsers
 
 ### Configuration
 
-1. Copy the environment configuration file:
+The Agent uses a unified configuration system that discovers settings from
+multiple sources in order of precedence:
+
+1. **Environment variables** (highest precedence)
+2. **Configuration files** discovered hierarchically
+3. **Default values** (lowest precedence)
+
+#### Configuration Files
+
+Create a `theagent.config.js` file in your project root or any parent directory:
 
 ```bash
-cp .env.example .env
+# Copy the template and customize
+cp theagent.config.template.js theagent.config.js
 ```
 
-2. Configure your AI provider in `.env`:
+Example configuration:
+
+```javascript
+module.exports = {
+  browser: {
+    adapter: 'playwright',
+    type: 'chrome',
+    headless: false,
+    timeout: 30000,
+    retries: 3
+  },
+  llm: {
+    // Active profile selection
+    active: 'local',
+    
+    // Multiple LLM profiles
+    profiles: {
+      local: {
+        provider: 'ollama',
+        model: 'llama3:8b',
+        baseUrl: 'http://localhost:11434',
+        description: 'Local Ollama setup'
+      },
+      openai: {
+        provider: 'openai',
+        model: 'gpt-4o',
+        baseUrl: 'https://api.openai.com/v1',
+        // apiKey: process.env.OPENAI_API_KEY
+        description: 'OpenAI GPT-4o'
+      },
+      claude: {
+        provider: 'anthropic',
+        model: 'claude-3-sonnet',
+        // apiKey: process.env.ANTHROPIC_API_KEY
+        description: 'Anthropic Claude'
+      }
+    }
+  },
+  execution: {
+    logsDir: './execution-logs',
+    screenshotsDir: './screenshots',
+    screenshotOnError: true,
+  },
+};
+```
+
+#### Environment Variables
+
+Alternatively, use environment variables:
 
 ```bash
-# For local Ollama (recommended)
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=llama2
-OLLAMA_TEMPERATURE=0.3
-
-# Or use OpenAI
-OPENAI_API_KEY=your-api-key-here
-OPENAI_MODEL=gpt-3.5-turbo
+# Copy the template and customize
+cp .env.template .env
 ```
+
+Key environment variables:
+
+```bash
+# LLM Configuration with multiple profiles
+THEAGENT_LLM_ACTIVE=local  # Select which profile to use
+
+# Single profile from environment (backward compatibility)
+THEAGENT_LLM_PROFILE=env   # Profile name for env-based config
+THEAGENT_LLM_PROVIDER=ollama
+THEAGENT_LLM_MODEL=llama3:8b
+THEAGENT_LLM_BASE_URL=http://localhost:11434
+THEAGENT_LLM_API_KEY=your-api-key  # for cloud providers
+
+# Browser Configuration
+THEAGENT_ADAPTER=playwright
+THEAGENT_BROWSER=chrome
+THEAGENT_HEADLESS=false
+
+# Legacy AI format (still supported)
+THEAGENT_AI_PROVIDER=ollama
+THEAGENT_AI_MODEL=llama3:8b
+
+# Provider-specific keys
+OPENAI_API_KEY=your-openai-key
+ANTHROPIC_API_KEY=your-anthropic-key
+```
+
+> **⚠️ Security Note**: Configuration files and `.env` files are excluded from
+> git to prevent accidental exposure of API keys and sensitive data.
+
+#### Multiple LLM Profiles
+
+The new configuration system supports multiple LLM profiles, allowing you to easily switch between different providers and models:
+
+**Benefits:**
+- 🔄 **Easy Switching**: Switch between local and cloud models instantly
+- 🏷️ **Named Profiles**: Descriptive names for different use cases  
+- ⚙️ **Per-Profile Settings**: Different temperature/token settings per profile
+- 🔐 **Secure API Keys**: Keep sensitive keys in environment variables
+
+**Profile Management:**
+```javascript
+// In your application code
+const configManager = ConfigManager.getInstance();
+
+// List all profiles
+const profiles = configManager.listLLMProfiles();
+console.log('Available profiles:', profiles);
+
+// Switch profiles programmatically
+configManager.switchLLMProfile('openai');
+
+// Get current active profile
+const activeProfile = configManager.getActiveLLMProfile();
+```
+
+**Use Cases:**
+- **Development**: Use fast local models for development
+- **Production**: Switch to high-quality cloud models for production  
+- **Testing**: Use specific models for different test scenarios
+- **Cost Optimization**: Use cheaper models for simple tasks, premium for complex ones
 
 ### Development
 

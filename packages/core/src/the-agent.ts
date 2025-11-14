@@ -3,7 +3,8 @@ import 'reflect-metadata';
 import { BrowserAdapterRegistry } from './adapters/adapter-registry';
 import type { BrowserAdapter, LaunchOptions } from './adapters/interfaces';
 import { BrowserType } from './adapters/interfaces';
-import { container, DI_TOKENS, diContainer } from './di/container';
+import { ConfigManager } from './config/config-manager';
+import { container, DI_TOKENS } from './di/container';
 import { ActionEngine } from './engine/action-engine';
 import { AIEngine } from './engine/ai-engine';
 import { StepContextManager } from './engine/analysis/step-context';
@@ -11,7 +12,7 @@ import { Planner } from './engine/planning/planner';
 import type { PageState, TaskContext } from './engine/planning/types/types';
 import { BrowserManagerImpl } from './managers/browser-manager';
 import type { BrowserConfig } from './types/browser.types';
-import type { AIConfig, ExecutionOptions } from './types/config.types';
+import type { ExecutionOptions, TheAgentConfig } from './types/config.types';
 import type { TaskResult } from './types/task.types';
 import { ExecutionPlanExporter, type ExecutionPlanExport, type ExportOptions } from './utils/execution-plan-exporter';
 
@@ -27,31 +28,30 @@ export class TheAgent {
   private readonly browserManager: BrowserManagerImpl;
   private registry: BrowserAdapterRegistry;
   private config: BrowserConfig;
-  private readonly aiConfig?: AIConfig;
+  private readonly configManager: ConfigManager;
   private actionEngine?: ActionEngine;
   private aiEngine?: AIEngine;
 
-  constructor(config?: Partial<BrowserConfig & { ai?: AIConfig }>) {
-    if (config?.ai) {
-      diContainer.registerConfig(DI_TOKENS.AI_CONFIG, config.ai);
-    }
+  constructor(config?: Partial<TheAgentConfig>) {
+    this.configManager = ConfigManager.getInstance();
 
     this.setupDependencyInjection();
 
     this.browserManager = container.resolve(BrowserManagerImpl);
     this.registry = this.browserManager.getRegistry();
 
+    // Legacy browser config format for existing components
     this.config = {
       adapter: 'auto',
       browserType: BrowserType.CHROMIUM,
       headless: true,
       viewport: { width: 1280, height: 720 },
-      fallbackAdapters: ['playwright', 'puppeteer'],
-      ...config
+      fallbackAdapters: ['playwright', 'puppeteer']
     };
 
-    if (config?.ai) {
-      this.aiConfig = config.ai;
+    // Update config manager if partial config provided
+    if (config) {
+      this.configManager.updateConfig(config);
     }
   }
 
@@ -92,22 +92,35 @@ export class TheAgent {
     console.log('📄 Initial page created successfully');
     container.registerInstance(DI_TOKENS.BROWSER_MANAGER, this.browserManager);
 
-    if (this.aiConfig) {
-      console.log('🤖 Initializing AI engine with config:', this.aiConfig);
+    // Load unified configuration
+    const fullConfig = await this.configManager.loadConfig();
+    
+    // Get active LLM profile
+    const activeLLMProfile = this.configManager.getActiveLLMProfile();
+    
+    if (activeLLMProfile) {
+      console.log('🤖 Initializing AI engine with active LLM profile:', {
+        active: fullConfig.llm?.active,
+        provider: activeLLMProfile.provider,
+        model: activeLLMProfile.model
+      });
       this.aiEngine = container.resolve(AIEngine);
 
       const aiEngineConfig = {
-        ...this.aiConfig,
-        model: this.aiConfig.model || 'llama3.2'
+        ...activeLLMProfile,
+        model: activeLLMProfile.model || 'llama3.2'
       };
 
-      const providerName = this.aiConfig.provider || 'ollama';
+      const providerName = activeLLMProfile.provider || 'ollama';
       this.aiEngine.addProvider(providerName, aiEngineConfig);
       container.registerInstance(DI_TOKENS.AI_ENGINE, this.aiEngine);
       this.actionEngine = container.resolve(ActionEngine);
       console.log('✅ ActionEngine initialized successfully');
     } else {
-      console.log('⚠️  No AI configuration found, ActionEngine will not be available');
+      console.log('⚠️  No active LLM profile found, ActionEngine will not be available');
+      if (fullConfig.llm?.profiles) {
+        console.log('Available LLM profiles:', Object.keys(fullConfig.llm.profiles));
+      }
     }
   }
 

@@ -1,23 +1,4 @@
-export interface CLIConfig {
-  adapter: 'playwright' | 'puppeteer' | 'selenium';
-  browser: string;
-  headless: boolean;
-  timeout: number;
-  retries: number;
-  ai: {
-    provider: string;
-    model: string;
-    baseUrl?: string;
-    apiKey?: string;
-  };
-  screenshots: {
-    enabled: boolean;
-    path: string;
-  };
-  execution: {
-    logsDir: string;
-  };
-}
+export { TheAgentConfig as CLIConfig } from '@theagent/core/src/types/config.types';
 
 export interface RunOptions {
   adapter: 'playwright' | 'puppeteer' | 'selenium';

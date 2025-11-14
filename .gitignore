@@ -256,6 +256,18 @@ auth-config.json
 **/.env.local
 **/.env.*.local
 
+# Configuration files with sensitive data
+theagent.config.js
+theagent.config.json
+.theagentrc.js
+.theagentrc.json
+.theagentrc
+**/theagent.config.js
+**/theagent.config.json
+**/.theagentrc.js
+**/.theagentrc.json
+**/.theagentrc
+
 # ========================================
 # DOCUMENTATION & REPORTS
 # ========================================
