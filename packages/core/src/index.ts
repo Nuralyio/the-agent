@@ -14,6 +14,10 @@ export { AIEngine } from './engine/ai-engine';
 export { setPauseChecker } from './engine/execution/action-sequence-executor';
 export { Planner } from './engine/planning/planner';
 
+// Observability exports
+export { ObservabilityService } from './observability';
+export type { ObservabilityConfig, LLMCallMetadata } from './observability';
+
 export { ExecutionStream, executionStream } from './events/execution-stream';
 
 export { ExecutionPlanExporter } from './utils/execution-plan-exporter';

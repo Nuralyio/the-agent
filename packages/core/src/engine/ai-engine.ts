@@ -4,6 +4,7 @@ import { OllamaProvider, OpenAIProvider } from '../providers';
 import { AILogConfig, AILoggingService } from '../utils/logging';
 import { PromptTemplate } from '../utils/prompt-template';
 import { ActionStep, ActionType, PageState } from './planning/types/types';
+import { ObservabilityService, ObservabilityConfig, loadObservabilityConfig } from '../observability';
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -88,8 +89,9 @@ export class AIEngine {
   private defaultProvider?: AIProvider;
   private promptTemplate: PromptTemplate;
   private aiLogger: AILoggingService;
+  private observabilityService: ObservabilityService;
 
-  constructor() {
+  constructor(observabilityConfig?: ObservabilityConfig) {
     // Initialize with available providers
     this.promptTemplate = new PromptTemplate();
 
@@ -99,6 +101,11 @@ export class AIEngine {
       enableFileSystemLogging: process.env.AI_ENABLE_FILE_LOGGING === 'true' // Disabled by default, enable via env var
     };
     this.aiLogger = new AILoggingService(aiLogConfig);
+
+    // Initialize observability service
+    // Load from environment if not provided
+    const config = observabilityConfig || loadObservabilityConfig();
+    this.observabilityService = new ObservabilityService(config);
   }
 
   /**
@@ -172,7 +179,15 @@ export class AIEngine {
     // Log the request
     this.aiLogger.logRequest('generateText', prompt, systemPrompt, provider.name);
 
-    const response = await provider.generateText(prompt, systemPrompt);
+    // Wrap with observability
+    const response = await this.observabilityService.traceLLMCall(
+      provider.name,
+      provider.config.model,
+      'generateText',
+      prompt,
+      systemPrompt,
+      () => provider.generateText(prompt, systemPrompt)
+    );
 
     // Log the response
     this.aiLogger.logResponse('generateText', response, provider.name, prompt);
@@ -189,20 +204,28 @@ export class AIEngine {
     // Log the request
     this.aiLogger.logRequest('generateStructuredJSON', prompt, systemPrompt, provider.name);
 
-    let response: AIResponse;
+    // Wrap with observability
+    const response = await this.observabilityService.traceLLMCall(
+      provider.name,
+      provider.config.model,
+      'generateStructuredJSON',
+      prompt,
+      systemPrompt,
+      async () => {
+        // Use provider's structured JSON method if available
+        if (provider.generateStructuredJSON) {
+          return await provider.generateStructuredJSON(prompt, systemPrompt);
+        } else {
+          // Fallback to regular text generation with enhanced prompting
+          const structuredJsonPrompt = this.promptTemplate.render('structured-json', {});
+          const enhancedSystemPrompt = systemPrompt
+            ? `${systemPrompt}\n\n${structuredJsonPrompt}`
+            : structuredJsonPrompt;
 
-    // Use provider's structured JSON method if available
-    if (provider.generateStructuredJSON) {
-      response = await provider.generateStructuredJSON(prompt, systemPrompt);
-    } else {
-      // Fallback to regular text generation with enhanced prompting
-      const structuredJsonPrompt = this.promptTemplate.render('structured-json', {});
-      const enhancedSystemPrompt = systemPrompt
-        ? `${systemPrompt}\n\n${structuredJsonPrompt}`
-        : structuredJsonPrompt;
-
-      response = await this.generateText(prompt, enhancedSystemPrompt);
-    }
+          return await provider.generateText(prompt, enhancedSystemPrompt);
+        }
+      }
+    );
 
     // Log the response
     this.aiLogger.logResponse('generateStructuredJSON', response, provider.name, prompt);
@@ -222,7 +245,15 @@ export class AIEngine {
     // Log the request (with image info but not the actual image data)
     this.aiLogger.logVisionRequest('generateWithVision', prompt, systemPrompt, provider.name, images);
 
-    const response = await provider.generateWithVision(prompt, images, systemPrompt);
+    // Wrap with observability
+    const response = await this.observabilityService.traceLLMCall(
+      provider.name,
+      provider.config.model,
+      'generateWithVision',
+      prompt,
+      systemPrompt,
+      () => provider.generateWithVision!(prompt, images, systemPrompt)
+    );
 
     // Log the response
     this.aiLogger.logResponse('generateWithVision', response, provider.name, prompt);
@@ -346,5 +377,19 @@ export class AIEngine {
    */
   getAILogger(): AILoggingService {
     return this.aiLogger;
+  }
+
+  /**
+   * Get observability service
+   */
+  getObservabilityService(): ObservabilityService {
+    return this.observabilityService;
+  }
+
+  /**
+   * Shutdown AI Engine and cleanup resources
+   */
+  async shutdown(): Promise<void> {
+    await this.observabilityService.shutdown();
   }
 }
