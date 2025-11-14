@@ -42,7 +42,6 @@ export class PlanExecution {
       const subPlan = plan.subPlans[i];
 
       console.log(`📍 Executing sub-plan ${i + 1}/${plan.subPlans.length}: ${subPlan.objective}`);
-      console.log(`🎯 CRITICAL DEBUG: STARTING sub-plan ${i + 1} iteration`);
 
       context.currentSubPlanIndex = i;
 
@@ -158,12 +157,9 @@ export class PlanExecution {
    */
   private completeExecution(context: ExecutionContext): void {
     const overallSuccess = context.results.every(r => r.success);
-    console.log(`🎯 CRITICAL DEBUG: All sub-plans completed. Overall success: ${overallSuccess}`);
 
     try {
-      console.log(`🔍 DEBUG: About to call notifyExecutionComplete for plan`);
       executionStream.notifyExecutionComplete();
-      console.log(`✅ DEBUG: notifyExecutionComplete call completed for plan`);
     } catch (error) {
       console.error(`❌ ERROR in notifyExecutionComplete for execution plan:`, error);
     }
