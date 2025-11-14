@@ -17,7 +17,7 @@ export class OllamaProvider implements AIProvider {
   readonly config: AIConfig;
   readonly visionCapabilities: VisionCapabilities;
 
-  private model: ChatOllama;
+  model: ChatOllama;
   private structuredOutputUtil: StructuredOutputUtil;
 
   constructor(config: AIConfig) {
