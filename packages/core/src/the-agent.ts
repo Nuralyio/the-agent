@@ -137,7 +137,9 @@ export class TheAgent {
         provider: activeLLMProfile.provider,
         model: activeLLMProfile.model
       });
-      this.aiEngine = container.resolve(AIEngine);
+
+      // Pass observability config to AIEngine constructor
+      this.aiEngine = new AIEngine(activeLLMProfile.observability);
 
       const aiEngineConfig = {
         ...activeLLMProfile,
@@ -193,29 +195,88 @@ export class TheAgent {
   }
 
   async navigate(url: string): Promise<void> {
-    if (!this.browserManager.isReady()) {
-      await this.initialize();
-    }
+    // Track tool call with observability
+    const toolSpan = this.trackToolCall('browser_navigate', { url });
 
-    const currentPage = await this.browserManager.getCurrentPage();
-    if (!currentPage) {
-      throw new Error('No active page available');
-    }
+    try {
+      if (!this.browserManager.isReady()) {
+        await this.initialize();
+      }
 
-    await currentPage.navigate(url);
+      const currentPage = await this.browserManager.getCurrentPage();
+      if (!currentPage) {
+        throw new Error('No active page available');
+      }
+
+      await currentPage.navigate(url);
+
+      // End tool span with success
+      if (toolSpan) {
+        toolSpan.end({ output: { success: true, url } });
+      }
+    } catch (error) {
+      // End tool span with error
+      if (toolSpan) {
+        toolSpan.end({
+          level: 'ERROR',
+          statusMessage: error instanceof Error ? error.message : String(error)
+        });
+      }
+      throw error;
+    } finally {
+      // Flush traces
+      if (this.aiEngine) {
+        await this.aiEngine.getObservabilityService().flush();
+      }
+    }
   }
 
   async screenshot(options?: { path?: string; fullPage?: boolean }): Promise<Buffer> {
-    if (!this.browserManager.isReady()) {
-      await this.initialize();
-    }
+    // Track tool call with observability
+    const toolSpan = this.trackToolCall('browser_screenshot', {
+      path: options?.path,
+      fullPage: options?.fullPage
+    });
 
-    const currentPage = await this.browserManager.getCurrentPage();
-    if (!currentPage) {
-      throw new Error('No active page available');
-    }
+    try {
+      if (!this.browserManager.isReady()) {
+        await this.initialize();
+      }
 
-    return await currentPage.screenshot(options);
+      const currentPage = await this.browserManager.getCurrentPage();
+      if (!currentPage) {
+        throw new Error('No active page available');
+      }
+
+      const result = await currentPage.screenshot(options);
+
+      // End tool span with success
+      if (toolSpan) {
+        toolSpan.end({
+          output: {
+            success: true,
+            size: result.length,
+            path: options?.path
+          }
+        });
+      }
+
+      return result;
+    } catch (error) {
+      // End tool span with error
+      if (toolSpan) {
+        toolSpan.end({
+          level: 'ERROR',
+          statusMessage: error instanceof Error ? error.message : String(error)
+        });
+      }
+      throw error;
+    } finally {
+      // Flush traces
+      if (this.aiEngine) {
+        await this.aiEngine.getObservabilityService().flush();
+      }
+    }
   }
 
   async getTitle(): Promise<string> {
@@ -237,40 +298,164 @@ export class TheAgent {
   }
 
   async waitForElement(selector: string, timeout = 10000): Promise<void> {
-    const currentPage = await this.browserManager.getCurrentPage();
-    if (!currentPage) {
-      throw new Error('No active page available');
-    }
+    // Track tool call with observability
+    const toolSpan = this.trackToolCall('browser_wait', { selector, timeout });
 
-    await currentPage.waitForElement(selector, timeout);
+    try {
+      const currentPage = await this.browserManager.getCurrentPage();
+      if (!currentPage) {
+        throw new Error('No active page available');
+      }
+
+      await currentPage.waitForElement(selector, timeout);
+
+      // End tool span with success
+      if (toolSpan) {
+        toolSpan.end({ output: { success: true, selector, timeout } });
+      }
+    } catch (error) {
+      // End tool span with error
+      if (toolSpan) {
+        toolSpan.end({
+          level: 'ERROR',
+          statusMessage: error instanceof Error ? error.message : String(error)
+        });
+      }
+      throw error;
+    } finally {
+      // Flush traces
+      if (this.aiEngine) {
+        await this.aiEngine.getObservabilityService().flush();
+      }
+    }
   }
 
   async click(selector: string): Promise<void> {
-    const currentPage = await this.browserManager.getCurrentPage();
-    if (!currentPage) {
-      throw new Error('No active page available');
-    }
+    // Track tool call with observability
+    const toolSpan = this.trackToolCall('browser_click', { selector });
 
-    const element = await currentPage.findElement(selector);
-    if (!element) {
-      throw new Error(`Element not found: ${selector}`);
-    }
+    try {
+      const currentPage = await this.browserManager.getCurrentPage();
+      if (!currentPage) {
+        throw new Error('No active page available');
+      }
 
-    await element.click();
+      const element = await currentPage.findElement(selector);
+      if (!element) {
+        throw new Error(`Element not found: ${selector}`);
+      }
+
+      await element.click();
+
+      // End tool span with success
+      if (toolSpan) {
+        toolSpan.end({ output: { success: true, selector } });
+      }
+    } catch (error) {
+      // End tool span with error
+      if (toolSpan) {
+        toolSpan.end({
+          level: 'ERROR',
+          statusMessage: error instanceof Error ? error.message : String(error)
+        });
+      }
+      throw error;
+    } finally {
+      // Flush traces
+      if (this.aiEngine) {
+        await this.aiEngine.getObservabilityService().flush();
+      }
+    }
   }
 
   async type(selector: string, text: string): Promise<void> {
-    const currentPage = await this.browserManager.getCurrentPage();
-    if (!currentPage) {
-      throw new Error('No active page available');
+    // Track tool call with observability
+    const toolSpan = this.trackToolCall('browser_type', {
+      selector,
+      textLength: text.length
+    });
+
+    try {
+      const currentPage = await this.browserManager.getCurrentPage();
+      if (!currentPage) {
+        throw new Error('No active page available');
+      }
+
+      const element = await currentPage.findElement(selector);
+      if (!element) {
+        throw new Error(`Element not found: ${selector}`);
+      }
+
+      await element.type(text);
+
+      // End tool span with success
+      if (toolSpan) {
+        toolSpan.end({
+          output: {
+            success: true,
+            selector,
+            textLength: text.length
+          }
+        });
+      }
+    } catch (error) {
+      // End tool span with error
+      if (toolSpan) {
+        toolSpan.end({
+          level: 'ERROR',
+          statusMessage: error instanceof Error ? error.message : String(error)
+        });
+      }
+      throw error;
+    } finally {
+      // Flush traces
+      if (this.aiEngine) {
+        await this.aiEngine.getObservabilityService().flush();
+      }
+    }
+  }
+
+  /**
+   * Track a tool call with observability
+   * This is used when tools are called directly (e.g., from MCP)
+   */
+  private trackToolCall(toolName: string, input: Record<string, any>): any {
+    if (!this.aiEngine) {
+      return null;
     }
 
-    const element = await currentPage.findElement(selector);
-    if (!element) {
-      throw new Error(`Element not found: ${selector}`);
+    const observability = this.aiEngine.getObservabilityService();
+    if (!observability.isEnabled()) {
+      return null;
     }
 
-    await element.type(text);
+    // Try to get current trace from ActionEngine if available
+    let trace = null;
+    if (this.actionEngine && typeof (this.actionEngine as any).getCurrentTrace === 'function') {
+      trace = (this.actionEngine as any).getCurrentTrace();
+    }
+
+    // If no current trace, create a new one for standalone tool calls (not part of a task)
+    if (!trace) {
+      trace = observability.startTrace('agent-tool-call', {
+        toolName,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    if (!trace) {
+      return null;
+    }
+
+    // Track the tool call as a span within the existing trace (not a new trace)
+    return observability.trackToolCall(trace, {
+      name: toolName,
+      input,
+      metadata: {
+        source: 'agent',
+        timestamp: new Date().toISOString(),
+      },
+    });
   }
 
   getCurrentAdapter(): BrowserAdapter | null {
@@ -299,6 +484,16 @@ export class TheAgent {
     if (this.browserManager.isReady()) {
       await this.browserManager.closeBrowser();
     }
+    // Shutdown observability services to flush traces
+    await this.aiEngine?.shutdown();
+  }
+
+  /**
+   * Shutdown TheAgent and flush all observability traces
+   * Call this before your application exits to ensure traces are sent to Langfuse
+   */
+  async shutdown(): Promise<void> {
+    await this.close();
   }
 
   getBrowserManager(): BrowserManagerImpl {

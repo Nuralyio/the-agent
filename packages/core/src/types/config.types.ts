@@ -1,4 +1,6 @@
-/*
+import type { ObservabilityConfig } from '../observability';
+
+/**
  * Unified configuration type definitions for TheAgent
  */
 
@@ -29,6 +31,7 @@ export interface TheAgentConfig {
         temperature?: number;
         maxTokens?: number;
         description?: string;
+        observability?: ObservabilityConfig;
       };
     };
   };

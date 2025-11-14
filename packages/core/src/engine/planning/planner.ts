@@ -37,6 +37,7 @@ export class Planner {
   private aiEngine: AIEngine;
   private promptTemplate: PromptTemplate;
   private responseParser: ResponseParser;
+  private currentTrace: any = null; // Current trace for linking all operations
 
   constructor(
     @inject(DI_TOKENS.AI_ENGINE) aiEngine: AIEngine,
@@ -49,6 +50,17 @@ export class Planner {
     this.executionManager = new PlanExecution(this.subPlanService, undefined, stepContextManager);
     this.promptTemplate = new PromptTemplate();
     this.responseParser = new ResponseParser();
+  }
+
+  /**
+   * Set the current trace for linking all operations
+   */
+  setTrace(trace: any): void {
+    this.currentTrace = trace;
+    // Also set it in ActionPlanner
+    if (this.actionPlanner && typeof (this.actionPlanner as any).setTrace === 'function') {
+      (this.actionPlanner as any).setTrace(trace);
+    }
   }
 
   /**
@@ -218,7 +230,8 @@ export class Planner {
 
     console.log(`📋 Creating global plan for: "${instruction}"`);
 
-    const response = await this.aiEngine.generateText(userPrompt, systemPrompt);
+    // Use current trace if available
+    const response = await this.aiEngine.generateText(userPrompt, systemPrompt, this.currentTrace);
 
     return this.responseParser.parseGlobalPlanResponse(response.content, instruction);
   }

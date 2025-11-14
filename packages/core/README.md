@@ -18,6 +18,7 @@ The heart of TheAgent - a sophisticated browser automation framework that combin
 - **Vision Capabilities** - Screenshot analysis and visual element detection
 - **Structured Output** - JSON schema validation for reliable responses
 - **Smart Planning** - AI-powered execution planning and adaptation
+- **LLM Observability** - OpenTelemetry and Langfuse integration for monitoring
 
 ### 🌐 **Cross-Platform Browser Support**
 - **Chrome/Chromium** - Full feature support
@@ -290,7 +291,10 @@ MIT License - see [LICENSE](../../LICENSE) for details.
 
 ## 📖 Documentation
 
-For comprehensive documentation, examples, and tutorials, visit the [main project documentation](../../docs/).
+For comprehensive documentation, examples, and tutorials, visit:
+
+- [Main Project Documentation](../../docs/)
+- [LLM Observability Guide](./docs/OBSERVABILITY.md) - OpenTelemetry and Langfuse integration
 
 ---
 

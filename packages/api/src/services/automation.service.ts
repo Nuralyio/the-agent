@@ -38,12 +38,13 @@ export class AutomationService {
         const taskId = uuidv4();
         const sessionId = uuidv4();
 
+        // Pass taskId as sessionName for unique trace per request
         const automationConfig = {
             adapter: engine,
             browserType: BrowserType.CHROMIUM,
             viewport: { width: 1280, height: 720 },
             ...options,
-            ai: configService.getAIConfig(aiProvider)
+            ai: configService.getAIConfig(aiProvider, taskId)
         };
 
         const automation = new TheAgent(automationConfig);

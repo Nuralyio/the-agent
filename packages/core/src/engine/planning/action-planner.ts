@@ -24,6 +24,7 @@ export class ActionPlanner {
   private contentExtractor: ContentExtractor;
   private planBuilder: PlanBuilder;
   private promptTemplate: PromptTemplate;
+  private currentTrace: any = null; // Current trace for linking all operations
 
   constructor(aiEngine: AIEngine) {
     this.aiService = new AIService(aiEngine);
@@ -31,6 +32,13 @@ export class ActionPlanner {
     this.contentExtractor = new ContentExtractor();
     this.planBuilder = new PlanBuilder();
     this.promptTemplate = new PromptTemplate();
+  }
+
+  /**
+   * Set the current trace for linking all operations
+   */
+  setTrace(trace: any): void {
+    this.currentTrace = trace;
   }
 
   extractStructuredContentFromPage(pageContent: string): any {
@@ -105,7 +113,7 @@ export class ActionPlanner {
     });
 
     try {
-      const response = await this.aiService.generateStructuredResponse(userPrompt, '');
+      const response = await this.aiService.generateStructuredResponse(userPrompt, '', this.currentTrace);
       const parsed = JSON.parse(response);
       return this.responseParser.convertStructuredResponse(parsed);
 
@@ -117,8 +125,9 @@ export class ActionPlanner {
   }
 
   private async parseInstructionWithTextFallback(instruction: string, userPrompt: string): Promise<ParsedInstruction> {
+    // Use current trace for fallback as well
     try {
-      const response = await this.aiService.generateTextWithRetries(userPrompt, '');
+      const response = await this.aiService.generateTextWithRetries(userPrompt, '', this.currentTrace);
       return this.responseParser.parseTextResponse(response);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -207,7 +216,7 @@ export class ActionPlanner {
     return contextLines.join('\n');
   }
 
-  
+
   async adaptPlan(currentPlan: ActionPlan, currentState: PageState): Promise<ActionPlan> {
     try {
       const systemPrompt = await this.promptTemplate.render('plan-adaptation', {});
@@ -219,7 +228,7 @@ export class ActionPlanner {
         pageContent: currentState.content || 'No content available'
       });
 
-      const response = await this.aiService.generateTextWithRetries(adaptPrompt, systemPrompt);
+      const response = await this.aiService.generateTextWithRetries(adaptPrompt, systemPrompt, this.currentTrace);
       const adaptedInstruction = this.responseParser.parseTextResponse(response);
 
       return this.planBuilder.buildAdaptedPlan(
