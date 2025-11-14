@@ -68,7 +68,42 @@ export class TheAgent {
     container.registerSingleton(DI_TOKENS.STEP_CONTEXT_MANAGER, StepContextManager);
   }
 
+  /**
+   * Convert browser type string to BrowserType enum
+   */
+  private convertToBrowserType(type: string): BrowserType {
+    switch (type?.toLowerCase()) {
+      case 'chrome':
+      case 'chromium':
+        return BrowserType.CHROMIUM;
+      case 'firefox':
+        return BrowserType.FIREFOX;
+      case 'safari':
+        return BrowserType.WEBKIT;
+      case 'edge':
+        return BrowserType.CHROMIUM; // Edge uses Chromium
+      default:
+        return BrowserType.CHROMIUM; // Default fallback
+    }
+  }
+
   async initialize(): Promise<void> {
+    // Load unified configuration first
+    const fullConfig = await this.configManager.loadConfig();
+
+    // Apply browser configuration from unified config
+    if (fullConfig.browser) {
+      this.config = {
+        ...this.config,
+        adapter: fullConfig.browser.adapter || this.config.adapter,
+        browserType: this.convertToBrowserType(fullConfig.browser.type),
+        headless: fullConfig.browser.headless !== undefined ? fullConfig.browser.headless : this.config.headless,
+        viewport: fullConfig.browser.viewport || this.config.viewport,
+        timeout: fullConfig.browser.timeout || this.config.timeout,
+        retries: fullConfig.browser.retries || this.config.retries
+      };
+    }
+
     if (this.config.adapter === 'auto') {
       const adapter = await this.registry.autoSelectAdapter({
         browserType: this.config.browserType,
@@ -79,7 +114,7 @@ export class TheAgent {
     }
 
     const launchOptions: LaunchOptions = {
-      headless: this.config.headless || false,
+      headless: this.config.headless,
       viewport: this.config.viewport
     };
 
@@ -92,9 +127,6 @@ export class TheAgent {
     await this.browserManager.createPage();
     console.log('📄 Initial page created successfully');
     container.registerInstance(DI_TOKENS.BROWSER_MANAGER, this.browserManager);
-
-    // Load unified configuration
-    const fullConfig = await this.configManager.loadConfig();
 
     // Get active LLM profile
     const activeLLMProfile = this.configManager.getActiveLLMProfile();
