@@ -6,22 +6,26 @@
  * how to use TheAgent for simple automation tasks.
  *
  * Prerequisites:
- *   - Configure an AI provider via environment variables, for example:
- *       export AGENT_AI_PROVIDER=ollama
- *       export AGENT_AI_MODEL=llama3.2
- *       export AGENT_AI_BASE_URL=http://localhost:11434
+ *   - Create a .env file in the packages/core directory with:
+ *       AGENT_AI_PROVIDER=ollama
+ *       AGENT_AI_MODEL=qwen3:8b
+ *       AGENT_AI_BASE_URL=http://100.115.253.119:11434
  *
  * Run with:
  *   cd packages/core
  *   npx ts-node examples/simple-test-example.ts
  */
 
+import dotenv from 'dotenv';
 import { BrowserType, TheAgent } from '../src/';
 
+// Load environment variables from .env file
+dotenv.config();
+
 function buildAIConfig(): any {
-  const provider = 'ollama';
-  const model = 'qwen3:8b';
-  const baseUrl = "http://100.115.253.119:11434";
+  const provider = process.env.AGENT_AI_PROVIDER || 'ollama';
+  const model = process.env.AGENT_AI_MODEL || 'qwen3:8b';
+  const baseUrl = process.env.AGENT_AI_BASE_URL || "http://localhost:11434";
 
   const config: any = {
     provider,
@@ -31,6 +35,10 @@ function buildAIConfig(): any {
   if (baseUrl) {
     config.baseUrl = baseUrl;
   }
+
+  console.log(`🤖 Using AI Provider: ${provider}`);
+  console.log(`🧠 Using Model: ${model}`);
+  console.log(`🌐 Using Base URL: ${baseUrl}`);
 
   return config;
 }
