@@ -7,6 +7,7 @@ import { ActionPlanner } from '../planning/action-planner';
 import { ActionPlan, ActionStep, PageState } from '../planning/types/types';
 import { ActionExecutor } from './action-executor';
 import { StepRefinementManager } from './step-refinement';
+import { AIEngine } from '../ai-engine';
 
 /**
  * Global pause checker for automation coordination
@@ -33,12 +34,15 @@ async function checkForPause(): Promise<void> {
  * Manages the execution of action plans with dynamic refinement and context awareness
  */
 export class ActionSequenceExecutor {
+  private currentTrace: any = null;
+
   constructor(
     private browserManager: BrowserManager,
     private actionPlanner: ActionPlanner,
     private stepContextManager: StepContextManager,
     private actionExecutor: ActionExecutor,
-    private stepRefinementManager: StepRefinementManager
+    private stepRefinementManager: StepRefinementManager,
+    private aiEngine?: AIEngine
   ) {
   }
 
@@ -50,6 +54,18 @@ export class ActionSequenceExecutor {
     const executedSteps: any[] = [];
     const screenshots: Buffer[] = [];
     let currentPlan = plan;
+
+    // Start trace for agent tool calls (action steps)
+    if (this.aiEngine) {
+      const observability = this.aiEngine.getObservabilityService();
+      if (observability.isEnabled()) {
+        this.currentTrace = observability.startTrace('agent-action-plan', {
+          planId: plan.id,
+          objective: plan.objective,
+          stepCount: plan.steps.length,
+        });
+      }
+    }
 
     console.log(`🚀 Executing ${currentPlan.steps.length} steps with context-aware refinement`);
 
@@ -134,6 +150,29 @@ export class ActionSequenceExecutor {
 
         executionStream.notifyStepStart(i, currentPlan.steps[i]!);
 
+        // Track agent tool call (action step execution)
+        let toolSpan: any = null;
+        if (this.currentTrace && this.aiEngine) {
+          const observability = this.aiEngine.getObservabilityService();
+          if (observability.isEnabled()) {
+            toolSpan = observability.trackToolCall(this.currentTrace, {
+              name: `agent-action-${step.type}`,
+              input: {
+                stepType: step.type,
+                description: step.description,
+                target: step.target,
+                value: step.value,
+                stepIndex: i + 1,
+                totalSteps: currentPlan.steps.length,
+              },
+              metadata: {
+                source: 'agent',
+                planId: currentPlan.id,
+              },
+            });
+          }
+        }
+
         const contextForRetry = this.stepContextManager.getCurrentContext(i, currentPlan.steps.length);
         const stepResult = await this.stepRefinementManager.executeStepWithRetry(
           currentPlan.steps[i]!,
@@ -142,6 +181,18 @@ export class ActionSequenceExecutor {
           3,
           (step: ActionStep) => this.actionExecutor.executeStep(step)
         );
+
+        // End tool span with result
+        if (toolSpan) {
+          toolSpan.end({
+            output: {
+              success: stepResult.success,
+              error: stepResult.error,
+            },
+            level: stepResult.success ? undefined : 'ERROR',
+            statusMessage: stepResult.error,
+          });
+        }
 
         let pageStateAfter: PageState;
         try {

@@ -54,6 +54,7 @@ export class ActionEngine implements IActionEngine {
       this.stepContextManager,
       this.actionExecutor,
       this.stepRefinementManager,
+      aiEngine // Pass AIEngine for observability
     );
 
     this.planner.setActionExecutor(this.actionExecutor);

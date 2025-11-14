@@ -183,11 +183,81 @@ export class AIEngine {
     // Log the request
     this.aiLogger.logRequest('generateText', prompt, systemPrompt, provider.name);
 
-    // Get observability callbacks for LangChain
-    const callbacks = this.observabilityService.getCallbacks();
+    // Manual tracing with Langfuse
+    const trace = this.observabilityService.startTrace('generateText', {
+      provider: provider.name,
+      model: provider.config.model,
+    });
 
-    // Execute with callbacks - tracing handled by LangChain CallbackHandler
-    const response = await provider.generateText(prompt, systemPrompt, callbacks);
+    const generation = trace ? this.observabilityService.createGeneration(trace, {
+      name: 'generateText',
+      model: `${provider.name}:${provider.config.model}`,
+      modelParameters: {
+        temperature: provider.config.temperature,
+        maxTokens: provider.config.maxTokens,
+      },
+      input: {
+        prompt,
+        systemPrompt,
+      },
+    }) : null;
+
+    const startTime = Date.now();
+    let response: AIResponse;
+    let error: Error | null = null;
+
+    try {
+      // Execute without callbacks (using manual tracing instead)
+      response = await provider.generateText(prompt, systemPrompt, []);
+
+      // Update generation with output
+      if (generation) {
+        const duration = Date.now() - startTime;
+        generation.end({
+          output: response.content,
+          usage: response.usage,
+          metadata: {
+            finishReason: response.finishReason,
+            duration,
+          },
+        });
+
+        // Track tool calls if the LLM requested them
+        if (response.finishReason === 'tool_calls' && trace) {
+          const toolCallSpan = this.observabilityService.trackToolCall(trace, {
+            name: 'llm-tool-call-request',
+            input: {
+              content: response.content,
+              finishReason: response.finishReason,
+            },
+            metadata: {
+              source: 'llm',
+              provider: provider.name,
+              model: provider.config.model,
+            },
+          });
+          // Tool call will be executed separately, so we just mark it as requested
+          if (toolCallSpan) {
+            toolCallSpan.end({
+              output: { status: 'tool_calls_requested' },
+              metadata: { note: 'Tool calls will be executed by agent' },
+            });
+          }
+        }
+      }
+    } catch (err) {
+      error = err instanceof Error ? err : new Error(String(err));
+      if (generation) {
+        generation.end({
+          level: 'ERROR',
+          statusMessage: error.message,
+        });
+      }
+      throw err;
+    } finally {
+      // Flush traces
+      await this.observabilityService.flush();
+    }
 
     // Log the response
     this.aiLogger.logResponse('generateText', response, provider.name, prompt);
@@ -204,21 +274,67 @@ export class AIEngine {
     // Log the request
     this.aiLogger.logRequest('generateStructuredJSON', prompt, systemPrompt, provider.name);
 
-    // Get observability callbacks for LangChain
-    const callbacks = this.observabilityService.getCallbacks();
+    // Manual tracing with Langfuse
+    const trace = this.observabilityService.startTrace('generateStructuredJSON', {
+      provider: provider.name,
+      model: provider.config.model,
+    });
 
-    // Execute with callbacks - tracing handled by LangChain CallbackHandler
+    const generation = trace ? this.observabilityService.createGeneration(trace, {
+      name: 'generateStructuredJSON',
+      model: `${provider.name}:${provider.config.model}`,
+      modelParameters: {
+        temperature: provider.config.temperature,
+        maxTokens: provider.config.maxTokens,
+      },
+      input: {
+        prompt,
+        systemPrompt,
+      },
+    }) : null;
+
+    const startTime = Date.now();
     let response: AIResponse;
-    if (provider.generateStructuredJSON) {
-      response = await provider.generateStructuredJSON(prompt, systemPrompt, callbacks);
-    } else {
-      // Fallback to regular text generation with enhanced prompting
-      const structuredJsonPrompt = this.promptTemplate.render('structured-json', {});
-      const enhancedSystemPrompt = systemPrompt
-        ? `${systemPrompt}\n\n${structuredJsonPrompt}`
-        : structuredJsonPrompt;
+    let error: Error | null = null;
 
-      response = await provider.generateText(prompt, enhancedSystemPrompt, callbacks);
+    try {
+      // Execute without callbacks (using manual tracing instead)
+      if (provider.generateStructuredJSON) {
+        response = await provider.generateStructuredJSON(prompt, systemPrompt, []);
+      } else {
+        // Fallback to regular text generation with enhanced prompting
+        const structuredJsonPrompt = this.promptTemplate.render('structured-json', {});
+        const enhancedSystemPrompt = systemPrompt
+          ? `${systemPrompt}\n\n${structuredJsonPrompt}`
+          : structuredJsonPrompt;
+
+        response = await provider.generateText(prompt, enhancedSystemPrompt, []);
+      }
+
+      // Update generation with output
+      if (generation) {
+        const duration = Date.now() - startTime;
+        generation.end({
+          output: response.content,
+          usage: response.usage,
+          metadata: {
+            finishReason: response.finishReason,
+            duration,
+          },
+        });
+      }
+    } catch (err) {
+      error = err instanceof Error ? err : new Error(String(err));
+      if (generation) {
+        generation.end({
+          level: 'ERROR',
+          statusMessage: error.message,
+        });
+      }
+      throw err;
+    } finally {
+      // Flush traces
+      await this.observabilityService.flush();
     }
 
     // Log the response
@@ -239,11 +355,60 @@ export class AIEngine {
     // Log the request (with image info but not the actual image data)
     this.aiLogger.logVisionRequest('generateWithVision', prompt, systemPrompt, provider.name, images);
 
-    // Get observability callbacks for LangChain
-    const callbacks = this.observabilityService.getCallbacks();
+    // Manual tracing with Langfuse
+    const trace = this.observabilityService.startTrace('generateWithVision', {
+      provider: provider.name,
+      model: provider.config.model,
+      imageCount: images.length,
+    });
 
-    // Execute with callbacks - tracing handled by LangChain CallbackHandler
-    const response = await provider.generateWithVision(prompt, images, systemPrompt, callbacks);
+    const generation = trace ? this.observabilityService.createGeneration(trace, {
+      name: 'generateWithVision',
+      model: `${provider.name}:${provider.config.model}`,
+      modelParameters: {
+        temperature: provider.config.temperature,
+        maxTokens: provider.config.maxTokens,
+      },
+      input: {
+        prompt,
+        systemPrompt,
+        imageCount: images.length,
+      },
+    }) : null;
+
+    const startTime = Date.now();
+    let response: AIResponse;
+    let error: Error | null = null;
+
+    try {
+      // Execute without callbacks (using manual tracing instead)
+      response = await provider.generateWithVision(prompt, images, systemPrompt, []);
+
+      // Update generation with output
+      if (generation) {
+        const duration = Date.now() - startTime;
+        generation.end({
+          output: response.content,
+          usage: response.usage,
+          metadata: {
+            finishReason: response.finishReason,
+            duration,
+          },
+        });
+      }
+    } catch (err) {
+      error = err instanceof Error ? err : new Error(String(err));
+      if (generation) {
+        generation.end({
+          level: 'ERROR',
+          statusMessage: error.message,
+        });
+      }
+      throw err;
+    } finally {
+      // Flush traces
+      await this.observabilityService.flush();
+    }
 
     // Log the response
     this.aiLogger.logResponse('generateWithVision', response, provider.name, prompt);
