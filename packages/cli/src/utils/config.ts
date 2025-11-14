@@ -1,76 +1,14 @@
-import fs from 'fs/promises';
-import path from 'path';
+import { ConfigManager } from '@theagent/core/src/config/config-manager';
 import { CLIConfig } from '../types';
 
-const defaultConfig: CLIConfig = {
-  adapter: 'playwright',
-  browser: 'chrome',
-  headless: false,
-  timeout: 10000,
-  retries: 3,
-  ai: {
-    provider: 'openai',
-    model: 'gpt-4o',
-    baseUrl: 'https://api.openai.com/v1'
-  },
-  screenshots: {
-    enabled: true,
-    path: './screenshots'
-  },
-  execution: {
-    logsDir: './execution-logs'
-  }
-};
-
 export async function loadConfig(configPath?: string): Promise<CLIConfig> {
-  const configFile = configPath || findConfigFile();
-
-  if (!configFile) {
-    return defaultConfig;
-  }
-
-  try {
-    const configContent = await fs.readFile(configFile, 'utf-8');
-    let config: CLIConfig;
-
-    if (configFile.endsWith('.json')) {
-      config = JSON.parse(configContent);
-    } else {
-      // For .js files, we need to require them
-      delete require.cache[path.resolve(configFile)];
-      config = require(path.resolve(configFile));
-    }
-
-    return { ...defaultConfig, ...config };
-  } catch (error) {
-    console.warn(`Warning: Could not load config from ${configFile}, using defaults`);
-    return defaultConfig;
-  }
-}
-
-function findConfigFile(): string | null {
-  const possiblePaths = [
-    'theagent.config.js',
-    'theagent.config.json',
-    '.theagentrc.js',
-    '.theagentrc.json'
-  ];
-
-  for (const configPath of possiblePaths) {
-    try {
-      require.resolve(path.resolve(configPath));
-      return configPath;
-    } catch {
-      // File doesn't exist, continue
-    }
-  }
-
-  return null;
+  const configManager = ConfigManager.getInstance();
+  return await configManager.loadConfig(configPath ? require('path').dirname(configPath) : undefined);
 }
 
 export async function saveConfig(config: Partial<CLIConfig>, configPath = 'theagent.config.js'): Promise<void> {
-  const fullConfig = { ...defaultConfig, ...config };
-  const configContent = `module.exports = ${JSON.stringify(fullConfig, null, 2)};`;
+  const fs = require('fs/promises');
+  const configContent = `module.exports = ${JSON.stringify(config, null, 2)};`;
   await fs.writeFile(configPath, configContent);
 }
 

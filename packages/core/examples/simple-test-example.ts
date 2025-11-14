@@ -1,56 +1,45 @@
 /**
  * Simple Browser Test Example
  *
- * Demonstrates basic browser automation without accessibility features.
+ * Demonstrates basic browser automation with unified configuration.
  * This example opens a webpage, performs basic interactions, and shows
- * how to use TheAgent for simple automation tasks.
+ * how to use TheAgent with the new unified configuration system.
  *
  * Prerequisites:
- *   - Create a .env file in the packages/core directory with:
- *       AGENT_AI_PROVIDER=ollama
- *       AGENT_AI_MODEL=qwen3:8b
- *       AGENT_AI_BASE_URL=http://100.115.253.119:11434
+ *   - Create a theagent.config.js file in any parent directory with:
+ *       module.exports = {
+ *         browser: {
+ *           adapter: 'playwright',
+ *           type: 'chrome',
+ *           headless: false
+ *         },
+ *         llm: {
+ *           active: 'ollama',
+ *           profiles: {
+ *             ollama: {
+ *               provider: 'ollama',
+ *               model: 'qwen3:8b',
+ *               baseUrl: 'http://100.115.253.119:11434'
+ *             }
+ *           }
+ *         }
+ *       THEAGENT_LLM_PROFILES_OLLAMA_BASE_URL=http://100.115.253.119:11434
  *
  * Run with:
  *   cd packages/core
  *   npx ts-node examples/simple-test-example.ts
  */
 
-import dotenv from 'dotenv';
-import { BrowserType, TheAgent } from '../src/';
-
-// Load environment variables from .env file
-dotenv.config();
-
-function buildAIConfig(): any {
-  const provider = process.env.AGENT_AI_PROVIDER || 'ollama';
-  const model = process.env.AGENT_AI_MODEL || 'qwen3:8b';
-  const baseUrl = process.env.AGENT_AI_BASE_URL || "http://localhost:11434";
-
-  const config: any = {
-    provider,
-    model
-  };
-
-  if (baseUrl) {
-    config.baseUrl = baseUrl;
-  }
-
-  console.log(`🤖 Using AI Provider: ${provider}`);
-  console.log(`🧠 Using Model: ${model}`);
-  console.log(`🌐 Using Base URL: ${baseUrl}`);
-
-  return config;
-}
+import { TheAgent } from '../src/';
 
 async function run() {
   console.log('🚀 Starting simple browser test...');
 
-  const agent = new TheAgent({
-    browserType: BrowserType.CHROMIUM,
-    headless: false,
-    ai: buildAIConfig()
-  });
+  // TheAgent will automatically discover configuration from:
+  // 1. theagent.config.js in current directory or parent directories
+  // 2. Environment variables (THEAGENT_*)
+  // 3. Default values
+  const agent = new TheAgent();
 
   try {
     console.log('📖 Initializing browser...');
@@ -59,7 +48,7 @@ async function run() {
     console.log('🌐 Navigating to example page...');
 
     // Navigate to a simple test page
-    await agent.navigate('https://example.com');
+    await agent.execute('https://example.com');
 
     console.log('✅ Successfully navigated to example.com');
 

@@ -120,6 +120,7 @@ export class OllamaProvider implements AIProvider {
       return data.models.map(model => model.name);
     } catch (error) {
       console.warn('Failed to fetch models from Ollama API:', error);
+      return [];
     }
   }
 
