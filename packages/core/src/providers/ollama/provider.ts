@@ -120,6 +120,8 @@ export class OllamaProvider implements AIProvider {
       return data.models.map(model => model.name);
     } catch (error) {
       console.warn('Failed to fetch models from Ollama API:', error);
+      // Fallback to common models if API call fails
+      return ['llama2', 'llama3', 'llama3.1', 'mistral', 'codellama'];
     }
   }
 

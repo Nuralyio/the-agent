@@ -4,7 +4,7 @@ import { AIConfig, AIMessage, AIProvider, AIResponse, VisionCapabilities } from 
 import { BrowserActionSchema } from '../shared/schemas/browser-action.schema';
 import { buildMessages, convertToLangChainMessages } from '../shared/utils/message-utils';
 import { formatAIResponse } from '../shared/utils/response-utils';
-import { createStructuredOutputUtil } from '../shared/utils/structured-output.util';
+import { createStructuredOutputUtil, StructuredOutputUtil } from '../shared/utils/structured-output.util';
 import { OpenAIModelUtils } from './utils';
 
 /**
@@ -17,6 +17,7 @@ export class OpenAIProvider implements AIProvider {
   readonly visionCapabilities: VisionCapabilities;
 
   model: ChatOpenAI;
+  private structuredOutputUtil: StructuredOutputUtil;
 
   constructor(config: AIConfig) {
     if (!config.apiKey) {

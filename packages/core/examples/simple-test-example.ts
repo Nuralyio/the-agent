@@ -59,7 +59,7 @@ async function run() {
     console.log('🌐 Navigating to example page...');
 
     // Navigate to a simple test page
-    await agent.navigate('https://example.com');
+    await agent.execute('https://example.com');
 
     console.log('✅ Successfully navigated to example.com');
 
@@ -82,7 +82,7 @@ async function run() {
 
     // Navigate to another page
     console.log('🔄 Navigating to Google...');
-    await agent.navigate('https://google.com');
+    await agent.execute('https://google.com');
 
     const googleTitle = await agent.getTitle();
     console.log(`📄 Google page title: ${googleTitle}`);
