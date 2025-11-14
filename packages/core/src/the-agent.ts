@@ -137,7 +137,9 @@ export class TheAgent {
         provider: activeLLMProfile.provider,
         model: activeLLMProfile.model
       });
-      this.aiEngine = container.resolve(AIEngine);
+      
+      // Pass observability config to AIEngine constructor
+      this.aiEngine = new AIEngine(activeLLMProfile.observability);
 
       const aiEngineConfig = {
         ...activeLLMProfile,

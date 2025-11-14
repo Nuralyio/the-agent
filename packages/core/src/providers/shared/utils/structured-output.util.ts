@@ -21,7 +21,7 @@ export class StructuredOutputUtil {
     provider: AIProvider,
     prompt: string,
     systemPrompt?: string,
-    callbacks?: any[]
+    callbacks?: unknown[]
   ): Promise<AIResponse> {
     // Get format instructions from the schema
     const formatInstructions = this.parser.getFormatInstructions();
@@ -86,7 +86,7 @@ export class StructuredOutputUtil {
     provider: AIProvider,
     prompt: string,
     systemPrompt?: string,
-    callbacks?: any[]
+    callbacks?: unknown[]
   ): Promise<AIResponse> {
     const enhancedSystemPrompt = systemPrompt
       ? `${systemPrompt}\n\nCRITICAL: You MUST respond with ONLY valid JSON. No markdown formatting, no code blocks, no comments, no explanations. Only raw JSON that can be parsed directly.`

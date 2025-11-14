@@ -51,27 +51,27 @@ export interface AIProvider {
 
   /**
    * Send a text-only prompt to the AI
-   * @param callbacks - Optional LangChain callbacks for observability
+   * @param callbacks - Optional LangChain callbacks for observability (BaseCallbackHandler from @langchain/core)
    */
-  generateText(prompt: string, systemPrompt?: string, callbacks?: any[]): Promise<AIResponse>;
+  generateText(prompt: string, systemPrompt?: string, callbacks?: unknown[]): Promise<AIResponse>;
 
   /**
    * Generate structured JSON response (optional - for providers that support it)
-   * @param callbacks - Optional LangChain callbacks for observability
+   * @param callbacks - Optional LangChain callbacks for observability (BaseCallbackHandler from @langchain/core)
    */
-  generateStructuredJSON?(prompt: string, systemPrompt?: string, callbacks?: any[]): Promise<AIResponse>;
+  generateStructuredJSON?(prompt: string, systemPrompt?: string, callbacks?: unknown[]): Promise<AIResponse>;
 
   /**
    * Send a multi-modal prompt (text + images) to the AI
-   * @param callbacks - Optional LangChain callbacks for observability
+   * @param callbacks - Optional LangChain callbacks for observability (BaseCallbackHandler from @langchain/core)
    */
-  generateWithVision?(prompt: string, images: Buffer[], systemPrompt?: string, callbacks?: any[]): Promise<AIResponse>;
+  generateWithVision?(prompt: string, images: Buffer[], systemPrompt?: string, callbacks?: unknown[]): Promise<AIResponse>;
 
   /**
    * Send a conversation with multiple messages
-   * @param callbacks - Optional LangChain callbacks for observability
+   * @param callbacks - Optional LangChain callbacks for observability (BaseCallbackHandler from @langchain/core)
    */
-  generateFromMessages(messages: AIMessage[], callbacks?: any[]): Promise<AIResponse>;
+  generateFromMessages(messages: AIMessage[], callbacks?: unknown[]): Promise<AIResponse>;
 
   /**
    * Test if the provider is available/healthy
@@ -95,7 +95,7 @@ export class AIEngine {
   private aiLogger: AILoggingService;
   private observabilityService: ObservabilityService;
 
-  constructor() {
+  constructor(observabilityConfig?: ObservabilityConfig) {
     // Initialize with available providers
     this.promptTemplate = new PromptTemplate();
 
@@ -107,8 +107,8 @@ export class AIEngine {
     this.aiLogger = new AILoggingService(aiLogConfig);
 
     // Initialize observability service
-    // Load observability config from unified configuration or environment
-    const config = loadObservabilityConfig();
+    // Use provided config or load from unified configuration or environment
+    const config = observabilityConfig || loadObservabilityConfig();
     this.observabilityService = new ObservabilityService(config);
   }
 

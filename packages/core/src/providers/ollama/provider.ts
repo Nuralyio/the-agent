@@ -46,11 +46,11 @@ export class OllamaProvider implements AIProvider {
     this.visionCapabilities = OllamaModelUtils.getVisionCapabilities(this.config.model);
   }
 
-  async generateText(prompt: string, systemPrompt?: string, callbacks?: any[]): Promise<AIResponse> {
+  async generateText(prompt: string, systemPrompt?: string, callbacks?: unknown[]): Promise<AIResponse> {
     const messages = buildMessages(prompt, systemPrompt);
     
     // Build config object following Langfuse example pattern
-    const config = callbacks && callbacks.length > 0 ? { callbacks } : undefined;
+    const config = callbacks && callbacks.length > 0 ? { callbacks: callbacks as any } : undefined;
     
     if (config?.callbacks) {
       console.log(`🔍 Ollama provider invoking with ${config.callbacks.length} callback(s)`);
@@ -66,7 +66,7 @@ export class OllamaProvider implements AIProvider {
     return formatAIResponse(response);
   }
 
-  async generateWithVision(prompt: string, images: Buffer[], systemPrompt?: string, callbacks?: any[]): Promise<AIResponse> {
+  async generateWithVision(prompt: string, images: Buffer[], systemPrompt?: string, callbacks?: unknown[]): Promise<AIResponse> {
     if (!this.visionCapabilities.supportsImages) {
       throw new Error(`Model ${this.config.model} does not support vision capabilities`);
     }
@@ -87,19 +87,19 @@ export class OllamaProvider implements AIProvider {
       ]
     }));
 
-    const config = callbacks && callbacks.length > 0 ? { callbacks } : undefined;
+    const config = callbacks && callbacks.length > 0 ? { callbacks: callbacks as any } : undefined;
     const response = await this.model.invoke(messages, config);
     return formatAIResponse(response);
   }
 
-  async generateFromMessages(messages: AIMessage[], callbacks?: any[]): Promise<AIResponse> {
+  async generateFromMessages(messages: AIMessage[], callbacks?: unknown[]): Promise<AIResponse> {
     const langchainMessages = convertToLangChainMessages(messages);
-    const config = callbacks && callbacks.length > 0 ? { callbacks } : undefined;
+    const config = callbacks && callbacks.length > 0 ? { callbacks: callbacks as any } : undefined;
     const response = await this.model.invoke(langchainMessages, config);
     return formatAIResponse(response);
   }
 
-  async generateStructuredJSON(prompt: string, systemPrompt?: string, callbacks?: any[]): Promise<AIResponse> {
+  async generateStructuredJSON(prompt: string, systemPrompt?: string, callbacks?: unknown[]): Promise<AIResponse> {
     try {
       return await this.structuredOutputUtil.generateStructuredJSON(this, prompt, systemPrompt, callbacks);
     } catch {
@@ -178,7 +178,7 @@ export class OllamaProvider implements AIProvider {
     return OllamaModelUtils.isModelAvailable(modelName, models);
   }
 
-  private async generateTextWithJsonFallback(prompt: string, systemPrompt?: string, callbacks?: any[]): Promise<AIResponse> {
+  private async generateTextWithJsonFallback(prompt: string, systemPrompt?: string, callbacks?: unknown[]): Promise<AIResponse> {
     const enhancedSystemPrompt = systemPrompt
       ? `${systemPrompt}\n\nCRITICAL: You MUST respond with ONLY valid JSON. No markdown formatting, no code blocks, no comments, no explanations. Only raw JSON that can be parsed directly.`
       : 'CRITICAL: You MUST respond with ONLY valid JSON. No markdown formatting, no code blocks, no comments, no explanations. Only raw JSON that can be parsed directly.';
