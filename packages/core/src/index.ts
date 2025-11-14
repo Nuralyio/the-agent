@@ -16,7 +16,7 @@ export { Planner } from './engine/planning/planner';
 
 // Observability exports
 export { ObservabilityService } from './observability';
-export type { ObservabilityConfig, LLMCallMetadata } from './observability';
+export type { ObservabilityConfig } from './observability';
 
 export { ExecutionStream, executionStream } from './events/execution-stream';
 

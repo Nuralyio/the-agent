@@ -50,15 +50,6 @@ function loadObservabilityFromConfigFile(): ObservabilityConfig | undefined {
               enabled: true
             };
 
-            // Add tracing config if available
-            if (activeLLMProfile.observability.tracing?.enabled) {
-              observabilityConfig.opentelemetry = {
-                enabled: true,
-                serviceName: activeLLMProfile.observability.tracing.serviceName || 'the-agent-llm',
-                endpoint: activeLLMProfile.observability.tracing.endpoint
-              };
-            }
-
             // Add Langfuse config if available
             if (activeLLMProfile.observability.langfuse?.enabled) {
               const langfuseConfig = activeLLMProfile.observability.langfuse;
@@ -67,8 +58,9 @@ function loadObservabilityFromConfigFile(): ObservabilityConfig | undefined {
                 publicKey: langfuseConfig.publicKey || process.env.LANGFUSE_PUBLIC_KEY || '',
                 secretKey: langfuseConfig.secretKey || process.env.LANGFUSE_SECRET_KEY || '',
                 baseUrl: langfuseConfig.baseUrl,
-                projectId: langfuseConfig.projectId,
-                sessionName: langfuseConfig.sessionName
+                sessionName: langfuseConfig.sessionName,
+                userId: langfuseConfig.userId,
+                tags: langfuseConfig.tags
               };
             }
 
@@ -100,15 +92,6 @@ function loadObservabilityFromEnv(): ObservabilityConfig | undefined {
   const config: ObservabilityConfig = {
     enabled: true,
   };
-
-  // OpenTelemetry configuration
-  if (process.env.OTEL_ENABLED === 'true') {
-    config.opentelemetry = {
-      enabled: true,
-      serviceName: process.env.OTEL_SERVICE_NAME || 'the-agent-llm',
-      endpoint: process.env.OTEL_ENDPOINT,
-    };
-  }
 
   // Langfuse configuration
   if (process.env.LANGFUSE_ENABLED === 'true') {
