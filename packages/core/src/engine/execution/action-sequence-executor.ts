@@ -49,21 +49,27 @@ export class ActionSequenceExecutor {
   /**
    * Execute an action plan with context-aware refinement
    */
-  async executeActionPlan(plan: ActionPlan, logger?: ExecutionLogger, preserveExtractedData: boolean = true, enableStepRefinement: boolean = false): Promise<TaskResult> {
+  async executeActionPlan(plan: ActionPlan, logger?: ExecutionLogger, preserveExtractedData: boolean = true, enableStepRefinement: boolean = false, parentTrace?: any): Promise<TaskResult> {
     const startTime = Date.now();
     const executedSteps: any[] = [];
     const screenshots: Buffer[] = [];
     let currentPlan = plan;
 
-    // Start trace for agent tool calls (action steps)
+    // Use parent trace if provided - don't create a new trace, use the existing one
     if (this.aiEngine) {
       const observability = this.aiEngine.getObservabilityService();
       if (observability.isEnabled()) {
-        this.currentTrace = observability.startTrace('agent-action-plan', {
-          planId: plan.id,
-          objective: plan.objective,
-          stepCount: plan.steps.length,
-        });
+        if (parentTrace) {
+          // Use the parent trace directly - all spans will be created within it
+          this.currentTrace = parentTrace;
+        } else {
+          // No parent trace - create a new one (standalone execution)
+          this.currentTrace = observability.startTrace('agent-action-plan', {
+            planId: plan.id,
+            objective: plan.objective,
+            stepCount: plan.steps.length,
+          });
+        }
       }
     }
 

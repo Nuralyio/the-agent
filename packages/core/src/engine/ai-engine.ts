@@ -177,18 +177,20 @@ export class AIEngine {
   /**
    * Generate text using the default provider
    */
-  async generateText(prompt: string, systemPrompt?: string): Promise<AIResponse> {
+  async generateText(prompt: string, systemPrompt?: string, parentTrace?: any): Promise<AIResponse> {
     const provider = this.getDefaultProvider();
 
     // Log the request
     this.aiLogger.logRequest('generateText', prompt, systemPrompt, provider.name);
 
-    // Manual tracing with Langfuse
-    const trace = this.observabilityService.startTrace('generateText', {
+    // Use parent trace if provided, otherwise create a new one
+    // If parentTrace is provided, use it directly (don't create a new trace)
+    const trace = parentTrace || this.observabilityService.startTrace('generateText', {
       provider: provider.name,
       model: provider.config.model,
     });
 
+    // Create generation within the trace (not a new trace)
     const generation = trace ? this.observabilityService.createGeneration(trace, {
       name: 'generateText',
       model: `${provider.name}:${provider.config.model}`,
@@ -268,14 +270,14 @@ export class AIEngine {
   /**
    * Generate structured JSON response using the best available method
    */
-  async generateStructuredJSON(prompt: string, systemPrompt?: string): Promise<AIResponse> {
+  async generateStructuredJSON(prompt: string, systemPrompt?: string, parentTrace?: any): Promise<AIResponse> {
     const provider = this.getDefaultProvider();
 
     // Log the request
     this.aiLogger.logRequest('generateStructuredJSON', prompt, systemPrompt, provider.name);
 
-    // Manual tracing with Langfuse
-    const trace = this.observabilityService.startTrace('generateStructuredJSON', {
+    // Use parent trace if provided, otherwise create a new one
+    const trace = parentTrace || this.observabilityService.startTrace('generateStructuredJSON', {
       provider: provider.name,
       model: provider.config.model,
     });
@@ -346,7 +348,7 @@ export class AIEngine {
   /**
    * Generate with vision using the default provider (if supported)
    */
-  async generateWithVision(prompt: string, images: Buffer[], systemPrompt?: string): Promise<AIResponse> {
+  async generateWithVision(prompt: string, images: Buffer[], systemPrompt?: string, parentTrace?: any): Promise<AIResponse> {
     const provider = this.getDefaultProvider();
     if (!provider.generateWithVision) {
       throw new Error(`Provider '${provider.name}' does not support vision capabilities`);
@@ -355,8 +357,8 @@ export class AIEngine {
     // Log the request (with image info but not the actual image data)
     this.aiLogger.logVisionRequest('generateWithVision', prompt, systemPrompt, provider.name, images);
 
-    // Manual tracing with Langfuse
-    const trace = this.observabilityService.startTrace('generateWithVision', {
+    // Use parent trace if provided, otherwise create a new one
+    const trace = parentTrace || this.observabilityService.startTrace('generateWithVision', {
       provider: provider.name,
       model: provider.config.model,
       imageCount: images.length,

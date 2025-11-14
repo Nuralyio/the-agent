@@ -429,17 +429,25 @@ export class TheAgent {
       return null;
     }
 
-    // Start or get current trace for tool calls
-    const trace = observability.startTrace('agent-tool-call', {
-      toolName,
-      timestamp: new Date().toISOString(),
-    });
+    // Try to get current trace from ActionEngine if available
+    let trace = null;
+    if (this.actionEngine && typeof (this.actionEngine as any).getCurrentTrace === 'function') {
+      trace = (this.actionEngine as any).getCurrentTrace();
+    }
+
+    // If no current trace, create a new one for standalone tool calls (not part of a task)
+    if (!trace) {
+      trace = observability.startTrace('agent-tool-call', {
+        toolName,
+        timestamp: new Date().toISOString(),
+      });
+    }
 
     if (!trace) {
       return null;
     }
 
-    // Track the tool call as a span
+    // Track the tool call as a span within the existing trace (not a new trace)
     return observability.trackToolCall(trace, {
       name: toolName,
       input,
