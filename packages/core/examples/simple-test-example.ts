@@ -13,16 +13,22 @@
  *           type: 'chrome',
  *           headless: false
  *         },
- *         ai: {
- *           provider: 'ollama',
- *           model: 'qwen3:8b',
- *           baseUrl: 'http://100.115.253.119:11434'
+ *         llm: {
+ *           active: 'ollama',
+ *           profiles: {
+ *             ollama: {
+ *               provider: 'ollama',
+ *               model: 'qwen3:8b',
+ *               baseUrl: 'http://100.115.253.119:11434'
+ *             }
+ *           }
  *         }
  *       };
  *   - OR set environment variables:
- *       THEAGENT_AI_PROVIDER=ollama
- *       THEAGENT_AI_MODEL=qwen3:8b
- *       THEAGENT_AI_BASE_URL=http://100.115.253.119:11434
+ *       THEAGENT_LLM_ACTIVE=ollama
+ *       THEAGENT_LLM_PROFILES_OLLAMA_PROVIDER=ollama
+ *       THEAGENT_LLM_PROFILES_OLLAMA_MODEL=qwen3:8b
+ *       THEAGENT_LLM_PROFILES_OLLAMA_BASE_URL=http://100.115.253.119:11434
  *
  * Run with:
  *   cd packages/core

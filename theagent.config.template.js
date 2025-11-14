@@ -59,7 +59,8 @@ module.exports = {
         description: 'Development model with low temperature'
       }
     }
-  }, execution: {
+  },
+  execution: {
     // Directory for execution logs
     logsDir: './execution-logs',
 

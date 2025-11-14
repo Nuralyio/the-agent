@@ -1,13 +1,14 @@
 import { ConfigManager } from '@theagent/core/src/config/config-manager';
 import { CLIConfig } from '../types';
+import fs from 'fs/promises';
+import path from 'path';
 
 export async function loadConfig(configPath?: string): Promise<CLIConfig> {
   const configManager = ConfigManager.getInstance();
-  return await configManager.loadConfig(configPath ? require('path').dirname(configPath) : undefined);
+  return await configManager.loadConfig(configPath ? path.dirname(configPath) : undefined);
 }
 
 export async function saveConfig(config: Partial<CLIConfig>, configPath = 'theagent.config.js'): Promise<void> {
-  const fs = require('fs/promises');
   const configContent = `module.exports = ${JSON.stringify(config, null, 2)};`;
   await fs.writeFile(configPath, configContent);
 }
