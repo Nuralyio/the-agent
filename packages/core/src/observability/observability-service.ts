@@ -15,7 +15,7 @@ interface TraceObject {
 interface GenerationOptions {
   name?: string;
   model: string;
-  modelParameters?: Record<string, unknown>;
+  modelParameters?: { [key: string]: string | number | boolean | string[] | null } | null;
   input?: unknown;
   metadata?: Record<string, unknown>;
 }
@@ -119,7 +119,7 @@ export class ObservabilityService {
         userId: this.userId,
         tags: this.tags,
         metadata,
-      });
+      }) as TraceObject;
     } catch (error) {
       this.logError('Failed to create trace', error);
       return null;
@@ -132,7 +132,7 @@ export class ObservabilityService {
   createGeneration(trace: TraceObject | null, options: {
     name?: string;
     model: string;
-    modelParameters?: Record<string, unknown>;
+    modelParameters?: { [key: string]: string | number | boolean | string[] | null } | null;
     input?: unknown;
     metadata?: Record<string, unknown>;
   }): GenerationObject | null {
@@ -189,7 +189,7 @@ export class ObservabilityService {
     metadata?: Record<string, unknown>;
   }): { end: (result?: Partial<EndResult>) => void; span: SpanObject | null } {
     if (!trace) {
-      return { end: () => {}, span: null };
+      return { end: () => { }, span: null };
     }
 
     const startTime = new Date();

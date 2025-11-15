@@ -16,11 +16,11 @@ body:
       description: Please confirm the following before submitting your bug report
       options:
         - label: I have searched for existing issues that describe my problem
-          required: true
+          required: false
         - label: I have read the [documentation](https://github.com/Nuralyio/the-agent/blob/main/README.md)
-          required: true
+          required: false
         - label: I am using the latest version of The Agent
-          required: true
+          required: false
 
   - type: textarea
     id: what-happened
@@ -38,7 +38,7 @@ body:
       description: What did you expect to happen?
       placeholder: Tell us what you expected to see!
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: steps
@@ -51,7 +51,7 @@ body:
         3. Scroll down to '....'
         4. See error
     validations:
-      required: true
+      required: false
 
   - type: dropdown
     id: browser-adapter
@@ -64,7 +64,7 @@ body:
         - Selenium
         - Not applicable
     validations:
-      required: true
+      required: false
 
   - type: dropdown
     id: ai-provider
@@ -77,7 +77,7 @@ body:
         - Mistral
         - Not applicable
     validations:
-      required: true
+      required: false
 
   - type: input
     id: version
@@ -86,7 +86,7 @@ body:
       description: What version of The Agent are you running?
       placeholder: "v0.1.0-alpha"
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: environment
@@ -99,7 +99,7 @@ body:
         - npm version: [e.g. 9.6.7]
         - Browser version: [e.g. Chrome 120.0.6099.109]
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: logs

@@ -45,33 +45,15 @@ async function run() {
     console.log('📖 Initializing browser...');
     await agent.initialize();
 
-    console.log('🌐 Navigating to example page...');
 
-    // Navigate to a simple test page
-    await agent.execute('https://example.com');
 
-    console.log('✅ Successfully navigated to example.com');
-
-    // Get page title
-    const title = await agent.getTitle();
-    console.log(`📄 Page title: ${title}`);
-
-    // Get page URL
-    const url = await agent.getUrl();
-    console.log(`🌐 Page URL: ${url}`);
-
-    // Take a screenshot
-    console.log('📸 Taking screenshot...');
-    await agent.screenshot({ path: 'simple-test-screenshot.png' });
-    console.log('✅ Screenshot saved as simple-test-screenshot.png');
-
-    // Wait for a moment to see the page
-    console.log('⏱️ Waiting 3 seconds...');
-    await new Promise(resolve => setTimeout(resolve, 3000));
 
     // Navigate to another page
     console.log('🔄 Navigating to Google...');
-    await agent.navigate('https://google.com');
+    await agent.execute('navigate to https://www.amazon.fr');
+
+    await agent.execute('search for "iphone 17"');
+
 
     const googleTitle = await agent.getTitle();
     console.log(`📄 Google page title: ${googleTitle}`);
@@ -89,7 +71,7 @@ async function run() {
     console.log('🔄 Cleaning up...');
     await agent.close();
     console.log('✅ Browser closed');
-    
+
     // IMPORTANT: Flush observability traces before exit
     console.log('📡 Flushing observability traces...');
     await agent.shutdown();

@@ -15,11 +15,11 @@ body:
       description: Please confirm the following before asking your question
       options:
         - label: I have searched existing issues and discussions
-          required: true
+          required: false
         - label: I have read the [documentation](https://github.com/Nuralyio/the-agent/blob/main/README.md)
-          required: true
+          required: false
         - label: This is not a bug report (use the bug report template instead)
-          required: true
+          required: false
 
   - type: textarea
     id: question
@@ -49,7 +49,7 @@ body:
         - Contributing
         - Other
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: context

@@ -5,13 +5,14 @@ import type { BrowserManager } from '../types/browser.types';
 import type { ActionEngine as IActionEngine, TaskResult } from '../types/task.types';
 import { ExecutionLogger } from '../utils/execution-logger';
 import { ExecutionPlanExporter, type ExportOptions } from '../utils/execution-plan-exporter';
+import { PromptTemplate } from '../utils/prompt-template';
 import { AIEngine } from './ai-engine';
 import { StepContextManager } from './analysis/step-context';
 import { ActionExecutor } from './execution/action-executor';
 import { ActionSequenceExecutor } from './execution/action-sequence-executor';
 import { StepRefinementManager } from './execution/step-refinement';
 import { Planner } from './planning/planner';
-import type { ActionPlan, PageState, TaskContext } from './planning/types/types';
+import type { ActionPlan, PageState, Plan, SubPlan, TaskContext } from './planning/types/types';
 
 /**
  * Core ActionEngine implementation that orchestrates task execution
@@ -35,6 +36,7 @@ export class ActionEngine implements IActionEngine {
   private readonly stepRefinementManager: StepRefinementManager;
   private planExecutionManager: ActionSequenceExecutor;
   private currentTrace: any = null; // Top-level trace for the entire request
+  private promptTemplate: PromptTemplate;
 
   constructor(
     @inject(DI_TOKENS.BROWSER_MANAGER) browserManager: BrowserManager,
@@ -44,6 +46,7 @@ export class ActionEngine implements IActionEngine {
     this.aiEngine = aiEngine;
     this.stepContextManager = stepContextManager || new StepContextManager();
     this.planner = new Planner(aiEngine, this.stepContextManager);
+    this.promptTemplate = new PromptTemplate();
 
     // Set up trace propagation to ActionPlanner
     const actionPlanner = this.planner.getActionPlanner();
@@ -69,11 +72,17 @@ export class ActionEngine implements IActionEngine {
   }
 
   /**
+   * Get the current trace for this execution
+   */
+  getCurrentTrace(): any {
+    return this.currentTrace;
+  }
+
+  /**
    * Main entry point - execute a natural language instruction
    */
   async executeTask(objective: string, context?: TaskContext): Promise<TaskResult> {
     const startTime = Date.now();
-    console.log(`🤖 Processing instruction: "${objective}"`);
 
     // Create top-level trace for the entire request FIRST
     // This trace will be used for ALL operations (planning, execution, tool calls)
@@ -84,18 +93,22 @@ export class ActionEngine implements IActionEngine {
         taskId: context?.id || `task-${Date.now()}`,
         timestamp: new Date().toISOString(),
       });
-      console.log(`📊 Created top-level trace for task execution`);
     }
 
     const logger = new ExecutionLogger(objective);
-    console.log(`📝 Execution logging started: ${logger.getSessionId()}`);
 
     executionStream.startSession(logger.getSessionId());
 
     try {
-      console.log(`🧠 Using Planner with planning (always default)`);
-      console.log(`🔍 ActionEngine: Starting planning for: "${objective}"`);
-      const result = await this.executeWithPlanning(objective, context, logger);
+      // Classify instruction complexity using LLM
+      const complexity = await this.classifyInstructionComplexity(objective);
+
+      let result: TaskResult;
+      if (complexity === 'simple') {
+        result = await this.executeSimpleInstruction(objective, context, logger);
+      } else {
+        result = await this.executeWithPlanning(objective, context, logger);
+      }
 
       // Flush traces at the end
       if (observability.isEnabled()) {
@@ -126,6 +139,146 @@ export class ActionEngine implements IActionEngine {
   }
 
   /**
+   * Classify instruction complexity using LLM
+   */
+  private async classifyInstructionComplexity(instruction: string): Promise<'simple' | 'complex'> {
+    try {
+      const prompt = this.promptTemplate.render('instruction-complexity-classification', {
+        instruction: instruction
+      });
+
+      const response = await this.aiEngine.generateText(
+        prompt,
+        'You are a browser automation expert. Classify instructions as simple (single action) or complex (multi-step).',
+        this.currentTrace
+      );
+
+      // Extract JSON from response
+      const jsonMatch = response.content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (parsed.complexity === 'simple' || parsed.complexity === 'complex') {
+          return parsed.complexity;
+        }
+      }
+
+      // Default to complex on parse failure (safer)
+      return 'complex';
+    } catch (error) {
+      // Default to complex on error (safer)
+      return 'complex';
+    }
+  }
+
+  /**
+   * Execute simple instructions directly without global planning
+   */
+  private async executeSimpleInstruction(
+    objective: string,
+    context?: TaskContext,
+    logger?: ExecutionLogger
+  ): Promise<TaskResult> {
+    try {
+      // Capture page state
+      let pageState: PageState | undefined = undefined;
+      try {
+        pageState = await this.actionExecutor.captureState();
+      } catch (error) {
+        // No active page available
+      }
+
+      // Build task context
+      const taskContext: TaskContext = context || {
+        id: 'task-' + Date.now(),
+        objective: objective,
+        constraints: [],
+        variables: {},
+        history: this.stepContextManager.getRecentSteps().map(result => result.step),
+        executionContextSummary: this.stepContextManager.exportContextSummary(),
+        currentState: pageState || {
+          url: '',
+          title: '',
+          content: '',
+          screenshot: Buffer.alloc(0),
+          timestamp: Date.now(),
+          viewport: { width: 1280, height: 720 },
+          elements: [],
+        },
+        url: pageState?.url || '',
+        pageTitle: pageState?.title || '',
+      };
+
+      // Set trace in ActionPlanner
+      const actionPlanner = this.planner.getActionPlanner();
+      if (actionPlanner && this.currentTrace) {
+        actionPlanner.setTrace(this.currentTrace);
+      }
+
+      // Create action plan directly (skip global planning)
+      const actionPlan = await actionPlanner.createActionPlan(objective, taskContext, pageState);
+
+      // Convert ActionPlan to SubPlan for Plan structure
+      const subPlan: SubPlan = {
+        id: actionPlan.id,
+        parentId: actionPlan.id,
+        objective: actionPlan.objective,
+        description: actionPlan.objective,
+        steps: actionPlan.steps,
+        estimatedDuration: actionPlan.estimatedDuration || 0,
+        priority: actionPlan.priority || 0,
+        dependencies: actionPlan.dependencies || [],
+        refinementLevel: 0,
+        context: actionPlan.context
+      };
+
+      // Stream plan to frontend
+      const plan: Plan = {
+        id: actionPlan.id,
+        globalObjective: objective,
+        globalPlan: actionPlan,
+        subPlans: [subPlan],
+        totalEstimatedDuration: actionPlan.estimatedDuration || 0,
+        planningStrategy: 'sequential',
+        metadata: {}
+      };
+
+      executionStream.notifyExecutionPlanCreated(
+        plan,
+        objective,
+        'sequential'
+      );
+
+      // Execute action plan
+      const result = await this.planExecutionManager.executeActionPlan(
+        actionPlan,
+        logger,
+        true,
+        false,
+        this.currentTrace
+      );
+
+      // Complete session
+      if (logger) {
+        await logger.completeSession(result.success);
+      }
+      executionStream.notifyExecutionComplete();
+
+      return {
+        success: result.success,
+        steps: result.steps,
+        screenshots: result.screenshots,
+        extractedData: result.extractedData,
+        duration: result.duration,
+        plan: plan,
+        instruction: objective
+      };
+    } catch (error) {
+      console.error('❌ Simple instruction execution failed:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Execute task using Planner
    */
   private async executeWithPlanning(
@@ -138,7 +291,7 @@ export class ActionEngine implements IActionEngine {
       try {
         pageState = await this.actionExecutor.captureState();
       } catch (error) {
-        console.log('ℹ️ No active page available for context, proceeding with planning');
+        // No active page available for context, proceeding with planning
       }
 
       // Set trace in Planner FIRST, before any planning happens
@@ -167,14 +320,12 @@ export class ActionEngine implements IActionEngine {
         pageTitle: pageState?.title || '',
       };
 
-      console.log(`🧠 Planner: Creating and executing plan`);
       const result = await this.planner.planAndExecute(objective, taskContext, (plan: ActionPlan) =>
         this.planExecutionManager.executeActionPlan(plan, logger, true, false, this.currentTrace), // Pass current trace
       );
 
       if (logger) {
-        const logPath = await logger.completeSession(result.success);
-        console.log(`📋 Complete execution log saved to: ${logPath}`);
+        await logger.completeSession(result.success);
       }
 
       executionStream.notifyExecutionComplete();
@@ -202,11 +353,11 @@ export class ActionEngine implements IActionEngine {
    */
   async parseInstruction(instruction: string): Promise<ActionPlan> {
     let pageState: PageState | undefined = undefined;
-    try {
-      pageState = await this.actionExecutor.captureState();
-    } catch (error) {
-      console.log('🔍 No active page available for context, proceeding with navigation planning');
-    }
+      try {
+        pageState = await this.actionExecutor.captureState();
+      } catch (error) {
+        // No active page available for context, proceeding with navigation planning
+      }
 
     const context: TaskContext = {
       id: 'task-' + Date.now(),
@@ -257,7 +408,6 @@ export class ActionEngine implements IActionEngine {
    * Clear all execution context (start fresh session)
    */
   clearExecutionContext(): void {
-    console.log(`🔄 Clearing all execution context`);
     this.stepContextManager.reset();
   }
 
@@ -266,10 +416,8 @@ export class ActionEngine implements IActionEngine {
    */
   async executeTaskWithRefinement(objective: string, context?: TaskContext): Promise<TaskResult> {
     const startTime = Date.now();
-    console.log(`🤖 Processing instruction with refinement: "${objective}"`);
 
     const logger = new ExecutionLogger(objective);
-    console.log(`📝 Execution logging started: ${logger.getSessionId()}`);
 
     executionStream.startSession(logger.getSessionId());
 
@@ -310,7 +458,7 @@ export class ActionEngine implements IActionEngine {
       try {
         pageState = await this.actionExecutor.captureState();
       } catch (error) {
-        console.log('ℹ️ No active page available for context, proceeding with planning');
+        // No active page available for context, proceeding with planning
       }
 
       const taskContext: TaskContext = context || {
@@ -333,14 +481,12 @@ export class ActionEngine implements IActionEngine {
         pageTitle: pageState?.title || '',
       };
 
-      console.log(`🧠 Planner: Creating and executing plan with refinement enabled`);
       const result = await this.planner.planAndExecute(objective, taskContext, (plan: ActionPlan) =>
         this.planExecutionManager.executeActionPlan(plan, logger, true, true), // Preserve data + enable refinement
       );
 
       if (logger) {
-        const logPath = await logger.completeSession(result.success);
-        console.log(`📋 Complete execution log saved to: ${logPath}`);
+        await logger.completeSession(result.success);
       }
 
       executionStream.notifyExecutionComplete();

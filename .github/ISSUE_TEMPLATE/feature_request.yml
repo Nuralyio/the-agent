@@ -15,11 +15,11 @@ body:
       description: Please confirm the following before submitting your feature request
       options:
         - label: I have searched for existing issues that describe this feature
-          required: true
+          required: false
         - label: I have read the [documentation](https://github.com/Nuralyio/the-agent/blob/main/README.md)
-          required: true
+          required: false
         - label: This feature would be useful to other users, not just me
-          required: true
+          required: false
 
   - type: textarea
     id: problem
@@ -65,7 +65,7 @@ body:
         - Multiple components
         - Other
     validations:
-      required: true
+      required: false
 
   - type: dropdown
     id: priority
@@ -77,7 +77,7 @@ body:
         - Medium - Would improve my workflow
         - High - Blocking my use case
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: use-case
@@ -86,7 +86,7 @@ body:
       description: Describe your specific use case for this feature
       placeholder: "I want to use this feature to..."
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: additional-context

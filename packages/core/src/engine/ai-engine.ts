@@ -1,10 +1,10 @@
 import * as path from 'path';
 import { injectable } from '../di';
+import { ObservabilityConfig, ObservabilityService, loadObservabilityConfig } from '../observability';
 import { OllamaProvider, OpenAIProvider } from '../providers';
 import { AILogConfig, AILoggingService } from '../utils/logging';
 import { PromptTemplate } from '../utils/prompt-template';
 import { ActionStep, ActionType, PageState } from './planning/types/types';
-import { ObservabilityService, ObservabilityConfig, loadObservabilityConfig } from '../observability';
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -184,20 +184,25 @@ export class AIEngine {
     input: { prompt: string; systemPrompt?: string; imageCount?: number },
     parentTrace?: any
   ): Promise<T> {
-    // Use parent trace if provided, otherwise create a new one
-    const trace = parentTrace || this.observabilityService.startTrace(operationName, {
-      provider: provider.name,
-      model: provider.config.model,
-      ...(input.imageCount !== undefined && { imageCount: input.imageCount }),
-    });
+    // Always use parent trace if provided - never create a new trace
+    // This ensures all operations are grouped under the same trace ID
+    const trace = parentTrace;
+
+    if (!trace) {
+      // If no trace provided and observability is enabled, log a warning
+      // but continue without tracing (don't create orphaned traces)
+      if (this.observabilityService.isEnabled()) {
+        console.warn(`⚠️ No parent trace provided for ${operationName} - skipping observability`);
+      }
+    }
 
     // Create generation within the trace
     const generation = trace ? this.observabilityService.createGeneration(trace, {
       name: operationName,
       model: `${provider.name}:${provider.config.model}`,
       modelParameters: {
-        temperature: provider.config.temperature,
-        maxTokens: provider.config.maxTokens,
+        ...(provider.config.temperature !== undefined && { temperature: provider.config.temperature }),
+        ...(provider.config.maxTokens !== undefined && { maxTokens: provider.config.maxTokens }),
       },
       input,
     }) : null;

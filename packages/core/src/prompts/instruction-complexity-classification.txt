@@ -1,0 +1,11 @@
+Analyze this browser automation instruction and classify it as "simple" or "complex".
+
+Instruction: {{instruction}}
+
+Simple: Single action (click, type, navigate, screenshot, scroll, wait, extract)
+Complex: Multiple steps, sequences, conditionals, or workflows
+
+Respond with ONLY JSON:
+{"complexity": "simple" | "complex"}
+
+
