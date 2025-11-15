@@ -33,3 +33,6 @@ export * from './types/browser.types';
 export * from './types/config.types';
 export * from './types/task.types';
 
+// Extractor exports
+export * from './extractors';
+

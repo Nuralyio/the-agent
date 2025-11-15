@@ -1,6 +1,7 @@
 import { ElementHandle } from './element.interface';
 import { ScreenshotOptions, VideoRecordingOptions } from './options.interface';
 import { WaitOptions } from './types';
+import { ContentExtractor } from '../../extractors/extractor.interface';
 
 /**
  * Page instance interface
@@ -23,4 +24,10 @@ export interface PageInstance {
   startVideoRecording(options?: VideoRecordingOptions): Promise<void>;
   stopVideoRecording(): Promise<string | null>;
   isVideoRecording(): boolean;
+  
+  /**
+   * Get the content extractor for this page
+   * @returns ContentExtractor instance for extracting visible and accessible content
+   */
+  getContentExtractor(): ContentExtractor;
 }
