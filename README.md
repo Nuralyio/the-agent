@@ -48,6 +48,8 @@ real-time monitor and monitoring capabilities.
 - 🔄 **WebSocket Integration**: Live automation streaming and status updates
 - 🛠️ **CLI Interface**: Command-line tools for scripting and automation
 - 🧪 **Unit Testing**: Comprehensive unit test coverage with CI/CD integration
+- 📈 **LLM Observability**: OpenTelemetry and Langfuse integration for monitoring
+  AI interactions
 
 - **Live Execution Monitoring** - Watch your automation tasks execute in
   real-time
@@ -540,6 +542,7 @@ browser automation!
 
 ## 🎯 Roadmap
 
+- [x] **LLM Observability** - OpenTelemetry and Langfuse integration ✅
 - [ ] Additional AI provider integrations
 - [ ] Enhanced element detection algorithms
 - [ ] Mobile browser automation support

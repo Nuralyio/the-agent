@@ -30,18 +30,26 @@ import type { ActionPlan, PageState, TaskContext } from './planning/types/types'
 export class ActionEngine implements IActionEngine {
   private planner: Planner;
   private readonly stepContextManager: StepContextManager;
-
+  private readonly aiEngine: AIEngine;
   private readonly actionExecutor: ActionExecutor;
   private readonly stepRefinementManager: StepRefinementManager;
   private planExecutionManager: ActionSequenceExecutor;
+  private currentTrace: any = null; // Top-level trace for the entire request
 
   constructor(
     @inject(DI_TOKENS.BROWSER_MANAGER) browserManager: BrowserManager,
     @inject(DI_TOKENS.AI_ENGINE) aiEngine: AIEngine,
     @inject(DI_TOKENS.STEP_CONTEXT_MANAGER) stepContextManager?: StepContextManager
   ) {
+    this.aiEngine = aiEngine;
     this.stepContextManager = stepContextManager || new StepContextManager();
     this.planner = new Planner(aiEngine, this.stepContextManager);
+
+    // Set up trace propagation to ActionPlanner
+    const actionPlanner = this.planner.getActionPlanner();
+    if (actionPlanner && typeof (actionPlanner as any).setTrace === 'function') {
+      // Trace will be set when executeTask is called
+    }
 
     this.actionExecutor = new ActionExecutor(browserManager);
     this.stepRefinementManager = new StepRefinementManager(
@@ -54,6 +62,7 @@ export class ActionEngine implements IActionEngine {
       this.stepContextManager,
       this.actionExecutor,
       this.stepRefinementManager,
+      aiEngine // Pass AIEngine for observability
     );
 
     this.planner.setActionExecutor(this.actionExecutor);
@@ -66,6 +75,18 @@ export class ActionEngine implements IActionEngine {
     const startTime = Date.now();
     console.log(`🤖 Processing instruction: "${objective}"`);
 
+    // Create top-level trace for the entire request FIRST
+    // This trace will be used for ALL operations (planning, execution, tool calls)
+    const observability = this.aiEngine.getObservabilityService();
+    if (observability.isEnabled()) {
+      this.currentTrace = observability.startTrace('agent-task-execution', {
+        objective,
+        taskId: context?.id || `task-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+      });
+      console.log(`📊 Created top-level trace for task execution`);
+    }
+
     const logger = new ExecutionLogger(objective);
     console.log(`📝 Execution logging started: ${logger.getSessionId()}`);
 
@@ -74,7 +95,14 @@ export class ActionEngine implements IActionEngine {
     try {
       console.log(`🧠 Using Planner with planning (always default)`);
       console.log(`🔍 ActionEngine: Starting planning for: "${objective}"`);
-      return await this.executeWithPlanning(objective, context, logger);
+      const result = await this.executeWithPlanning(objective, context, logger);
+
+      // Flush traces at the end
+      if (observability.isEnabled()) {
+        await observability.flush();
+      }
+
+      return result;
     } catch (error) {
       console.error('❌ Task execution failed:', error);
 
@@ -113,6 +141,12 @@ export class ActionEngine implements IActionEngine {
         console.log('ℹ️ No active page available for context, proceeding with planning');
       }
 
+      // Set trace in Planner FIRST, before any planning happens
+      // This ensures all AI calls during planning use the same trace
+      if (this.planner && typeof (this.planner as any).setTrace === 'function') {
+        (this.planner as any).setTrace(this.currentTrace);
+      }
+
       const taskContext: TaskContext = context || {
         id: 'task-' + Date.now(),
         objective: objective,
@@ -135,7 +169,7 @@ export class ActionEngine implements IActionEngine {
 
       console.log(`🧠 Planner: Creating and executing plan`);
       const result = await this.planner.planAndExecute(objective, taskContext, (plan: ActionPlan) =>
-        this.planExecutionManager.executeActionPlan(plan, logger, true, false), // Preserve extracted data, disable refinement
+        this.planExecutionManager.executeActionPlan(plan, logger, true, false, this.currentTrace), // Pass current trace
       );
 
       if (logger) {

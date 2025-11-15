@@ -4,6 +4,7 @@ import { OllamaProvider, OpenAIProvider } from '../providers';
 import { AILogConfig, AILoggingService } from '../utils/logging';
 import { PromptTemplate } from '../utils/prompt-template';
 import { ActionStep, ActionType, PageState } from './planning/types/types';
+import { ObservabilityService, ObservabilityConfig, loadObservabilityConfig } from '../observability';
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -50,23 +51,27 @@ export interface AIProvider {
 
   /**
    * Send a text-only prompt to the AI
+   * @param callbacks - Optional LangChain callbacks for observability (BaseCallbackHandler from @langchain/core)
    */
-  generateText(prompt: string, systemPrompt?: string): Promise<AIResponse>;
+  generateText(prompt: string, systemPrompt?: string, callbacks?: unknown[]): Promise<AIResponse>;
 
   /**
    * Generate structured JSON response (optional - for providers that support it)
+   * @param callbacks - Optional LangChain callbacks for observability (BaseCallbackHandler from @langchain/core)
    */
-  generateStructuredJSON?(prompt: string, systemPrompt?: string): Promise<AIResponse>;
+  generateStructuredJSON?(prompt: string, systemPrompt?: string, callbacks?: unknown[]): Promise<AIResponse>;
 
   /**
    * Send a multi-modal prompt (text + images) to the AI
+   * @param callbacks - Optional LangChain callbacks for observability (BaseCallbackHandler from @langchain/core)
    */
-  generateWithVision?(prompt: string, images: Buffer[], systemPrompt?: string): Promise<AIResponse>;
+  generateWithVision?(prompt: string, images: Buffer[], systemPrompt?: string, callbacks?: unknown[]): Promise<AIResponse>;
 
   /**
    * Send a conversation with multiple messages
+   * @param callbacks - Optional LangChain callbacks for observability (BaseCallbackHandler from @langchain/core)
    */
-  generateFromMessages(messages: AIMessage[]): Promise<AIResponse>;
+  generateFromMessages(messages: AIMessage[], callbacks?: unknown[]): Promise<AIResponse>;
 
   /**
    * Test if the provider is available/healthy
@@ -88,8 +93,9 @@ export class AIEngine {
   private defaultProvider?: AIProvider;
   private promptTemplate: PromptTemplate;
   private aiLogger: AILoggingService;
+  private observabilityService: ObservabilityService;
 
-  constructor() {
+  constructor(observabilityConfig?: ObservabilityConfig) {
     // Initialize with available providers
     this.promptTemplate = new PromptTemplate();
 
@@ -99,6 +105,11 @@ export class AIEngine {
       enableFileSystemLogging: process.env.AI_ENABLE_FILE_LOGGING === 'true' // Disabled by default, enable via env var
     };
     this.aiLogger = new AILoggingService(aiLogConfig);
+
+    // Initialize observability service
+    // Use provided config or load from unified configuration or environment
+    const config = observabilityConfig || loadObservabilityConfig();
+    this.observabilityService = new ObservabilityService(config);
   }
 
   /**
@@ -164,15 +175,106 @@ export class AIEngine {
   }
 
   /**
+   * Helper method to execute LLM operations with observability tracing
+   */
+  private async executeWithTracing<T extends AIResponse>(
+    operationName: string,
+    provider: AIProvider,
+    operation: () => Promise<T>,
+    input: { prompt: string; systemPrompt?: string; imageCount?: number },
+    parentTrace?: any
+  ): Promise<T> {
+    // Use parent trace if provided, otherwise create a new one
+    const trace = parentTrace || this.observabilityService.startTrace(operationName, {
+      provider: provider.name,
+      model: provider.config.model,
+      ...(input.imageCount !== undefined && { imageCount: input.imageCount }),
+    });
+
+    // Create generation within the trace
+    const generation = trace ? this.observabilityService.createGeneration(trace, {
+      name: operationName,
+      model: `${provider.name}:${provider.config.model}`,
+      modelParameters: {
+        temperature: provider.config.temperature,
+        maxTokens: provider.config.maxTokens,
+      },
+      input,
+    }) : null;
+
+    const startTime = Date.now();
+
+    try {
+      const response = await operation();
+
+      // Update generation with output
+      if (generation) {
+        const duration = Date.now() - startTime;
+        generation.end({
+          output: response.content,
+          usage: response.usage,
+          metadata: {
+            finishReason: response.finishReason,
+            duration,
+          },
+        });
+
+        // Track tool calls if the LLM requested them
+        if (response.finishReason === 'tool_calls' && trace) {
+          const toolCallSpan = this.observabilityService.trackToolCall(trace, {
+            name: 'llm-tool-call-request',
+            input: {
+              content: response.content,
+              finishReason: response.finishReason,
+            },
+            metadata: {
+              source: 'llm',
+              provider: provider.name,
+              model: provider.config.model,
+            },
+          });
+          if (toolCallSpan) {
+            toolCallSpan.end({
+              output: { status: 'tool_calls_requested' },
+              metadata: { note: 'Tool calls will be executed by agent' },
+            });
+          }
+        }
+      }
+
+      return response;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      if (generation) {
+        generation.end({
+          level: 'ERROR',
+          statusMessage: error.message,
+        });
+      }
+      throw err;
+    } finally {
+      // Flush traces
+      await this.observabilityService.flush();
+    }
+  }
+
+  /**
    * Generate text using the default provider
    */
-  async generateText(prompt: string, systemPrompt?: string): Promise<AIResponse> {
+  async generateText(prompt: string, systemPrompt?: string, parentTrace?: any): Promise<AIResponse> {
     const provider = this.getDefaultProvider();
 
     // Log the request
     this.aiLogger.logRequest('generateText', prompt, systemPrompt, provider.name);
 
-    const response = await provider.generateText(prompt, systemPrompt);
+    // Execute with observability tracing
+    const response = await this.executeWithTracing(
+      'generateText',
+      provider,
+      () => provider.generateText(prompt, systemPrompt, []),
+      { prompt, systemPrompt },
+      parentTrace
+    );
 
     // Log the response
     this.aiLogger.logResponse('generateText', response, provider.name, prompt);
@@ -183,26 +285,31 @@ export class AIEngine {
   /**
    * Generate structured JSON response using the best available method
    */
-  async generateStructuredJSON(prompt: string, systemPrompt?: string): Promise<AIResponse> {
+  async generateStructuredJSON(prompt: string, systemPrompt?: string, parentTrace?: any): Promise<AIResponse> {
     const provider = this.getDefaultProvider();
 
     // Log the request
     this.aiLogger.logRequest('generateStructuredJSON', prompt, systemPrompt, provider.name);
 
-    let response: AIResponse;
-
-    // Use provider's structured JSON method if available
-    if (provider.generateStructuredJSON) {
-      response = await provider.generateStructuredJSON(prompt, systemPrompt);
-    } else {
-      // Fallback to regular text generation with enhanced prompting
-      const structuredJsonPrompt = this.promptTemplate.render('structured-json', {});
-      const enhancedSystemPrompt = systemPrompt
-        ? `${systemPrompt}\n\n${structuredJsonPrompt}`
-        : structuredJsonPrompt;
-
-      response = await this.generateText(prompt, enhancedSystemPrompt);
-    }
+    // Execute with observability tracing
+    const response = await this.executeWithTracing(
+      'generateStructuredJSON',
+      provider,
+      async () => {
+        if (provider.generateStructuredJSON) {
+          return await provider.generateStructuredJSON(prompt, systemPrompt, []);
+        } else {
+          // Fallback to regular text generation with enhanced prompting
+          const structuredJsonPrompt = this.promptTemplate.render('structured-json', {});
+          const enhancedSystemPrompt = systemPrompt
+            ? `${systemPrompt}\n\n${structuredJsonPrompt}`
+            : structuredJsonPrompt;
+          return await provider.generateText(prompt, enhancedSystemPrompt, []);
+        }
+      },
+      { prompt, systemPrompt },
+      parentTrace
+    );
 
     // Log the response
     this.aiLogger.logResponse('generateStructuredJSON', response, provider.name, prompt);
@@ -213,7 +320,7 @@ export class AIEngine {
   /**
    * Generate with vision using the default provider (if supported)
    */
-  async generateWithVision(prompt: string, images: Buffer[], systemPrompt?: string): Promise<AIResponse> {
+  async generateWithVision(prompt: string, images: Buffer[], systemPrompt?: string, parentTrace?: any): Promise<AIResponse> {
     const provider = this.getDefaultProvider();
     if (!provider.generateWithVision) {
       throw new Error(`Provider '${provider.name}' does not support vision capabilities`);
@@ -222,7 +329,14 @@ export class AIEngine {
     // Log the request (with image info but not the actual image data)
     this.aiLogger.logVisionRequest('generateWithVision', prompt, systemPrompt, provider.name, images);
 
-    const response = await provider.generateWithVision(prompt, images, systemPrompt);
+    // Execute with observability tracing
+    const response = await this.executeWithTracing(
+      'generateWithVision',
+      provider,
+      () => provider.generateWithVision!(prompt, images, systemPrompt, []),
+      { prompt, systemPrompt, imageCount: images.length },
+      parentTrace
+    );
 
     // Log the response
     this.aiLogger.logResponse('generateWithVision', response, provider.name, prompt);
@@ -346,5 +460,19 @@ export class AIEngine {
    */
   getAILogger(): AILoggingService {
     return this.aiLogger;
+  }
+
+  /**
+   * Get observability service
+   */
+  getObservabilityService(): ObservabilityService {
+    return this.observabilityService;
+  }
+
+  /**
+   * Shutdown AI Engine and cleanup resources
+   */
+  async shutdown(): Promise<void> {
+    await this.observabilityService.shutdown();
   }
 }

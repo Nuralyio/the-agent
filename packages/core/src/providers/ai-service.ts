@@ -26,11 +26,12 @@ export class AIService {
    */
   async generateStructuredResponse(
     userPrompt: string,
-    systemPrompt: string
+    systemPrompt: string,
+    parentTrace?: any
   ): Promise<string> {
     console.log(`🔄 Using structured output for better reliability`);
 
-    const response = await this.aiEngine.generateStructuredJSON(userPrompt, systemPrompt);
+    const response = await this.aiEngine.generateStructuredJSON(userPrompt, systemPrompt, parentTrace);
     console.log(`✅ Successfully got structured response`);
 
     return response.content;
@@ -41,7 +42,8 @@ export class AIService {
    */
   async generateTextWithRetries(
     userPrompt: string,
-    systemPrompt: string
+    systemPrompt: string,
+    parentTrace?: any
   ): Promise<string> {
     let lastError: Error | null = null;
 
@@ -49,7 +51,7 @@ export class AIService {
       try {
         console.log(`🔄 Fallback attempt ${attempt}/${this.options.maxRetries} to get valid JSON from LLM`);
 
-        const response = await this.aiEngine.generateText(userPrompt, systemPrompt);
+        const response = await this.aiEngine.generateText(userPrompt, systemPrompt, parentTrace);
         console.log(`📊 Response stats: ${response.content.length} chars`);
         console.log(`✅ Successfully got valid JSON on attempt ${attempt}`);
 

@@ -170,6 +170,8 @@ Thumbs.db
 logs/
 **/logs/
 logs/execution-logs/
+# Global execution logs directories
+**/execution-logs/
 screenshots/
 **/screenshots/
 test-results/
@@ -199,6 +201,7 @@ webkit/
 *.zip
 **/temp-screenshots/
 **/debug-screenshots/
+**/**-screenshot.png
 
 # Selenium specific
 geckodriver.log
